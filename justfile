@@ -10,11 +10,11 @@ default:
 # under src/; pass paths to format only those (used by the lefthook
 # pre-commit hook, which passes the staged files).
 format *files:
-    {{podman_run}} bash -c 'clang-format -i $(if [ -n "{{files}}" ]; then echo "{{files}}"; else find src -type f \( -name "*.cpp" -o -name "*.h" \); fi)'
+    {{podman_run}} bash -c 'clang-format -i $(if [ -n "{{files}}" ]; then echo "{{files}}"; else find src tests -type f \( -name "*.cpp" -o -name "*.h" \); fi)'
 
 # Check formatting without modifying files; exits non-zero on drift (CI use).
 format-check:
-    {{podman_run}} bash -c 'clang-format --dry-run --Werror $(find src -type f \( -name "*.cpp" -o -name "*.h" \))'
+    {{podman_run}} bash -c 'clang-format --dry-run --Werror $(find src tests -type f \( -name "*.cpp" -o -name "*.h" \))'
 
 # Build the container image used for all other recipes.
 build-image:
@@ -80,6 +80,15 @@ run-gui:
         --userns=keep-id \
         --net=host \
         {{image}} ./{{build_dir}}/src/gui/wowcapd-gui
+
+# Tail a real WoW Logs directory (read-only) and print every parsed LogLine,
+# to sanity-check LogLine/LogWatcher against a live client.
+log-tail path idle="60000":
+    podman run --rm -it \
+        --security-opt label=disable \
+        -v {{justfile_directory()}}:/src -w /src \
+        -v "{{path}}":/wow-logs:ro \
+        {{image}} ./{{build_dir}}/tools/logtail/logtail /wow-logs {{idle}}
 
 clean:
     rm -rf {{build_dir}}

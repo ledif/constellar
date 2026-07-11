@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type" FORCE)
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Test)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 
@@ -23,3 +23,5 @@ add_subdirectory(src/common)
 add_subdirectory(src/daemon)
 add_subdirectory(src/cli)
 add_subdirectory(src/gui)
+add_subdirectory(tests)
+add_subdirectory(tools/logtail)

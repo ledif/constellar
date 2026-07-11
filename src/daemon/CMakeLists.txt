@@ -1,3 +1,6 @@
+add_subdirectory(log)
+add_subdirectory(controller)
+
 add_executable(wowcapd
     main.cpp
     ManagerAdaptor.h
@@ -6,6 +9,7 @@ add_executable(wowcapd
     ManagerService.cpp
 )
 
-target_link_libraries(wowcapd PRIVATE Qt6::Core Qt6::DBus wowcapd-common)
+target_link_libraries(wowcapd PRIVATE Qt6::Core Qt6::DBus wowcapd-common wowcapd-log
+                                       wowcapd-controller)
 
 install(TARGETS wowcapd)
