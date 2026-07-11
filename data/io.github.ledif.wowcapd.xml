@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="io.github.ledif.wowcapd.Manager">
+    <property name="State" type="s" access="read"/>
+    <property name="WowActive" type="b" access="read"/>
+    <property name="ActiveCapture" type="s" access="read"/>
+
+    <method name="Status">
+      <arg name="status" type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+    </method>
+    <method name="Pause"/>
+    <method name="Resume"/>
+    <method name="StartManualRecording"/>
+    <method name="StopManualRecording"/>
+    <method name="ReloadConfig"/>
+    <!-- recordings out-arg is a list of recording IDs in Phase 0; grows into
+         full metadata dicts once MetadataStore lands in Phase 1. -->
+    <method name="ListRecordings">
+      <arg name="filter" type="a{sv}" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg name="recordings" type="as" direction="out"/>
+    </method>
+    <method name="DeleteRecording">
+      <arg name="id" type="s" direction="in"/>
+    </method>
+    <method name="GetConfig">
+      <arg name="config" type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+    </method>
+    <method name="SetConfig">
+      <arg name="config" type="a{sv}" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+
+    <signal name="RecordingStarted">
+      <arg name="category" type="s"/>
+      <arg name="name" type="s"/>
+    </signal>
+    <signal name="RecordingStopped">
+      <arg name="id" type="s"/>
+      <arg name="result" type="s"/>
+    </signal>
+    <signal name="StateChanged">
+      <arg name="state" type="s"/>
+    </signal>
+    <signal name="Error">
+      <arg name="code" type="s"/>
+      <arg name="message" type="s"/>
+    </signal>
+  </interface>
+</node>
