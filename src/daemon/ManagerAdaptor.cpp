@@ -6,6 +6,10 @@ ManagerAdaptor::ManagerAdaptor(ManagerService *service)
     : QDBusAbstractAdaptor(service), m_service(service) {
     setAutoRelaySignals(true);
     connect(service, &ManagerService::stateChanged, this, &ManagerAdaptor::StateChanged);
+    connect(service, &ManagerService::encounterDetected, this, &ManagerAdaptor::EncounterDetected);
+    connect(service, &ManagerService::encounterEnded, this, &ManagerAdaptor::EncounterEnded);
+    connect(service, &ManagerService::dungeonDetected, this, &ManagerAdaptor::DungeonDetected);
+    connect(service, &ManagerService::dungeonEnded, this, &ManagerAdaptor::DungeonEnded);
 }
 
 QString ManagerAdaptor::state() const {

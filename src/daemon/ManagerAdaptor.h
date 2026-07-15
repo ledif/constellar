@@ -45,8 +45,13 @@ class ManagerAdaptor : public QDBusAbstractAdaptor {
     void SetConfig(const QVariantMap &config);
 
   Q_SIGNALS:
-    void RecordingStarted(const QString &category, const QString &name);
-    void RecordingStopped(const QString &id, const QString &result);
+    void EncounterDetected(int encounterId, const QString &encounterName, const QString &difficulty,
+                           const QString &startTime);
+    void EncounterEnded(int encounterId, const QString &encounterName, bool success,
+                        const QString &stopTime);
+    void DungeonDetected(int zoneId, int mapId, int keystoneLevel, const QString &startTime);
+    void DungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
+                      const QString &stopTime);
     void StateChanged(const QString &state);
     void Error(const QString &code, const QString &message);
 

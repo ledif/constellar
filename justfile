@@ -38,13 +38,28 @@ shell:
     podman run --rm -it -v {{justfile_directory()}}:/src:Z -w /src {{image}} bash
 
 # Run the daemon against the host session bus, inside the container.
-run-daemon:
+# Requires a log directory; see run-daemon-live for pointing it at a real
+# WoW Logs directory mounted read-only.
+run-daemon log_dir:
     podman run --rm -it \
         -v {{justfile_directory()}}:/src:Z -w /src \
         -v /run/user/$(id -u):/run/user/$(id -u):Z \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
-        {{image}} ./{{build_dir}}/src/daemon/wowcapd
+        {{image}} ./{{build_dir}}/src/daemon/wowcapd --log-dir {{log_dir}}
+
+# Run the daemon against the host session bus and a real WoW Logs directory
+# (read-only mount, SELinux relabeling disabled like log-tail). This plus
+# `just run-gui` in a second terminal is the live detection MVP.
+run-daemon-live path:
+    podman run --rm -it \
+        --security-opt label=disable \
+        -v {{justfile_directory()}}:/src:Z -w /src \
+        -v /run/user/$(id -u):/run/user/$(id -u):Z \
+        -v "{{path}}":/wow-logs:ro \
+        -e DBUS_SESSION_BUS_ADDRESS \
+        --userns=keep-id \
+        {{image}} ./{{build_dir}}/src/daemon/wowcapd --log-dir /wow-logs
 
 # Run `wowcap status` against the host session bus, inside the container.
 run-cli *args:
@@ -59,7 +74,7 @@ run-cli *args:
 # bus inside the container. No host session bus required — good for CI.
 smoke:
     {{podman_run}} dbus-run-session -- bash -c ' \
-        ./{{build_dir}}/src/daemon/wowcapd & \
+        ./{{build_dir}}/src/daemon/wowcapd --log-dir /tmp & \
         pid=$!; \
         sleep 1; \
         ./{{build_dir}}/src/cli/wowcap status; \
@@ -69,14 +84,20 @@ smoke:
     '
 
 # Run the GUI against the host session+display, inside the container.
+# /tmp/.X11-unix is a shared system socket dir owned outside our user/SELinux
+# domain, so it can't be exclusively relabeled (:Z) the way /src and
+# /run/user can — disable SELinux confinement for this container instead
+# (same fix as log-tail's real-game-install mount).
 run-gui:
     podman run --rm -it \
-        -v {{justfile_directory()}}:/src:Z -w /src \
-        -v /run/user/$(id -u):/run/user/$(id -u):Z \
-        -v /tmp/.X11-unix:/tmp/.X11-unix:Z \
+        --security-opt label=disable \
+        -v {{justfile_directory()}}:/src -w /src \
+        -v /run/user/$(id -u):/run/user/$(id -u) \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DBUS_SESSION_BUS_ADDRESS \
         -e DISPLAY \
         -e WAYLAND_DISPLAY \
+        -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         --userns=keep-id \
         --net=host \
         {{image}} ./{{build_dir}}/src/gui/wowcapd-gui

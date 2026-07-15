@@ -9,13 +9,17 @@
 
 #include "LogLine.h"
 
-// Raids-only first cut of the encounter state machine described in
-// PLAN.md §3.4. Consumes parsed LogLines and decides when a raid pull
-// should be recorded — it does not touch libobs (that's ObsEngine, Phase 2)
-// or SQLite (MetadataStore); it just emits start/stop decisions.
+// Raids + M+ first cut of the encounter state machine described in
+// PLAN.md §3.4. Consumes parsed LogLines and decides when a raid pull or
+// a Mythic+ key should be recorded — it does not touch libobs (that's
+// ObsEngine, Phase 2) or SQLite (MetadataStore); it just emits start/stop
+// decisions.
 //
-// M+ nesting, delves, and ZONE_CHANGE handling are out of scope here; only
-// ENCOUNTER_START/ENCOUNTER_END are consumed. Everything else is ignored.
+// Delves and ZONE_CHANGE handling are out of scope here. While a M+ key is
+// active, nested ENCOUNTER_START/ENCOUNTER_END lines (boss sub-segments,
+// per PLAN.md §3.4's "M+ nests encounters" rule) are consumed but produce
+// no signal of their own yet — there's no timeline/chapter concept until
+// MetadataStore exists.
 class RecordingController : public QObject {
     Q_OBJECT
 
@@ -31,12 +35,21 @@ class RecordingController : public QObject {
         int preRollSeconds = 15;
         int raidOverrunSeconds = 20;
         RaidDifficulty minDifficulty = RaidDifficulty::Normal;
+        int dungeonOverrunSeconds = 5;
+        int minKeystoneLevel = 2;
     };
 
     struct RaidEncounter {
         int encounterId = 0;
         QString encounterName;
         int difficultyId = 0;
+        QDateTime startTime;
+    };
+
+    struct DungeonRun {
+        int zoneId = 0;
+        int mapId = 0;
+        int keystoneLevel = 0;
         QDateTime startTime;
     };
 
@@ -62,13 +75,29 @@ class RecordingController : public QObject {
     // the overrun finishes — see onLineReceived).
     void recordingStopped(const RaidEncounter &encounter, bool success, const QDateTime &stopTime);
 
+    // Emitted the instant CHALLENGE_MODE_START clears the keystone-level
+    // threshold. Mirrors recordingStarted()'s pre-roll semantics.
+    void dungeonStarted(const DungeonRun &dungeon, const QDateTime &preRollFrom);
+
+    // Emitted after Config::dungeonOverrunSeconds have elapsed past
+    // CHALLENGE_MODE_END (or immediately, pre-empted, if the key is zoned
+    // back into before the overrun finishes — see handleChallengeModeStart).
+    // durationMs is the log's own in-key duration (arg 4), used later for
+    // keystone-upgrade-level calculations; unrelated to stopTime's overrun.
+    void dungeonStopped(const DungeonRun &dungeon, bool success, int durationMs,
+                        const QDateTime &stopTime);
+
   private Q_SLOTS:
     void onOverrunElapsed();
+    void onDungeonOverrunElapsed();
 
   private:
     void handleEncounterStart(const LogLine &line);
     void handleEncounterEnd(const LogLine &line);
     void finishPendingStop();
+    void handleChallengeModeStart(const LogLine &line);
+    void handleChallengeModeEnd(const LogLine &line);
+    void finishPendingDungeonStop();
 
     Config m_config;
     bool m_active = false;
@@ -76,4 +105,11 @@ class RecordingController : public QObject {
     bool m_pendingSuccess = false;
     QDateTime m_pendingStopTime;
     QTimer m_overrunTimer;
+
+    bool m_dungeonActive = false;
+    DungeonRun m_currentDungeon;
+    bool m_pendingDungeonSuccess = false;
+    int m_pendingDungeonDurationMs = 0;
+    QDateTime m_pendingDungeonStopTime;
+    QTimer m_dungeonOverrunTimer;
 };

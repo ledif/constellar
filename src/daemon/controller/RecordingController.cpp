@@ -4,6 +4,9 @@ RecordingController::RecordingController(Config config, QObject *parent)
     : QObject(parent), m_config(std::move(config)) {
     m_overrunTimer.setSingleShot(true);
     connect(&m_overrunTimer, &QTimer::timeout, this, &RecordingController::onOverrunElapsed);
+    m_dungeonOverrunTimer.setSingleShot(true);
+    connect(&m_dungeonOverrunTimer, &QTimer::timeout, this,
+            &RecordingController::onDungeonOverrunElapsed);
 }
 
 std::optional<RecordingController::RaidDifficulty> RecordingController::raidDifficultyFromId(
@@ -29,9 +32,19 @@ void RecordingController::onLineReceived(const LogLine &line) {
 
     const QString type = line.type();
     if (type == QStringLiteral("ENCOUNTER_START")) {
-        handleEncounterStart(line);
+        // Inside an active M+ key, boss pulls are sub-segment chapters of
+        // the dungeon recording, not separate recordings (PLAN.md §3.4).
+        if (!m_dungeonActive) {
+            handleEncounterStart(line);
+        }
     } else if (type == QStringLiteral("ENCOUNTER_END")) {
-        handleEncounterEnd(line);
+        if (!m_dungeonActive) {
+            handleEncounterEnd(line);
+        }
+    } else if (type == QStringLiteral("CHALLENGE_MODE_START")) {
+        handleChallengeModeStart(line);
+    } else if (type == QStringLiteral("CHALLENGE_MODE_END")) {
+        handleChallengeModeEnd(line);
     }
 }
 
@@ -100,4 +113,68 @@ void RecordingController::onOverrunElapsed() {
 
 void RecordingController::finishPendingStop() {
     Q_EMIT recordingStopped(m_current, m_pendingSuccess, m_pendingStopTime);
+}
+
+void RecordingController::handleChallengeModeStart(const LogLine &line) {
+    // CHALLENGE_MODE_START args: zoneName, zoneID, mapID, keystoneLevel,
+    // affixes[] (PLAN.md §6; confirmed against real logs).
+    if (line.argCount() < 5) {
+        return;
+    }
+
+    if (m_dungeonActive) {
+        if (m_dungeonOverrunTimer.isActive()) {
+            // A CHALLENGE_MODE_END always precedes a genuinely new key,
+            // so a start while the previous key's overrun tail is still
+            // pending means that key ended and a new one began quickly.
+            // Cut the tail short rather than making the new key wait.
+            m_dungeonOverrunTimer.stop();
+            finishPendingDungeonStop();
+            m_dungeonActive = false;
+        } else {
+            // No pending END: this is zoning in/out of the same still-active
+            // key re-firing the start event. Ignore.
+            return;
+        }
+    }
+
+    const int level = line.argString(4).toInt();
+    if (level < m_config.minKeystoneLevel) {
+        return;
+    }
+
+    m_currentDungeon = DungeonRun{
+        line.argString(2).toInt(),
+        line.argString(3).toInt(),
+        level,
+        line.dateTime(),
+    };
+    m_dungeonActive = true;
+
+    const QDateTime preRollFrom = m_currentDungeon.startTime.addSecs(-m_config.preRollSeconds);
+    Q_EMIT dungeonStarted(m_currentDungeon, preRollFrom);
+}
+
+void RecordingController::handleChallengeModeEnd(const LogLine &line) {
+    // CHALLENGE_MODE_END args: mapID, success(0/1), keystoneLevel,
+    // durationMs, plus trailing fields PLAN.md §6 doesn't mention (confirmed
+    // against real logs; unused here — see HANDOFF.md).
+    if (!m_dungeonActive || line.argCount() < 5) {
+        return;
+    }
+
+    m_pendingDungeonSuccess = line.argString(2) == QStringLiteral("1");
+    m_pendingDungeonDurationMs = line.argString(4).toInt();
+    m_pendingDungeonStopTime = line.dateTime().addSecs(m_config.dungeonOverrunSeconds);
+    m_dungeonOverrunTimer.start(m_config.dungeonOverrunSeconds * 1000);
+}
+
+void RecordingController::onDungeonOverrunElapsed() {
+    finishPendingDungeonStop();
+    m_dungeonActive = false;
+}
+
+void RecordingController::finishPendingDungeonStop() {
+    Q_EMIT dungeonStopped(m_currentDungeon, m_pendingDungeonSuccess, m_pendingDungeonDurationMs,
+                          m_pendingDungeonStopTime);
 }

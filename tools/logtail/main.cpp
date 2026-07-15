@@ -56,6 +56,22 @@ int main(int argc, char *argv[]) {
                              << " stopTime=" << stopTime.toString(Qt::ISODateWithMs) << " ===\n";
                          out.flush();
                      });
+    QObject::connect(
+        &controller, &RecordingController::dungeonStarted,
+        [&out](const RecordingController::DungeonRun &dungeon, const QDateTime &preRollFrom) {
+            out << "=== DUNGEON START: mapID " << dungeon.mapId << " +" << dungeon.keystoneLevel
+                << " preRollFrom=" << preRollFrom.toString(Qt::ISODateWithMs) << " ===\n";
+            out.flush();
+        });
+    QObject::connect(&controller, &RecordingController::dungeonStopped,
+                     [&out](const RecordingController::DungeonRun &dungeon, bool success,
+                            int durationMs, const QDateTime &stopTime) {
+                         out << "=== DUNGEON STOP: mapID " << dungeon.mapId << " +"
+                             << dungeon.keystoneLevel << (success ? " (TIMED)" : " (DEPLETED)")
+                             << " durationMs=" << durationMs
+                             << " stopTime=" << stopTime.toString(Qt::ISODateWithMs) << " ===\n";
+                         out.flush();
+                     });
 
     if (!watcher.start()) {
         QTextStream(stderr) << "logtail: failed to watch " << directory << "\n";

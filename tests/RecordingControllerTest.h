@@ -11,7 +11,14 @@ class RecordingControllerTest : public QObject {
     void skipsUnknownDifficulty();
     void stopsAfterOverrunDelay();
     void repullDuringOverrunEndsPreviousImmediately();
-    void ignoresNonRaidLines();
+    void ignoresUnhandledLines();
     void ignoresStrayEncounterEndWithoutStart();
     void ignoresMismatchedEncounterEnd();
+
+    void dungeonStartsAboveKeystoneThreshold();
+    void dungeonSkipsBelowKeystoneThreshold();
+    void dungeonStopsAfterOverrunDelay();
+    void dungeonRepullDuringOverrunEndsPreviousImmediately();
+    void dungeonSuppressesNestedEncounterSignals();
+    void dungeonIgnoresReStartWhileStillActive();
 };

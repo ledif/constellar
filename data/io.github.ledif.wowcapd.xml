@@ -35,13 +35,30 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
-    <signal name="RecordingStarted">
-      <arg name="category" type="s"/>
-      <arg name="name" type="s"/>
+    <signal name="EncounterDetected">
+      <arg name="encounterId" type="i"/>
+      <arg name="encounterName" type="s"/>
+      <arg name="difficulty" type="s"/>
+      <arg name="startTime" type="s"/>
     </signal>
-    <signal name="RecordingStopped">
-      <arg name="id" type="s"/>
-      <arg name="result" type="s"/>
+    <signal name="EncounterEnded">
+      <arg name="encounterId" type="i"/>
+      <arg name="encounterName" type="s"/>
+      <arg name="success" type="b"/>
+      <arg name="stopTime" type="s"/>
+    </signal>
+    <signal name="DungeonDetected">
+      <arg name="zoneId" type="i"/>
+      <arg name="mapId" type="i"/>
+      <arg name="keystoneLevel" type="i"/>
+      <arg name="startTime" type="s"/>
+    </signal>
+    <signal name="DungeonEnded">
+      <arg name="mapId" type="i"/>
+      <arg name="keystoneLevel" type="i"/>
+      <arg name="success" type="b"/>
+      <arg name="durationMs" type="i"/>
+      <arg name="stopTime" type="s"/>
     </signal>
     <signal name="StateChanged">
       <arg name="state" type="s"/>
