@@ -7,26 +7,26 @@
 #include <cstdio>
 
 #include "DBusConstants.h"
-#include "managerproxy.h"
+#include "observerproxy.h"
 
 namespace {
 
 void printUsage() {
-    QTextStream(stdout) << "usage: wowcap <status>\n";
+    QTextStream(stdout) << "usage: constellar <status>\n";
 }
 
 int runStatus() {
-    ManagerProxy manager(wowcapd::dbus::kServiceName, wowcapd::dbus::kObjectPath,
-                         QDBusConnection::sessionBus());
+    ObserverProxy manager(constellar::dbus::kServiceName, constellar::dbus::kObjectPath,
+                          QDBusConnection::sessionBus());
     if (!manager.isValid()) {
-        QTextStream(stderr) << "wowcap: cannot reach wowcapd: " << manager.lastError().message()
-                            << "\n";
+        QTextStream(stderr) << "constellar: cannot reach constellard: "
+                            << manager.lastError().message() << "\n";
         return 1;
     }
 
     QDBusReply<QVariantMap> reply = manager.Status();
     if (!reply.isValid()) {
-        QTextStream(stderr) << "wowcap: Status() failed: " << reply.error().message() << "\n";
+        QTextStream(stderr) << "constellar: Status() failed: " << reply.error().message() << "\n";
         return 1;
     }
 

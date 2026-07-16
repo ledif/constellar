@@ -2,7 +2,7 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
-  <interface name="io.github.ledif.wowcapd.Manager">
+  <interface name="io.github.ledif.constellar.Observer">
     <property name="State" type="s" access="read"/>
     <property name="WowActive" type="b" access="read"/>
     <property name="ActiveCapture" type="s" access="read"/>

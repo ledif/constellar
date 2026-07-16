@@ -30,7 +30,7 @@ QJsonObject PresencePublisher::dungeonActivity(int keystoneLevel, const QDateTim
 QJsonObject PresencePublisher::idleActivity() {
     QJsonObject activity;
     // No realm/zone/character here yet -- that's the addon-channel hybrid
-    // (ADR-011), not built. Just says wowcapd sees WoW running.
+    // (ADR-011), not built. Just says constellard sees WoW running.
     activity["details"] = QStringLiteral("In World of Warcraft");
     return activity;
 }

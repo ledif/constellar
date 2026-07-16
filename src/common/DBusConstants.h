@@ -1,9 +1,9 @@
 #pragma once
 
-namespace wowcapd::dbus {
+namespace constellar::dbus {
 
-inline constexpr auto kServiceName = "io.github.ledif.wowcapd";
-inline constexpr auto kObjectPath = "/io/github/ledif/wowcapd/Manager";
-inline constexpr auto kInterfaceName = "io.github.ledif.wowcapd.Manager";
+inline constexpr auto kServiceName = "io.github.ledif.constellar";
+inline constexpr auto kObjectPath = "/io/github/ledif/constellar/Observer";
+inline constexpr auto kInterfaceName = "io.github.ledif.constellar.Observer";
 
-}  // namespace wowcapd::dbus
+}  // namespace constellar::dbus

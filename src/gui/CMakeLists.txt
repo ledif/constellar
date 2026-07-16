@@ -1,7 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-add_executable(wowcapd-gui main.cpp)
+add_executable(constellar-gui main.cpp)
 
-target_link_libraries(wowcapd-gui PRIVATE Qt6::Core Qt6::DBus Qt6::Widgets wowcapd-common)
+target_link_libraries(constellar-gui PRIVATE Qt6::Core Qt6::DBus Qt6::Widgets constellar-common)
 
-install(TARGETS wowcapd-gui)
+install(TARGETS constellar-gui)

@@ -13,13 +13,13 @@ All builds run in a podman container. Assume host has no build tools.
 - `just setup` — configure CMake (wipes `build/`).
 - `just build` — compile.
 - `just test` — run `ctest`.
-- `just smoke` — daemon + `wowcap status` round trip on a private DBus bus.
+- `just smoke` — daemon + `constellar status` round trip on a private DBus bus.
 - `just format` / `just format-check` — clang-format.
 
 ## Conventions
 
 - C++20, DBus interface XML in `data/` is the source of truth
-  (`io.github.ledif.wowcapd.Manager`). Client proxy is generated
+  (`io.github.ledif.constellar.Observer`). Client proxy is generated
   (`qdbusxml2cpp`); server adaptor is hand-written. Keep them in sync
   manually when the XML changes.
 

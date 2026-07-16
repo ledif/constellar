@@ -9,24 +9,24 @@
 #include <QVariant>
 #include <QVariantMap>
 
-class ManagerService;
+class ObserverService;
 
-// DBus adaptor for io.github.ledif.wowcapd.Manager. Hand-written rather than
-// qdbusxml2cpp-generated: the generated skeleton needs its method bodies
-// filled in by hand anyway, so we skip the generation step on the server side
-// and keep data/io.github.ledif.wowcapd.xml as the documented source of
-// truth. The client-side proxy (src/common) *is* generated, since that code
-// is fully mechanical.
-class ManagerAdaptor : public QDBusAbstractAdaptor {
+// DBus adaptor for io.github.ledif.constellar.Observer. Hand-written rather
+// than qdbusxml2cpp-generated: the generated skeleton needs its method
+// bodies filled in by hand anyway, so we skip the generation step on the
+// server side and keep data/io.github.ledif.constellar.xml as the
+// documented source of truth. The client-side proxy (src/common) *is*
+// generated, since that code is fully mechanical.
+class ObserverAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.github.ledif.wowcapd.Manager")
+    Q_CLASSINFO("D-Bus Interface", "io.github.ledif.constellar.Observer")
 
     Q_PROPERTY(QString State READ state)
     Q_PROPERTY(bool WowActive READ wowActive)
     Q_PROPERTY(QString ActiveCapture READ activeCapture)
 
   public:
-    explicit ManagerAdaptor(ManagerService *service);
+    explicit ObserverAdaptor(ObserverService *service);
 
     QString state() const;
     bool wowActive() const;
@@ -56,5 +56,5 @@ class ManagerAdaptor : public QDBusAbstractAdaptor {
     void Error(const QString &code, const QString &message);
 
   private:
-    ManagerService *m_service;
+    ObserverService *m_service;
 };

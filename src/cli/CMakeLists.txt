@@ -1,5 +1,5 @@
-add_executable(wowcap main.cpp)
+add_executable(constellar main.cpp)
 
-target_link_libraries(wowcap PRIVATE Qt6::Core Qt6::DBus wowcapd-common)
+target_link_libraries(constellar PRIVATE Qt6::Core Qt6::DBus constellar-common)
 
-install(TARGETS wowcap)
+install(TARGETS constellar)

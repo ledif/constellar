@@ -2,15 +2,15 @@ add_subdirectory(log)
 add_subdirectory(controller)
 add_subdirectory(presence)
 
-add_executable(wowcapd
+add_executable(constellard
     main.cpp
-    ManagerAdaptor.h
-    ManagerAdaptor.cpp
-    ManagerService.h
-    ManagerService.cpp
+    ObserverAdaptor.h
+    ObserverAdaptor.cpp
+    ObserverService.h
+    ObserverService.cpp
 )
 
-target_link_libraries(wowcapd PRIVATE Qt6::Core Qt6::DBus wowcapd-common wowcapd-log
-                                       wowcapd-controller wowcapd-presence)
+target_link_libraries(constellard PRIVATE Qt6::Core Qt6::DBus constellar-common constellar-log
+                                          constellar-controller constellar-presence)
 
-install(TARGETS wowcapd)
+install(TARGETS constellard)

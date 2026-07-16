@@ -1,8 +1,8 @@
-#include "ManagerService.h"
+#include "ObserverService.h"
 
 #include <QDateTime>
 
-ManagerService::ManagerService(QString logDirectory, QObject *parent)
+ObserverService::ObserverService(QString logDirectory, QObject *parent)
     : QObject(parent),
       m_logDirectory(std::move(logDirectory)),
       m_watcher(m_logDirectory),
@@ -53,23 +53,23 @@ ManagerService::ManagerService(QString logDirectory, QObject *parent)
             });
 }
 
-bool ManagerService::start() {
+bool ObserverService::start() {
     return m_watcher.start();
 }
 
-QString ManagerService::state() const {
+QString ObserverService::state() const {
     return m_state;
 }
 
-bool ManagerService::wowActive() const {
+bool ObserverService::wowActive() const {
     return m_wowActive;
 }
 
-QString ManagerService::activeCapture() const {
+QString ObserverService::activeCapture() const {
     return m_activeCapture;
 }
 
-void ManagerService::setState(const QString &state) {
+void ObserverService::setState(const QString &state) {
     if (m_state == state) {
         return;
     }
@@ -77,7 +77,7 @@ void ManagerService::setState(const QString &state) {
     Q_EMIT stateChanged(m_state);
 }
 
-QString ManagerService::raidDifficultyDisplayName(int difficultyId) {
+QString ObserverService::raidDifficultyDisplayName(int difficultyId) {
     const std::optional<RecordingController::RaidDifficulty> difficulty =
         RecordingController::raidDifficultyFromId(difficultyId);
     if (!difficulty) {

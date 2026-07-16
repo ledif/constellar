@@ -10,14 +10,14 @@
 #include <QWidget>
 
 #include "DBusConstants.h"
-#include "managerproxy.h"
+#include "observerproxy.h"
 
 class StatusWindow : public QWidget {
   public:
     StatusWindow()
-        : m_manager(wowcapd::dbus::kServiceName, wowcapd::dbus::kObjectPath,
+        : m_manager(constellar::dbus::kServiceName, constellar::dbus::kObjectPath,
                     QDBusConnection::sessionBus()) {
-        setWindowTitle(QStringLiteral("wowcapd"));
+        setWindowTitle(QStringLiteral("Constellar"));
         resize(480, 360);
 
         auto *layout = new QVBoxLayout(this);
@@ -27,11 +27,12 @@ class StatusWindow : public QWidget {
         m_events = new QListWidget(this);
         layout->addWidget(m_events);
 
-        connect(&m_manager, &ManagerProxy::EncounterDetected, this,
+        connect(&m_manager, &ObserverProxy::EncounterDetected, this,
                 &StatusWindow::onEncounterDetected);
-        connect(&m_manager, &ManagerProxy::EncounterEnded, this, &StatusWindow::onEncounterEnded);
-        connect(&m_manager, &ManagerProxy::DungeonDetected, this, &StatusWindow::onDungeonDetected);
-        connect(&m_manager, &ManagerProxy::DungeonEnded, this, &StatusWindow::onDungeonEnded);
+        connect(&m_manager, &ObserverProxy::EncounterEnded, this, &StatusWindow::onEncounterEnded);
+        connect(&m_manager, &ObserverProxy::DungeonDetected, this,
+                &StatusWindow::onDungeonDetected);
+        connect(&m_manager, &ObserverProxy::DungeonEnded, this, &StatusWindow::onDungeonEnded);
 
         auto *timer = new QTimer(this);
         connect(timer, &QTimer::timeout, this, &StatusWindow::refresh);
@@ -42,7 +43,7 @@ class StatusWindow : public QWidget {
   private:
     void refresh() {
         if (!m_manager.isValid()) {
-            m_label->setText(QStringLiteral("wowcapd not reachable"));
+            m_label->setText(QStringLiteral("constellard not reachable"));
             return;
         }
         QDBusReply<QVariantMap> reply = m_manager.Status();
@@ -97,7 +98,7 @@ class StatusWindow : public QWidget {
         m_events->scrollToBottom();
     }
 
-    ManagerProxy m_manager;
+    ObserverProxy m_manager;
     QLabel *m_label;
     QListWidget *m_events;
 };

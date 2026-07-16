@@ -9,14 +9,14 @@
 // Owns the daemon's observable state plus the actual detection pipeline:
 // LogWatcher tails the combat log, RecordingController turns lines into
 // start/stop decisions, and this class translates those decisions into the
-// primitive-typed Qt signals ManagerAdaptor relays over DBus (see PLAN.md
+// primitive-typed Qt signals ObserverAdaptor relays over DBus (see PLAN.md
 // §3.7). Still no libobs/ObsEngine or MetadataStore — this is detection
 // only, per HANDOFF.md roadmap item 5.
-class ManagerService : public QObject {
+class ObserverService : public QObject {
     Q_OBJECT
 
   public:
-    explicit ManagerService(QString logDirectory, QObject *parent = nullptr);
+    explicit ObserverService(QString logDirectory, QObject *parent = nullptr);
 
     // Starts the underlying LogWatcher. Returns false on failure (bad
     // directory, inotify setup failure, etc.) — main.cpp treats that as
@@ -31,7 +31,7 @@ class ManagerService : public QObject {
     void stateChanged(const QString &state);
 
     // Mirror RecordingController's decisions with primitive-typed
-    // signals so ManagerAdaptor can relay them verbatim over DBus (whose
+    // signals so ObserverAdaptor can relay them verbatim over DBus (whose
     // marshalling doesn't know about RaidEncounter/DungeonRun or
     // QDateTime). Timestamps are ISO 8601 strings.
     void encounterDetected(int encounterId, const QString &encounterName, const QString &difficulty,

@@ -1,4 +1,4 @@
-image := "wowcapd-builder"
+image := "constellar-builder"
 build_dir := "build"
 
 podman_run := "podman run --rm -v " + justfile_directory() + ":/src:Z -w /src " + image
@@ -46,7 +46,7 @@ run-daemon log_dir:
         -v /run/user/$(id -u):/run/user/$(id -u):Z \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
-        {{image}} ./{{build_dir}}/src/daemon/wowcapd --log-dir {{log_dir}}
+        {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir {{log_dir}}
 
 # Run the daemon against the host session bus and a real WoW Logs directory
 # (read-only mount, SELinux relabeling disabled like log-tail). This plus
@@ -59,25 +59,25 @@ run-daemon-live path:
         -v "{{path}}":/wow-logs:ro \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
-        {{image}} ./{{build_dir}}/src/daemon/wowcapd --log-dir /wow-logs
+        {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
-# Run `wowcap status` against the host session bus, inside the container.
+# Run `constellar status` against the host session bus, inside the container.
 run-cli *args:
     podman run --rm -it \
         -v {{justfile_directory()}}:/src:Z -w /src \
         -v /run/user/$(id -u):/run/user/$(id -u):Z \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
-        {{image}} ./{{build_dir}}/src/cli/wowcap {{args}}
+        {{image}} ./{{build_dir}}/src/cli/constellar {{args}}
 
 # Run a self-contained daemon+CLI smoke test on a private dbus-run-session
 # bus inside the container. No host session bus required — good for CI.
 smoke:
     {{podman_run}} dbus-run-session -- bash -c ' \
-        ./{{build_dir}}/src/daemon/wowcapd --log-dir /tmp & \
+        ./{{build_dir}}/src/daemon/constellard --log-dir /tmp & \
         pid=$!; \
         sleep 1; \
-        ./{{build_dir}}/src/cli/wowcap status; \
+        ./{{build_dir}}/src/cli/constellar status; \
         status=$?; \
         kill $pid; \
         exit $status \
@@ -100,7 +100,7 @@ run-gui:
         -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         --userns=keep-id \
         --net=host \
-        {{image}} ./{{build_dir}}/src/gui/wowcapd-gui
+        {{image}} ./{{build_dir}}/src/gui/constellar-gui
 
 # Tail a real WoW Logs directory (read-only) and print every parsed LogLine,
 # to sanity-check LogLine/LogWatcher against a live client.

@@ -9,11 +9,11 @@ Inspired by the Windows-only [wow-recorder](https://github.com/aza547/wow-record
 
 ## Architecture
 
-The `wowcapd` daemon publishes on the DBus session bus (`io.github.ledif.wowcapd`) and automatically records encounters.
+The `constellard` daemon publishes on the DBus session bus (`io.github.ledif.constellar`, object `Observer`) and automatically records encounters.
 
 Other components:
 - A small Qt GUI for configuration. Drives the directory picker and Wayland capture portals.
-- A simple `wowcap` CLI to interact with the daemon
+- A simple `constellar` CLI to interact with the daemon
 - Future: Rich Discord Presence
 
 ## Building
@@ -29,7 +29,7 @@ just test          # run the test suite
 
 ## Status
 
-Early development. wowcapd is not yet feature-complete or packaged for end users.
+Early development. Constellar is not yet feature-complete or packaged for end users.
 
 ## License
 
