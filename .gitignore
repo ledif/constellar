@@ -2,4 +2,7 @@
 *.o
 
 tmp
-docs/agents/
+*.bak
+
+# tracked in its own independent jj repo
+docs/
