@@ -8,8 +8,10 @@
 #include <QTextStream>
 
 #include "DBusConstants.h"
+#include "DiscordIpcClient.h"
 #include "ManagerAdaptor.h"
 #include "ManagerService.h"
+#include "PresencePublisher.h"
 
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
@@ -25,6 +27,13 @@ int main(int argc, char *argv[]) {
                        "WOWCAPD_LOG_DIR if unset)."),
         QStringLiteral("path"));
     parser.addOption(logDirOption);
+    const QCommandLineOption discordAppIdOption(
+        QStringList{QStringLiteral("discord-app-id")},
+        QStringLiteral("Discord Application ID to publish Rich Presence as (falls back to "
+                       "WOWCAPD_DISCORD_APP_ID if unset). Presence is off unless this is set "
+                       "(RFC-002) -- no app has been registered yet."),
+        QStringLiteral("id"));
+    parser.addOption(discordAppIdOption);
     parser.process(app);
 
     QString logDirectory = parser.value(logDirOption);
@@ -40,6 +49,30 @@ int main(int argc, char *argv[]) {
 
     auto *service = new ManagerService(logDirectory, &app);
     new ManagerAdaptor(service);
+
+    QString discordAppId = parser.value(discordAppIdOption);
+    if (discordAppId.isEmpty()) {
+        discordAppId = QProcessEnvironment::systemEnvironment().value(
+            QStringLiteral("WOWCAPD_DISCORD_APP_ID"));
+    }
+    // Off by default, config-gated (RFC-002): the publisher and IPC client
+    // no-op harmlessly with an empty app ID, but skip constructing them
+    // entirely when presence isn't configured.
+    if (!discordAppId.isEmpty()) {
+        auto *discordClient = new DiscordIpcClient(discordAppId, &app);
+        auto *presence = new PresencePublisher(*discordClient, &app);
+        QObject::connect(service, &ManagerService::encounterDetected, presence,
+                         &PresencePublisher::onEncounterDetected);
+        QObject::connect(service, &ManagerService::encounterEnded, presence,
+                         &PresencePublisher::onEncounterEnded);
+        QObject::connect(service, &ManagerService::dungeonDetected, presence,
+                         &PresencePublisher::onDungeonDetected);
+        QObject::connect(service, &ManagerService::dungeonEnded, presence,
+                         &PresencePublisher::onDungeonEnded);
+        QObject::connect(service, &ManagerService::stateChanged, presence,
+                         &PresencePublisher::onStateChanged);
+        discordClient->start();
+    }
 
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (!bus.registerObject(wowcapd::dbus::kObjectPath, service)) {

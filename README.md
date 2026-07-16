@@ -1,4 +1,4 @@
-# wowcapd
+# Constellar
 
 World of Warcraft recording service for Linux. A background daemon watches the
 WoW combat log, detects encounters and records them with libobs.
