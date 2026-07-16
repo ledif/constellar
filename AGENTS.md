@@ -1,8 +1,9 @@
 # AGENTS.md
 
-Design docs (RFCs/ADRs/STATUS) live in `docs/agents/` — a separate `jj` repo,
-git-ignored here. Read them for context, but keep code comments self-contained:
-don't reference doc IDs or paths from source, since the two histories are decoupled.
+Design docs (RFCs/ADRs/STATUS) live in `agents/`, a separate `jj` repo, git-ignored
+here (git owns the code, jj owns `agents/`; see `agents/MEMORY.md`). Read them for
+context, but keep code comments self-contained: don't reference doc IDs or paths from
+source, since the two histories are decoupled.
 
 ## Build
 
