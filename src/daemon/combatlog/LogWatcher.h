@@ -7,39 +7,28 @@
 #include <QString>
 #include <QTimer>
 
+#include "InotifyWatcher.h"
 #include "LogLine.h"
 
 class QSocketNotifier;
 
-// Tails WoWCombatLog*.txt files in a directory via inotify, emitting a
-// LogLine for every complete line written. Handles partial lines at EOF,
-// multiple files in the directory, and file recreation (new key on
-// create/delete rather than following renames — see PLAN.md §3.2).
-//
-// Does not itself decide when a "session" starts/stops; ActivityTracker
-// is the consumer that turns idleTimeout()/lineReceived() into buffer
-// start/stop decisions.
 class LogWatcher : public QObject
 {
     Q_OBJECT
 
   public:
-    // idleTimeoutMs: emit idleTimeout() after this long without any write to
-    // any watched file. 0 disables the idle timer.
     explicit LogWatcher(
         std::filesystem::path directory, int idleTimeoutMs = 60'000, QObject* parent = nullptr
     );
+
     ~LogWatcher() override;
 
-    // Opens the inotify fd, watches the directory, and picks up any
-    // already-existing WoWCombatLog*.txt files (tailing from their current
-    // end, not replaying old content). Returns false on failure.
     bool start();
     void stop();
 
     bool isRunning() const
     {
-        return m_inotifyFd >= 0;
+        return m_inotifyWatcher.isRunning();
     }
 
   Q_SIGNALS:
@@ -66,9 +55,7 @@ class LogWatcher : public QObject
     static bool isCombatLogName(QString const& fileName);
 
     QString m_directory;
-    int m_idleTimeoutMs;
-    int m_inotifyFd = -1;
-    int m_dirWatchDescriptor = -1;
+    constellar::inotify::Watcher m_inotifyWatcher;
     QSocketNotifier* m_notifier = nullptr;
     QTimer m_idleTimer;
     QHash<QString, WatchedFile> m_files;

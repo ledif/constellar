@@ -1,11 +1,5 @@
 #include "LogWatcher.h"
 
-#include <sys/inotify.h>
-#include <unistd.h>
-
-#include <cerrno>
-#include <cstring>
-
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -13,18 +7,11 @@
 
 using namespace Qt::StringLiterals;
 
-namespace
-{
-constexpr size_t kInotifyEventSize = sizeof(struct inotify_event);
-constexpr size_t kInotifyBufferLen = 1024 * (kInotifyEventSize + 16);
-}  // namespace
-
 LogWatcher::LogWatcher(std::filesystem::path directory, int idleTimeoutMs, QObject* parent)
-    : QObject(parent),
-      m_directory(QString::fromStdString(directory.string())),
-      m_idleTimeoutMs(idleTimeoutMs)
+    : QObject(parent), m_directory(QString::fromStdString(directory.string()))
 {
     m_idleTimer.setSingleShot(true);
+    m_idleTimer.setInterval(idleTimeoutMs);
     connect(&m_idleTimer, &QTimer::timeout, this, &LogWatcher::onIdleTimer);
 }
 
@@ -43,23 +30,10 @@ bool LogWatcher::start()
     if (isRunning())
         return true;
 
-    m_inotifyFd = inotify_init1(IN_NONBLOCK);
-    if (m_inotifyFd < 0)
+    if (!m_inotifyWatcher.start(m_directory))
         return false;
 
-    QByteArray const dirPath = m_directory.toLocal8Bit();
-    m_dirWatchDescriptor = inotify_add_watch(
-        m_inotifyFd, dirPath.constData(),
-        IN_CREATE | IN_MODIFY | IN_MOVED_TO | IN_MOVED_FROM | IN_DELETE
-    );
-    if (m_dirWatchDescriptor < 0)
-    {
-        ::close(m_inotifyFd);
-        m_inotifyFd = -1;
-        return false;
-    }
-
-    m_notifier = new QSocketNotifier(m_inotifyFd, QSocketNotifier::Read, this);
+    m_notifier = new QSocketNotifier(m_inotifyWatcher.fd(), QSocketNotifier::Read, this);
     connect(m_notifier, &QSocketNotifier::activated, this, &LogWatcher::onInotifyReadyRead);
 
     scanExistingFiles();
@@ -74,12 +48,7 @@ void LogWatcher::stop()
         m_notifier->deleteLater();
         m_notifier = nullptr;
     }
-    if (m_inotifyFd >= 0)
-    {
-        ::close(m_inotifyFd);
-        m_inotifyFd = -1;
-    }
-    m_dirWatchDescriptor = -1;
+    m_inotifyWatcher.stop();
     m_files.clear();
     m_idleTimer.stop();
 }
@@ -163,8 +132,8 @@ void LogWatcher::readNewData(QString const& fileName, WatchedFile& file)
 
 void LogWatcher::resetIdleTimer()
 {
-    if (m_idleTimeoutMs > 0)
-        m_idleTimer.start(m_idleTimeoutMs);
+    if (m_idleTimer.interval() > 0)
+        m_idleTimer.start();
 }
 
 void LogWatcher::onIdleTimer()
@@ -174,31 +143,13 @@ void LogWatcher::onIdleTimer()
 
 void LogWatcher::onInotifyReadyRead()
 {
-    char buffer[kInotifyBufferLen];
-
-    while (true)
+    for (constellar::inotify::WatchEvent const& event : m_inotifyWatcher.readEvents())
     {
-        ssize_t const len = ::read(m_inotifyFd, buffer, sizeof(buffer));
-        if (len < 0)
-            break;  // EAGAIN (no more events) or a transient error either way.
-        if (len == 0)
-            break;
-
-        ssize_t i = 0;
-        while (i < len)
-        {
-            auto const* event = reinterpret_cast<const struct inotify_event*>(buffer + i);
-            if (event->len > 0)
-            {
-                QString const name = QString::fromLocal8Bit(event->name);
-                if (event->mask & (IN_CREATE | IN_MOVED_TO))
-                    handleCreateOrMove(name);
-                if (event->mask & (IN_DELETE | IN_MOVED_FROM))
-                    handleDelete(name);
-                if (event->mask & IN_MODIFY)
-                    handleModify(name);
-            }
-            i += static_cast<ssize_t>(kInotifyEventSize + event->len);
-        }
+        if (event.created)
+            handleCreateOrMove(event.name);
+        if (event.deleted)
+            handleDelete(event.name);
+        if (event.modified)
+            handleModify(event.name);
     }
 }

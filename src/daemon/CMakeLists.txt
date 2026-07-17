@@ -1,4 +1,4 @@
-add_subdirectory(log)
+add_subdirectory(combatlog)
 add_subdirectory(tracker)
 add_subdirectory(presence)
 add_subdirectory(gamestate)
@@ -17,7 +17,7 @@ target_link_libraries(constellard
     Qt6::Core
     Qt6::DBus
     constellar::common
-    constellar::log
+    constellar::combatlog
     constellar::tracker
     constellar::activitymetadata
     constellar::presence

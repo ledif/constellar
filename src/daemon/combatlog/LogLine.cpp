@@ -13,10 +13,9 @@ LogLine::LogLine(QString rawLine) : m_raw(std::move(rawLine))
 
 QDateTime LogLine::dateTime() const
 {
-    // "7/11/2026 05:20:02.169-5" -> month, day, year, hour, min, sec,
-    // fraction, timezone offset (hours, optionally ":mm"). The offset suffix
-    // isn't in PLAN.md's grammar spec but is present on every line of a real
-    // combat log — without it we'd silently parse the wrong instant.
+    // I didn't write this cursed regex and just trust that it works by Elune's grace
+
+    // "7/11/2026 05:20:02.169-5" -> month, day, year, hour, min, sec, fraction + TZ
     static QRegularExpression const pattern(
         uR"(^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\.(\d+)([+-]\d{1,2}(?::\d{2})?)?$)"_s
     );
@@ -33,11 +32,12 @@ QDateTime LogLine::dateTime() const
     int const second = match.captured(6).toInt();
 
     QString fraction = match.captured(7).left(3);
-    while (fraction.size() < 3) fraction += QLatin1Char('0');
+    while (fraction.size() < 3) fraction += u'0';
     int const millisecond = fraction.toInt();
 
     QDate const date(year, month, day);
     QTime const time(hour, minute, second, millisecond);
+
     if (!date.isValid() || !time.isValid())
         return {};
 
@@ -45,8 +45,8 @@ QDateTime LogLine::dateTime() const
     if (offsetStr.isEmpty())
         return QDateTime(date, time);
 
-    bool const negative = offsetStr.startsWith(QLatin1Char('-'));
-    QStringList const parts = offsetStr.mid(1).split(QLatin1Char(':'));
+    bool const negative = offsetStr.startsWith(u'-');
+    QStringList const parts = offsetStr.mid(1).split(u':');
     int const offsetHours = parts.value(0).toInt();
     int const offsetMinutes = parts.value(1, u"0"_s).toInt();
     int offsetSeconds = offsetHours * 3600 + offsetMinutes * 60;
@@ -65,6 +65,7 @@ QVariant LogLine::arg(int index) const
 {
     if (index < 0 || index >= m_args.size())
         return {};
+
     return m_args.at(index);
 }
 
@@ -72,21 +73,6 @@ QString LogLine::argString(int index) const
 {
     return arg(index).toString();
 }
-
-namespace
-{
-
-// A pending value being accumulated: either plain text, or (once a
-// [...]/(...)  group has just closed) a completed QVariantList waiting to be
-// committed into its enclosing scope by the next delimiter. Mirrors the
-// reference LogLine.ts parser's `value` variable, which is deliberately
-// generic for the same reason.
-bool isSet(QVariant const& value)
-{
-    return value.typeId() == QMetaType::QVariantList || !value.toString().isEmpty();
-}
-
-}  // namespace
 
 void LogLine::parse()
 {
@@ -111,46 +97,50 @@ void LogLine::parse()
             m_args.append(committed);
     };
 
+    auto isSet = [](QVariant const& value)
+    { return value.typeId() == QMetaType::QVariantList || !value.toString().isEmpty(); };
+
     int const length = m_raw.length();
     for (int pos = sep + 2; pos < length; ++pos)
     {
         QChar const c = m_raw.at(pos);
-        if (c == QLatin1Char('\n'))
+        if (c == u'\n')
             break;
 
         if (inQuotedString)
         {
-            if (c == QLatin1Char('"'))
+            if (c == u'"')
                 inQuotedString = false;
             else
                 value = value.toString() + c;
             continue;
         }
 
-        if (c == QLatin1Char(','))
+        if (c == u',')
         {
             commit(value);
             value = QString();
         }
-        else if (c == QLatin1Char('"'))
+        else if (c == u'"')
         {
             inQuotedString = true;
         }
-        else if (c == QLatin1Char('[') || c == QLatin1Char('('))
+        else if (c == u'[' || c == u'(')
         {
             openLists.append(QVariantList());
         }
-        else if (c == QLatin1Char(']') || c == QLatin1Char(')'))
+        else if (c == u']' || c == u')')
         {
             if (openLists.isEmpty())
             {
-                // Unbalanced closer; treat the line as malformed rather than
-                // throwing, since the daemon should stay up on a bad line.
+                // unbalanced closer
                 m_valid = false;
                 return;
             }
+
             if (isSet(value))
                 openLists.last().append(value);
+
             value = openLists.takeLast();
         }
         else

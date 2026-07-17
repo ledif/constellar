@@ -16,6 +16,7 @@ void GameState::setActivity(QVariantMap const& activity)
 {
     if (m_activity == activity)
         return;
+
     m_activity = activity;
     Q_EMIT activityChanged(m_activity);
 }

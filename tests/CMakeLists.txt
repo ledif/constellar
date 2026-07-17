@@ -13,13 +13,13 @@ endfunction()
 
 constellar_add_test(logline_test
     SOURCES LogLineTest.h LogLineTest.cpp
-    LIBS constellar::log
+    LIBS constellar::combatlog
     COMPILE_DEFINITIONS LOGFIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
 )
 
 constellar_add_test(logwatcher_test
     SOURCES LogWatcherTest.h LogWatcherTest.cpp
-    LIBS constellar::log
+    LIBS constellar::combatlog
 )
 
 constellar_add_test(activitytracker_test
