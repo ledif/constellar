@@ -1,21 +1,47 @@
 #include <QCoreApplication>
 #include <QDBusConnection>
-#include <QDBusReply>
-#include <QMapIterator>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTextStream>
 #include <QVariantMap>
 #include <cstdio>
 
+#include "ActivityKeys.h"
 #include "DBusConstants.h"
 #include "observerproxy.h"
+
+namespace keys = constellar::keys;
 
 namespace {
 
 void printUsage() {
-    QTextStream(stdout) << "usage: constellar <status>\n";
+    QTextStream(stdout) << "usage: constellar status [--json]\n";
 }
 
-int runStatus() {
+QString activitySummary(const QVariantMap &activity) {
+    const QString type = activity.value(QString::fromLatin1(keys::kType)).toString();
+    if (type == QString::fromLatin1(keys::kTypeEncounter)) {
+        return QStringLiteral("encounter %1 %2")
+            .arg(activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
+                 activity.value(QString::fromLatin1(keys::kEncounterName)).toString());
+    }
+    if (type == QString::fromLatin1(keys::kTypeDungeon)) {
+        return QStringLiteral("dungeon +%1")
+            .arg(activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString());
+    }
+    return QStringLiteral("none");
+}
+
+QString zoneSummary(const QVariantMap &zone) {
+    if (zone.isEmpty()) {
+        return QStringLiteral("none");
+    }
+    return QStringLiteral("%1 (mapId %2)")
+        .arg(zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
+             zone.value(QString::fromLatin1(keys::kMapId)).toString());
+}
+
+int runStatus(bool json) {
     ObserverProxy manager(constellar::dbus::kServiceName, constellar::dbus::kObjectPath,
                           QDBusConnection::sessionBus());
     if (!manager.isValid()) {
@@ -24,18 +50,19 @@ int runStatus() {
         return 1;
     }
 
-    QDBusReply<QVariantMap> reply = manager.Status();
-    if (!reply.isValid()) {
-        QTextStream(stderr) << "constellar: Status() failed: " << reply.error().message() << "\n";
-        return 1;
-    }
+    const QVariantMap activity = manager.property("Activity").toMap();
+    const QVariantMap zone = manager.property("Zone").toMap();
 
     QTextStream out(stdout);
-    const QVariantMap status = reply.value();
-    QMapIterator<QString, QVariant> it(status);
-    while (it.hasNext()) {
-        it.next();
-        out << it.key() << ": " << it.value().toString() << "\n";
+    if (json) {
+        QJsonObject root;
+        root["activity"] = QJsonObject::fromVariantMap(activity);
+        root["zone"] = QJsonObject::fromVariantMap(zone);
+        out << QJsonDocument(root).toJson(QJsonDocument::Compact) << "\n";
+    } else {
+        out << "Activity: "
+            << (activity.isEmpty() ? QStringLiteral("none") : activitySummary(activity)) << "\n";
+        out << "Zone:     " << zoneSummary(zone) << "\n";
     }
     return 0;
 }
@@ -52,7 +79,8 @@ int main(int argc, char *argv[]) {
 
     const QString command = QString::fromLocal8Bit(argv[1]);
     if (command == QStringLiteral("status")) {
-        return runStatus();
+        const bool json = argc >= 3 && QString::fromLocal8Bit(argv[2]) == QStringLiteral("--json");
+        return runStatus(json);
     }
 
     printUsage();

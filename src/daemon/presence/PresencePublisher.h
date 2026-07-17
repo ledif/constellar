@@ -4,14 +4,16 @@
 #include <QJsonObject>
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
 
 class DiscordIpcClient;
+class GameState;
 
-// Consumes ManagerService's primitive-typed game-state signals (the same
-// ones relayed over DBus) and turns them into Discord Rich Presence
-// payloads pushed through a DiscordIpcClient (RFC-002). A sibling of
-// RecordingController, not a dependent -- it only reads the decisions
-// ManagerService already broadcasts.
+// Consumes GameState's Activity/Zone fact bags (ADR-012) and turns them
+// into Discord Rich Presence payloads pushed through a DiscordIpcClient
+// (RFC-002). A sibling of RecordingController, not a dependent -- it only
+// reads GameState, which ObserverService already fills in. A pure
+// projection: no shadow state of its own.
 //
 // v1 scope: details/state/timestamps only. large_image/small_image/buttons
 // need Developer Portal asset keys that don't exist yet (RFC-002 appendix);
@@ -20,28 +22,31 @@ class PresencePublisher : public QObject {
     Q_OBJECT
 
   public:
-    explicit PresencePublisher(DiscordIpcClient &client, QObject *parent = nullptr);
+    explicit PresencePublisher(DiscordIpcClient &client, const GameState &gameState,
+                               QObject *parent = nullptr);
 
     // Pure mapping helpers, exposed for testing without a live socket.
-    // zoneName is the MAP_CHANGE-derived label (RecordingController), empty
-    // if no MAP_CHANGE has been seen yet -- falls back to a generic state.
-    static QJsonObject encounterActivity(const QString &encounterName, const QString &difficulty,
-                                         const QDateTime &startTime, const QString &zoneName = {});
-    static QJsonObject dungeonActivity(int keystoneLevel, const QDateTime &startTime);
+    // encounterActivity/dungeonActivity take the Activity bag (ActivityKeys.h
+    // keys); zoneName is the Zone bag's zoneName, empty if no MAP_CHANGE has
+    // been seen yet -- falls back to a generic state.
+    static QJsonObject encounterActivity(const QVariantMap &activity, const QString &zoneName = {});
+    static QJsonObject dungeonActivity(const QVariantMap &activity);
     static QJsonObject idleActivity(const QString &zoneName = {});
 
+    // The full activity+zone -> Discord payload mapping, as one pure
+    // function. Recomputing from both bags on every change (rather than
+    // patching in place) is what makes a Zone-only change unable to clobber
+    // an in-progress Activity -- it only falls back to idle when activity
+    // is empty.
+    static QJsonObject activityFor(const QVariantMap &activity, const QVariantMap &zone);
+
   public Q_SLOTS:
-    void onEncounterDetected(int encounterId, const QString &encounterName,
-                             const QString &difficulty, const QString &startTime);
-    void onEncounterEnded(int encounterId, const QString &encounterName, bool success,
-                          const QString &stopTime);
-    void onDungeonDetected(int zoneId, int mapId, int keystoneLevel, const QString &startTime);
-    void onDungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
-                        const QString &stopTime);
-    void onStateChanged(const QString &state);
-    void onZoneChanged(int mapId, const QString &zoneName);
+    void onActivityChanged(const QVariantMap &activity);
+    void onZoneChanged(const QVariantMap &zone);
 
   private:
+    void updatePresence();
+
     DiscordIpcClient &m_client;
-    QString m_currentZoneName;
+    const GameState &m_gameState;
 };

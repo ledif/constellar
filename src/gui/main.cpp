@@ -1,6 +1,5 @@
 #include <QApplication>
 #include <QDBusConnection>
-#include <QDBusReply>
 #include <QDateTime>
 #include <QLabel>
 #include <QListWidget>
@@ -9,9 +8,15 @@
 #include <QVariantMap>
 #include <QWidget>
 
+#include "ActivityKeys.h"
 #include "DBusConstants.h"
 #include "observerproxy.h"
 
+namespace keys = constellar::keys;
+
+// Still a stub label (ADR-012) -- polls Activity/Zone on a timer rather than
+// wiring up org.freedesktop.DBus.Properties.PropertiesChanged, since nothing
+// here needs sub-second latency yet.
 class StatusWindow : public QWidget {
   public:
     StatusWindow()
@@ -27,12 +32,7 @@ class StatusWindow : public QWidget {
         m_events = new QListWidget(this);
         layout->addWidget(m_events);
 
-        connect(&m_manager, &ObserverProxy::EncounterDetected, this,
-                &StatusWindow::onEncounterDetected);
-        connect(&m_manager, &ObserverProxy::EncounterEnded, this, &StatusWindow::onEncounterEnded);
-        connect(&m_manager, &ObserverProxy::DungeonDetected, this,
-                &StatusWindow::onDungeonDetected);
-        connect(&m_manager, &ObserverProxy::DungeonEnded, this, &StatusWindow::onDungeonEnded);
+        connect(&m_manager, &ObserverProxy::ActivityEnded, this, &StatusWindow::onActivityEnded);
 
         auto *timer = new QTimer(this);
         connect(timer, &QTimer::timeout, this, &StatusWindow::refresh);
@@ -46,61 +46,55 @@ class StatusWindow : public QWidget {
             m_label->setText(QStringLiteral("constellard not reachable"));
             return;
         }
-        QDBusReply<QVariantMap> reply = m_manager.Status();
-        if (!reply.isValid()) {
-            m_label->setText(QStringLiteral("Status() failed: %1").arg(reply.error().message()));
-            return;
+
+        const QVariantMap activity = m_manager.property("Activity").toMap();
+        const QVariantMap zone = m_manager.property("Zone").toMap();
+
+        if (m_previousActivity.isEmpty() && !activity.isEmpty()) {
+            m_events->addItem(QStringLiteral("▶ %1").arg(describeActivity(activity)));
+            m_events->scrollToBottom();
         }
-        const QVariantMap status = reply.value();
-        m_label->setText(QStringLiteral("state: %1\nwowActive: %2\nactiveCapture: %3")
-                             .arg(status.value(QStringLiteral("state")).toString())
-                             .arg(status.value(QStringLiteral("wowActive")).toBool())
-                             .arg(status.value(QStringLiteral("activeCapture")).toString()));
+        m_previousActivity = activity;
+
+        m_label->setText(
+            QStringLiteral("activity: %1\nzone: %2")
+                .arg(activity.isEmpty() ? QStringLiteral("none") : describeActivity(activity),
+                     zone.value(QString::fromLatin1(keys::kZoneName)).toString()));
     }
 
-    static QString shortTime(const QString &isoTime) {
-        return QDateTime::fromString(isoTime, Qt::ISODateWithMs)
-            .toString(QStringLiteral("HH:mm:ss"));
+    static QString shortTime(qint64 epochMs) {
+        return QDateTime::fromMSecsSinceEpoch(epochMs).toString(QStringLiteral("HH:mm:ss"));
     }
 
-    void onEncounterDetected(int /*encounterId*/, const QString &encounterName,
-                             const QString &difficulty, const QString &startTime) {
-        m_events->addItem(
-            QStringLiteral("▶ %1 (%2) — %3").arg(encounterName, difficulty, shortTime(startTime)));
-        m_events->scrollToBottom();
+    static QString describeActivity(const QVariantMap &activity) {
+        const QString type = activity.value(QString::fromLatin1(keys::kType)).toString();
+        if (type == QString::fromLatin1(keys::kTypeEncounter)) {
+            return QStringLiteral("%1 %2").arg(
+                activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
+                activity.value(QString::fromLatin1(keys::kEncounterName)).toString());
+        }
+        if (type == QString::fromLatin1(keys::kTypeDungeon)) {
+            return QStringLiteral("Mythic+ %1")
+                .arg(activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString());
+        }
+        return QStringLiteral("unknown");
     }
 
-    void onEncounterEnded(int /*encounterId*/, const QString &encounterName, bool success,
-                          const QString &stopTime) {
+    void onActivityEnded(const QVariantMap &activity) {
+        const bool success = activity.value(QString::fromLatin1(keys::kSuccess)).toBool();
+        const qint64 stopTime = activity.value(QString::fromLatin1(keys::kStopTime)).toLongLong();
         m_events->addItem(QStringLiteral("■ %1 — %2 — %3")
-                              .arg(encounterName,
-                                   success ? QStringLiteral("KILL") : QStringLiteral("WIPE"),
+                              .arg(describeActivity(activity),
+                                   success ? QStringLiteral("SUCCESS") : QStringLiteral("FAILED"),
                                    shortTime(stopTime)));
         m_events->scrollToBottom();
-    }
-
-    void onDungeonDetected(int /*zoneId*/, int mapId, int keystoneLevel, const QString &startTime) {
-        m_events->addItem(QStringLiteral("▶ Mythic+ %1 (map %2) — %3")
-                              .arg(keystoneLevel)
-                              .arg(mapId)
-                              .arg(shortTime(startTime)));
-        m_events->scrollToBottom();
-    }
-
-    void onDungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
-                        const QString &stopTime) {
-        m_events->addItem(QStringLiteral("■ Mythic+ %1 (map %2) — %3 (%4ms) — %5")
-                              .arg(keystoneLevel)
-                              .arg(mapId)
-                              .arg(success ? QStringLiteral("TIMED") : QStringLiteral("DEPLETED"))
-                              .arg(durationMs)
-                              .arg(shortTime(stopTime)));
-        m_events->scrollToBottom();
+        m_previousActivity.clear();
     }
 
     ObserverProxy m_manager;
     QLabel *m_label;
     QListWidget *m_events;
+    QVariantMap m_previousActivity;
 };
 
 int main(int argc, char *argv[]) {

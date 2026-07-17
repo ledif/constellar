@@ -17,23 +17,24 @@ class ObserverService;
 // server side and keep data/io.github.ledif.constellar.xml as the
 // documented source of truth. The client-side proxy (src/common) *is*
 // generated, since that code is fully mechanical.
+//
+// QDBusAbstractAdaptor does not emit org.freedesktop.DBus.Properties
+// .PropertiesChanged automatically -- Activity/Zone changes are relayed by
+// hand via emitPropertiesChanged() (ADR-012).
 class ObserverAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "io.github.ledif.constellar.Observer")
 
-    Q_PROPERTY(QString State READ state)
-    Q_PROPERTY(bool WowActive READ wowActive)
-    Q_PROPERTY(QString ActiveCapture READ activeCapture)
+    Q_PROPERTY(QVariantMap Activity READ activity)
+    Q_PROPERTY(QVariantMap Zone READ zone)
 
   public:
     explicit ObserverAdaptor(ObserverService *service);
 
-    QString state() const;
-    bool wowActive() const;
-    QString activeCapture() const;
+    QVariantMap activity() const;
+    QVariantMap zone() const;
 
   public Q_SLOTS:
-    QVariantMap Status();
     void Pause();
     void Resume();
     void StartManualRecording();
@@ -45,17 +46,11 @@ class ObserverAdaptor : public QDBusAbstractAdaptor {
     void SetConfig(const QVariantMap &config);
 
   Q_SIGNALS:
-    void EncounterDetected(int encounterId, const QString &encounterName, const QString &difficulty,
-                           const QString &startTime);
-    void EncounterEnded(int encounterId, const QString &encounterName, bool success,
-                        const QString &stopTime);
-    void DungeonDetected(int zoneId, int mapId, int keystoneLevel, const QString &startTime);
-    void DungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
-                      const QString &stopTime);
-    void StateChanged(const QString &state);
-    void ZoneChanged(int mapId, const QString &zoneName);
+    void ActivityEnded(const QVariantMap &activity);
     void Error(const QString &code, const QString &message);
 
   private:
+    void emitPropertiesChanged(const QString &name, const QVariant &value);
+
     ObserverService *m_service;
 };

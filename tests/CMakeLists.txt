@@ -15,6 +15,10 @@ add_executable(presencepublisher_test PresencePublisherTest.h PresencePublisherT
 target_link_libraries(presencepublisher_test PRIVATE Qt6::Core Qt6::Test constellar-presence)
 add_test(NAME presencepublisher_test COMMAND presencepublisher_test)
 
+add_executable(gamestate_test GameStateTest.h GameStateTest.cpp)
+target_link_libraries(gamestate_test PRIVATE Qt6::Core Qt6::Test constellar-gamestate)
+add_test(NAME gamestate_test COMMAND gamestate_test)
+
 add_executable(discordipcclient_test DiscordIpcClientTest.h DiscordIpcClientTest.cpp)
 target_link_libraries(discordipcclient_test PRIVATE Qt6::Core Qt6::Network Qt6::Test constellar-presence)
 add_test(NAME discordipcclient_test COMMAND discordipcclient_test)

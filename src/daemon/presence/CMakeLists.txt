@@ -10,4 +10,4 @@ add_library(constellar-presence STATIC
 
 target_include_directories(constellar-presence PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(constellar-presence PUBLIC Qt6::Core Qt6::Network)
+target_link_libraries(constellar-presence PUBLIC Qt6::Core Qt6::Network constellar-gamestate)

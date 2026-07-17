@@ -3,9 +3,9 @@
 #include <QObject>
 
 // Covers PresencePublisher's pure state->activity mapping only. The
-// signal-handling side (onEncounterDetected etc.) is a thin pass-through to
-// DiscordIpcClient::setActivity/clearActivity, exercised end-to-end by
-// DiscordIpcClientTest instead of re-mocked here.
+// signal-handling side (onActivityChanged/onZoneChanged) is a thin
+// pass-through to activityFor()+DiscordIpcClient::setActivity, exercised
+// end-to-end by DiscordIpcClientTest instead of re-mocked here.
 class PresencePublisherTest : public QObject {
     Q_OBJECT
 
@@ -16,4 +16,6 @@ class PresencePublisherTest : public QObject {
     void idleActivityHasNoTimestamp();
     void idleActivityOmitsStateWithoutZone();
     void activitiesIncludeLargeImageAsset();
+    void activityForKeepsEncounterAcrossZoneChange();
+    void activityForFallsBackToIdleWhenActivityEmpty();
 };

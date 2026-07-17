@@ -3,15 +3,16 @@
 #include <QObject>
 #include <QString>
 
+#include "GameState.h"
 #include "LogWatcher.h"
 #include "RecordingController.h"
 
 // Owns the daemon's observable state plus the actual detection pipeline:
 // LogWatcher tails the combat log, RecordingController turns lines into
-// start/stop decisions, and this class translates those decisions into the
-// primitive-typed Qt signals ObserverAdaptor relays over DBus (see PLAN.md
-// §3.7). Still no libobs/ObsEngine or MetadataStore — this is detection
-// only, per HANDOFF.md roadmap item 5.
+// start/stop decisions, and this class fills the shared GameState fact bags
+// (ADR-012) that ObserverAdaptor publishes over DBus and PresencePublisher
+// projects into Discord Rich Presence. Still no libobs/ObsEngine or
+// MetadataStore — this is detection only, per HANDOFF.md roadmap item 5.
 class ObserverService : public QObject {
     Q_OBJECT
 
@@ -23,34 +24,15 @@ class ObserverService : public QObject {
     // fatal, same posture as tools/logtail.
     bool start();
 
-    QString state() const;
-    bool wowActive() const;
-    QString activeCapture() const;
-
-  Q_SIGNALS:
-    void stateChanged(const QString &state);
-
-    // Mirror RecordingController's decisions with primitive-typed
-    // signals so ObserverAdaptor can relay them verbatim over DBus (whose
-    // marshalling doesn't know about RaidEncounter/DungeonRun or
-    // QDateTime). Timestamps are ISO 8601 strings.
-    void encounterDetected(int encounterId, const QString &encounterName, const QString &difficulty,
-                           const QString &startTime);
-    void encounterEnded(int encounterId, const QString &encounterName, bool success,
-                        const QString &stopTime);
-    void dungeonDetected(int zoneId, int mapId, int keystoneLevel, const QString &startTime);
-    void dungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
-                      const QString &stopTime);
-    void zoneChanged(int mapId, const QString &zoneName);
+    GameState &gameState();
 
   private:
-    void setState(const QString &state);
     static QString raidDifficultyDisplayName(int difficultyId);
+    static QVariantMap encounterBag(const RecordingController::RaidEncounter &encounter);
+    static QVariantMap dungeonBag(const RecordingController::DungeonRun &dungeon);
 
     QString m_logDirectory;
-    QString m_state = QStringLiteral("idle");
-    bool m_wowActive = false;
-    QString m_activeCapture = QStringLiteral("none");
+    GameState m_gameState;
 
     LogWatcher m_watcher;
     RecordingController m_controller;

@@ -2,6 +2,10 @@
 
 #include <QDateTime>
 
+#include "ActivityKeys.h"
+
+namespace keys = constellar::keys;
+
 ObserverService::ObserverService(QString logDirectory, QObject *parent)
     : QObject(parent),
       m_logDirectory(std::move(logDirectory)),
@@ -10,72 +14,46 @@ ObserverService::ObserverService(QString logDirectory, QObject *parent)
     connect(&m_watcher, &LogWatcher::lineReceived, &m_controller,
             &RecordingController::onLineReceived);
 
-    connect(&m_watcher, &LogWatcher::idleTimeout, this, [this]() {
-        m_wowActive = false;
-        setState(QStringLiteral("idle"));
-    });
-
-    connect(&m_watcher, &LogWatcher::lineReceived, this, [this](const LogLine & /*line*/) {
-        if (!m_wowActive) {
-            m_wowActive = true;
-            setState(QStringLiteral("watching"));
-        }
-    });
-
     connect(&m_controller, &RecordingController::recordingStarted, this,
             [this](const RecordingController::RaidEncounter &encounter,
                    const QDateTime & /*preRollFrom*/) {
-                setState(QStringLiteral("encounter"));
-                Q_EMIT encounterDetected(encounter.encounterId, encounter.encounterName,
-                                         raidDifficultyDisplayName(encounter.difficultyId),
-                                         encounter.startTime.toString(Qt::ISODateWithMs));
+                m_gameState.setActivity(encounterBag(encounter));
             });
     connect(&m_controller, &RecordingController::recordingStopped, this,
             [this](const RecordingController::RaidEncounter &encounter, bool success,
                    const QDateTime &stopTime) {
-                setState(QStringLiteral("watching"));
-                Q_EMIT encounterEnded(encounter.encounterId, encounter.encounterName, success,
-                                      stopTime.toString(Qt::ISODateWithMs));
+                QVariantMap bag = encounterBag(encounter);
+                bag[keys::kSuccess] = success;
+                bag[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
+                m_gameState.endActivity(bag);
             });
     connect(
         &m_controller, &RecordingController::dungeonStarted, this,
         [this](const RecordingController::DungeonRun &dungeon, const QDateTime & /*preRollFrom*/) {
-            setState(QStringLiteral("dungeon"));
-            Q_EMIT dungeonDetected(dungeon.zoneId, dungeon.mapId, dungeon.keystoneLevel,
-                                   dungeon.startTime.toString(Qt::ISODateWithMs));
+            m_gameState.setActivity(dungeonBag(dungeon));
         });
     connect(&m_controller, &RecordingController::dungeonStopped, this,
             [this](const RecordingController::DungeonRun &dungeon, bool success, int durationMs,
                    const QDateTime &stopTime) {
-                setState(QStringLiteral("watching"));
-                Q_EMIT dungeonEnded(dungeon.mapId, dungeon.keystoneLevel, success, durationMs,
-                                    stopTime.toString(Qt::ISODateWithMs));
+                QVariantMap bag = dungeonBag(dungeon);
+                bag[keys::kSuccess] = success;
+                bag[keys::kDurationMs] = static_cast<qint64>(durationMs);
+                bag[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
+                m_gameState.endActivity(bag);
             });
-    connect(&m_controller, &RecordingController::zoneChanged, this, &ObserverService::zoneChanged);
+    connect(&m_controller, &RecordingController::zoneChanged, this,
+            [this](int mapId, const QString &zoneName) {
+                m_gameState.setZone(QVariantMap{{keys::kMapId, static_cast<uint>(mapId)},
+                                                {keys::kZoneName, zoneName}});
+            });
 }
 
 bool ObserverService::start() {
     return m_watcher.start();
 }
 
-QString ObserverService::state() const {
-    return m_state;
-}
-
-bool ObserverService::wowActive() const {
-    return m_wowActive;
-}
-
-QString ObserverService::activeCapture() const {
-    return m_activeCapture;
-}
-
-void ObserverService::setState(const QString &state) {
-    if (m_state == state) {
-        return;
-    }
-    m_state = state;
-    Q_EMIT stateChanged(m_state);
+GameState &ObserverService::gameState() {
+    return m_gameState;
 }
 
 QString ObserverService::raidDifficultyDisplayName(int difficultyId) {
@@ -95,4 +73,25 @@ QString ObserverService::raidDifficultyDisplayName(int difficultyId) {
             return QStringLiteral("Mythic");
     }
     return QStringLiteral("Unknown");
+}
+
+QVariantMap ObserverService::encounterBag(const RecordingController::RaidEncounter &encounter) {
+    QVariantMap bag;
+    bag[keys::kType] = QString::fromLatin1(keys::kTypeEncounter);
+    bag[keys::kEncounterId] = static_cast<uint>(encounter.encounterId);
+    bag[keys::kEncounterName] = encounter.encounterName;
+    bag[keys::kDifficulty] = raidDifficultyDisplayName(encounter.difficultyId);
+    bag[keys::kDifficultyId] = static_cast<uint>(encounter.difficultyId);
+    bag[keys::kStartTime] = static_cast<qint64>(encounter.startTime.toMSecsSinceEpoch());
+    return bag;
+}
+
+QVariantMap ObserverService::dungeonBag(const RecordingController::DungeonRun &dungeon) {
+    QVariantMap bag;
+    bag[keys::kType] = QString::fromLatin1(keys::kTypeDungeon);
+    bag[keys::kMapId] = static_cast<uint>(dungeon.mapId);
+    bag[keys::kZoneId] = static_cast<uint>(dungeon.zoneId);
+    bag[keys::kKeystoneLevel] = static_cast<uint>(dungeon.keystoneLevel);
+    bag[keys::kStartTime] = static_cast<qint64>(dungeon.startTime.toMSecsSinceEpoch());
+    return bag;
 }

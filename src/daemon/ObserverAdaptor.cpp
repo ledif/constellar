@@ -1,37 +1,40 @@
 #include "ObserverAdaptor.h"
 
+#include <QDBusConnection>
+#include <QDBusMessage>
+
+#include "DBusConstants.h"
+#include "GameState.h"
 #include "ObserverService.h"
 
 ObserverAdaptor::ObserverAdaptor(ObserverService *service)
     : QDBusAbstractAdaptor(service), m_service(service) {
     setAutoRelaySignals(true);
-    connect(service, &ObserverService::stateChanged, this, &ObserverAdaptor::StateChanged);
-    connect(service, &ObserverService::encounterDetected, this,
-            &ObserverAdaptor::EncounterDetected);
-    connect(service, &ObserverService::encounterEnded, this, &ObserverAdaptor::EncounterEnded);
-    connect(service, &ObserverService::dungeonDetected, this, &ObserverAdaptor::DungeonDetected);
-    connect(service, &ObserverService::dungeonEnded, this, &ObserverAdaptor::DungeonEnded);
-    connect(service, &ObserverService::zoneChanged, this, &ObserverAdaptor::ZoneChanged);
+    GameState &gameState = m_service->gameState();
+    connect(&gameState, &GameState::activityChanged, this, [this](const QVariantMap &activity) {
+        emitPropertiesChanged(QStringLiteral("Activity"), activity);
+    });
+    connect(&gameState, &GameState::zoneChanged, this, [this](const QVariantMap &zone) {
+        emitPropertiesChanged(QStringLiteral("Zone"), zone);
+    });
+    connect(&gameState, &GameState::activityEnded, this, &ObserverAdaptor::ActivityEnded);
 }
 
-QString ObserverAdaptor::state() const {
-    return m_service->state();
+QVariantMap ObserverAdaptor::activity() const {
+    return m_service->gameState().activity();
 }
 
-bool ObserverAdaptor::wowActive() const {
-    return m_service->wowActive();
+QVariantMap ObserverAdaptor::zone() const {
+    return m_service->gameState().zone();
 }
 
-QString ObserverAdaptor::activeCapture() const {
-    return m_service->activeCapture();
-}
-
-QVariantMap ObserverAdaptor::Status() {
-    QVariantMap status;
-    status[QStringLiteral("state")] = m_service->state();
-    status[QStringLiteral("wowActive")] = m_service->wowActive();
-    status[QStringLiteral("activeCapture")] = m_service->activeCapture();
-    return status;
+void ObserverAdaptor::emitPropertiesChanged(const QString &name, const QVariant &value) {
+    QDBusMessage signal = QDBusMessage::createSignal(
+        constellar::dbus::kObjectPath, QStringLiteral("org.freedesktop.DBus.Properties"),
+        QStringLiteral("PropertiesChanged"));
+    signal << QStringLiteral("io.github.ledif.constellar.Observer") << QVariantMap{{name, value}}
+           << QStringList{};
+    QDBusConnection::sessionBus().send(signal);
 }
 
 void ObserverAdaptor::Pause() {

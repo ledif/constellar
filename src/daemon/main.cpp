@@ -9,6 +9,7 @@
 
 #include "DBusConstants.h"
 #include "DiscordIpcClient.h"
+#include "GameState.h"
 #include "ObserverAdaptor.h"
 #include "ObserverService.h"
 #include "PresencePublisher.h"
@@ -60,18 +61,10 @@ int main(int argc, char *argv[]) {
     // entirely when presence isn't configured.
     if (!discordAppId.isEmpty()) {
         auto *discordClient = new DiscordIpcClient(discordAppId, &app);
-        auto *presence = new PresencePublisher(*discordClient, &app);
-        QObject::connect(service, &ObserverService::encounterDetected, presence,
-                         &PresencePublisher::onEncounterDetected);
-        QObject::connect(service, &ObserverService::encounterEnded, presence,
-                         &PresencePublisher::onEncounterEnded);
-        QObject::connect(service, &ObserverService::dungeonDetected, presence,
-                         &PresencePublisher::onDungeonDetected);
-        QObject::connect(service, &ObserverService::dungeonEnded, presence,
-                         &PresencePublisher::onDungeonEnded);
-        QObject::connect(service, &ObserverService::stateChanged, presence,
-                         &PresencePublisher::onStateChanged);
-        QObject::connect(service, &ObserverService::zoneChanged, presence,
+        auto *presence = new PresencePublisher(*discordClient, service->gameState(), &app);
+        QObject::connect(&service->gameState(), &GameState::activityChanged, presence,
+                         &PresencePublisher::onActivityChanged);
+        QObject::connect(&service->gameState(), &GameState::zoneChanged, presence,
                          &PresencePublisher::onZoneChanged);
         QObject::connect(&app, &QCoreApplication::aboutToQuit, presence,
                          [discordClient]() { discordClient->clearActivity(); });
@@ -95,6 +88,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    qInfo() << "constellard running, State =" << service->state() << "watching" << logDirectory;
+    qInfo() << "constellard running, watching" << logDirectory;
     return app.exec();
 }

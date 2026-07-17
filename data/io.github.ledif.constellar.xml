@@ -3,14 +3,33 @@
  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="io.github.ledif.constellar.Observer">
-    <property name="State" type="s" access="read"/>
-    <property name="WowActive" type="b" access="read"/>
-    <property name="ActiveCapture" type="s" access="read"/>
+    <!-- Activity: the player's current instanced activity. Empty dict when none.
+         Keys (see src/common/ActivityKeys.h):
+           type          s   "encounter" | "dungeon"
+           encounterId   u   encounter only
+           encounterName s   encounter only
+           difficulty    s   encounter only; LFR|Normal|Heroic|Mythic|Unknown
+           difficultyId  u   encounter only; raw WoW difficultyID
+           mapId         u   dungeon only
+           zoneId        u   dungeon only
+           keystoneLevel u   dungeon only
+           startTime     x   unix epoch milliseconds
+         ActivityEnded additionally carries:
+           success       b
+           durationMs    x   dungeon only
+           stopTime      x   unix epoch milliseconds -->
+    <property name="Activity" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
 
-    <method name="Status">
-      <arg name="status" type="a{sv}" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-    </method>
+    <!-- Zone: where the player is. Orthogonal to Activity — you are in a zone
+         whether or not you are pulling a boss. Empty dict before the first MAP_CHANGE.
+           mapId    u
+           zoneName s -->
+    <property name="Zone" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
+
     <method name="Pause"/>
     <method name="Resume"/>
     <method name="StartManualRecording"/>
@@ -35,38 +54,11 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
-    <signal name="EncounterDetected">
-      <arg name="encounterId" type="i"/>
-      <arg name="encounterName" type="s"/>
-      <arg name="difficulty" type="s"/>
-      <arg name="startTime" type="s"/>
+    <signal name="ActivityEnded">
+      <arg name="activity" type="a{sv}"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
     </signal>
-    <signal name="EncounterEnded">
-      <arg name="encounterId" type="i"/>
-      <arg name="encounterName" type="s"/>
-      <arg name="success" type="b"/>
-      <arg name="stopTime" type="s"/>
-    </signal>
-    <signal name="DungeonDetected">
-      <arg name="zoneId" type="i"/>
-      <arg name="mapId" type="i"/>
-      <arg name="keystoneLevel" type="i"/>
-      <arg name="startTime" type="s"/>
-    </signal>
-    <signal name="DungeonEnded">
-      <arg name="mapId" type="i"/>
-      <arg name="keystoneLevel" type="i"/>
-      <arg name="success" type="b"/>
-      <arg name="durationMs" type="i"/>
-      <arg name="stopTime" type="s"/>
-    </signal>
-    <signal name="StateChanged">
-      <arg name="state" type="s"/>
-    </signal>
-    <signal name="ZoneChanged">
-      <arg name="mapId" type="i"/>
-      <arg name="zoneName" type="s"/>
-    </signal>
+
     <signal name="Error">
       <arg name="code" type="s"/>
       <arg name="message" type="s"/>
