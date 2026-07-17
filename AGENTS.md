@@ -13,7 +13,7 @@ All builds run in a podman container. Assume host has no build tools.
 - `just configure` — configure CMake (wipes `build/`).
 - `just build` — compile.
 - `just test` — run `ctest`.
-- `just smoke` — daemon + `constellar status` round trip on a private DBus bus.
+- `just smoke` — daemon + `constellarctl status` round trip on a private DBus bus.
 - `just format` / `just check-format` — clang-format (C++) and cmake-format (CMakeLists.txt/*.cmake).
 - `just cmake-lint` — cmake-lint style/anti-pattern checks.
 

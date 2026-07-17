@@ -52,7 +52,7 @@ run-daemon path discord_app_id="1527462779290652672":
 kill-daemon:
     podman ps --filter ancestor={{image}} --no-trunc | grep constellard | awk '{print $1}' | xargs -r podman kill
 
-# Run `constellar status` against the host session bus inside the container
+# Run `constellarctl status` against the host session bus inside the container
 run-cli *args:
     podman run --rm -it \
         --security-opt label=disable \
@@ -60,7 +60,7 @@ run-cli *args:
         -v /run/user/$(id -u):/run/user/$(id -u) \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
-        {{image}} ./{{build_dir}}/src/cli/constellar {{args}}
+        {{image}} ./{{build_dir}}/src/cli/constellarctl {{args}}
 
 # Run daemon+CLI smoke test on a private bus inside the container
 smoke:
@@ -68,7 +68,7 @@ smoke:
         ./{{build_dir}}/src/daemon/constellard --log-dir /tmp & \
         pid=$!; \
         sleep 1; \
-        ./{{build_dir}}/src/cli/constellar status; \
+        ./{{build_dir}}/src/cli/constellarctl status; \
         status=$?; \
         kill $pid; \
         exit $status \
@@ -87,7 +87,7 @@ run-gui:
         -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         --userns=keep-id \
         --net=host \
-        {{image}} ./{{build_dir}}/src/gui/constellar-gui
+        {{image}} ./{{build_dir}}/src/gui/constellar
 
 clean:
     rm -rf {{build_dir}}

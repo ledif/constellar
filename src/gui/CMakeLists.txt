@@ -1,5 +1,5 @@
-add_executable(constellar-gui main.cpp)
+add_executable(constellar main.cpp)
 
-target_link_libraries(constellar-gui PRIVATE Qt6::Core Qt6::DBus Qt6::Widgets constellar::common)
+target_link_libraries(constellar PRIVATE Qt6::Core Qt6::DBus Qt6::Widgets constellar::common)
 
-install(TARGETS constellar-gui)
+install(TARGETS constellar)

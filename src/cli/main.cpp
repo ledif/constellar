@@ -18,7 +18,7 @@ namespace
 
 void printUsage()
 {
-    QTextStream(stdout) << "usage: constellar status [--json]\n";
+    QTextStream(stdout) << "usage: constellarctl status [--json]\n";
 }
 
 int runStatus(bool json)
@@ -29,7 +29,7 @@ int runStatus(bool json)
 
     if (!manager.isValid())
     {
-        QTextStream(stderr) << "constellar: cannot reach constellard: "
+        QTextStream(stderr) << "constellarctl: cannot reach constellard: "
                             << manager.lastError().message() << "\n";
         return 1;
     }
