@@ -12,7 +12,7 @@ namespace
 
 QStringList loadFixtureLines()
 {
-    QFile file(QStringLiteral(LOGFIXTURES_DIR "/sample.txt"));
+    QFile file(QStringLiteral(LOGFIXTURES_DIR "/midnight-season-1.txt"));
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return {};

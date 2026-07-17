@@ -1,39 +1,58 @@
-add_executable(logline_test LogLineTest.h LogLineTest.cpp)
-target_link_libraries(logline_test PRIVATE Qt6::Core Qt6::Test constellar::log)
-target_compile_definitions(logline_test
-                           PRIVATE LOGFIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/logfixtures")
-add_test(NAME logline_test COMMAND logline_test)
+function(constellar_add_test name)
+    cmake_parse_arguments(ARG "" "" "SOURCES;LIBS;COMPILE_DEFINITIONS" ${ARGN})
 
-add_executable(logwatcher_test LogWatcherTest.h LogWatcherTest.cpp)
-target_link_libraries(logwatcher_test PRIVATE Qt6::Core Qt6::Test constellar::log)
-add_test(NAME logwatcher_test COMMAND logwatcher_test)
+    add_executable(${name} ${ARG_SOURCES})
+    target_link_libraries(${name} PRIVATE Qt6::Core Qt6::Test ${ARG_LIBS})
 
-add_executable(activitytracker_test ActivityTrackerTest.h ActivityTrackerTest.cpp)
-target_link_libraries(activitytracker_test PRIVATE Qt6::Core Qt6::Test constellar::tracker)
-add_test(NAME activitytracker_test COMMAND activitytracker_test)
+    if(ARG_COMPILE_DEFINITIONS)
+        target_compile_definitions(${name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
+    endif()
 
-add_executable(presencepublisher_test PresencePublisherTest.h PresencePublisherTest.cpp)
-target_link_libraries(presencepublisher_test PRIVATE Qt6::Core Qt6::Test constellar::presence)
-add_test(NAME presencepublisher_test COMMAND presencepublisher_test)
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
 
-add_executable(gamestate_test GameStateTest.h GameStateTest.cpp)
-target_link_libraries(gamestate_test PRIVATE Qt6::Core Qt6::Test constellar::gamestate)
-add_test(NAME gamestate_test COMMAND gamestate_test)
+constellar_add_test(logline_test
+    SOURCES LogLineTest.h LogLineTest.cpp
+    LIBS constellar::log
+    COMPILE_DEFINITIONS LOGFIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
 
-add_executable(discordipcclient_test DiscordIpcClientTest.h DiscordIpcClientTest.cpp)
-target_link_libraries(discordipcclient_test PRIVATE Qt6::Core Qt6::Network Qt6::Test
-                                                    constellar::presence)
-add_test(NAME discordipcclient_test COMMAND discordipcclient_test)
+constellar_add_test(logwatcher_test
+    SOURCES LogWatcherTest.h LogWatcherTest.cpp
+    LIBS constellar::log
+)
 
-add_executable(activity_test ActivityTest.h ActivityTest.cpp)
-target_link_libraries(activity_test PRIVATE Qt6::Core Qt6::Test constellar::common)
-add_test(NAME activity_test COMMAND activity_test)
+constellar_add_test(activitytracker_test
+    SOURCES ActivityTrackerTest.h ActivityTrackerTest.cpp
+    LIBS constellar::tracker
+)
 
-add_executable(zone_test ZoneTest.h ZoneTest.cpp)
-target_link_libraries(zone_test PRIVATE Qt6::Core Qt6::Test constellar::common)
-add_test(NAME zone_test COMMAND zone_test)
+constellar_add_test(presencepublisher_test
+    SOURCES PresencePublisherTest.h PresencePublisherTest.cpp
+    LIBS constellar::presence
+)
 
-add_executable(activitymetadata_test ActivityMetadataTest.h ActivityMetadataTest.cpp)
-target_link_libraries(activitymetadata_test PRIVATE Qt6::Core Qt6::Test
-                                                    constellar::activitymetadata)
-add_test(NAME activitymetadata_test COMMAND activitymetadata_test)
+constellar_add_test(gamestate_test
+    SOURCES GameStateTest.h GameStateTest.cpp
+    LIBS constellar::gamestate
+)
+
+constellar_add_test(discordipcclient_test
+    SOURCES DiscordIpcClientTest.h DiscordIpcClientTest.cpp
+    LIBS Qt6::Network constellar::presence
+)
+
+constellar_add_test(activity_test
+    SOURCES ActivityTest.h ActivityTest.cpp
+    LIBS constellar::common
+)
+
+constellar_add_test(zone_test
+    SOURCES ZoneTest.h ZoneTest.cpp
+    LIBS constellar::common
+)
+
+constellar_add_test(activitymetadata_test
+    SOURCES ActivityMetadataTest.h ActivityMetadataTest.cpp
+    LIBS constellar::activitymetadata
+)
