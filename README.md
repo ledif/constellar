@@ -6,7 +6,7 @@ Built for Wayland and packaged as a Flatpak.
 
 ## Architecture
 
-The D-Bus interface aspires to be something like MPRIS for WoW. That is, any D-Bus client should be able to query the state of the player in the game world.
+The D-Bus interface aspires to be something like [MPRIS](https://wiki.archlinux.org/title/MPRIS) for World of Warcraft. That is, any D-Bus client should be able to query the state of the player in the game world.
 
 Other components:
 - A small Qt GUI for configuration. Drives the directory picker and Wayland capture portals.
