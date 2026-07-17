@@ -23,6 +23,7 @@ configure:
     rm -rf {{build_dir}}
     {{podman_run}} cmake -S . -B {{build_dir}} -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
+# Full CMake build
 build:
     #!/bin/bash
     if [ ! -d build ]; then
@@ -47,6 +48,7 @@ run-daemon path discord_app_id="1527462779290652672":
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
+[private]
 kill-daemon:
     podman ps --filter ancestor={{image}} --no-trunc | grep constellard | awk '{print $1}' | xargs -r podman kill
 
