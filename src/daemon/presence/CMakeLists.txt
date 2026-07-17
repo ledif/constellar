@@ -1,9 +1,21 @@
-# Discord Rich Presence publisher (RFC-002). Own static library, same reasoning as
-# constellar-log/constellar-controller: tests/ link it without pulling in main.cpp.
-add_library(constellar-presence STATIC DiscordIpcClient.h DiscordIpcClient.cpp PresencePublisher.h
-                                       PresencePublisher.cpp)
+add_library(constellar-presence STATIC)
 add_library(constellar::presence ALIAS constellar-presence)
 
-target_include_directories(constellar-presence PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_sources(constellar-presence
+  PUBLIC
+    FILE_SET HEADERS
+    FILES
+      DiscordIpcClient.h
+      PresencePublisher.h
+  PRIVATE
+    DiscordIpcClient.cpp
+    PresencePublisher.cpp
+)
 
-target_link_libraries(constellar-presence PUBLIC Qt6::Core Qt6::Network constellar::gamestate)
+target_link_libraries(constellar-presence
+  PUBLIC
+    Qt6::Core
+    Qt6::Network
+    constellar::common
+    constellar::gamestate
+)
