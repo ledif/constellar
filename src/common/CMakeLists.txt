@@ -6,24 +6,17 @@ set(OBSERVER_PROXY_CPP ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.cpp)
 
 add_custom_command(
     OUTPUT ${OBSERVER_PROXY_H} ${OBSERVER_PROXY_CPP}
-    COMMAND ${QDBUSXML2CPP} -p ${OBSERVER_PROXY_H}:${OBSERVER_PROXY_CPP} -c ObserverProxy ${OBSERVER_XML}
+    COMMAND ${QDBUSXML2CPP} -p ${OBSERVER_PROXY_H}:${OBSERVER_PROXY_CPP} -c ObserverProxy
+            ${OBSERVER_XML}
     DEPENDS ${OBSERVER_XML}
     COMMENT "Generating DBus ObserverProxy from ${OBSERVER_XML}"
-    VERBATIM
-)
+    VERBATIM)
 
-add_library(constellar-common STATIC
-    ${OBSERVER_PROXY_H}
-    ${OBSERVER_PROXY_CPP}
-    Activity.h
-    Activity.cpp
-    Zone.h
-    Zone.cpp
-)
+add_library(constellar-common STATIC ${OBSERVER_PROXY_H} ${OBSERVER_PROXY_CPP} Activity.h
+                                     Activity.cpp Zone.h Zone.cpp)
+add_library(constellar::common ALIAS constellar-common)
 
-target_include_directories(constellar-common PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
-)
+target_include_directories(constellar-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+                                                    ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(constellar-common PUBLIC Qt6::Core Qt6::DBus)

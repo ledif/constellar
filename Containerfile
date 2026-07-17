@@ -14,6 +14,10 @@ RUN dnf install -y --setopt=install_weak_deps=False \
         dbus-devel \
         dbus-daemon \
         dbus-tools \
+        python3.12 \
     && dnf clean all
+
+RUN python3.12 -m ensurepip --upgrade \
+    && python3.12 -m pip install --no-cache-dir cmakelang pyyaml
 
 WORKDIR /src
