@@ -6,13 +6,12 @@
 #include <QVariantMap>
 #include <cstdio>
 
-#include "ActivityKeys.h"
+#include "Activity.h"
 #include "DBusConstants.h"
+#include "Zone.h"
 #include "observerproxy.h"
 
 using namespace Qt::StringLiterals;
-
-namespace keys = constellar::keys;
 
 namespace
 {
@@ -22,40 +21,12 @@ void printUsage()
     QTextStream(stdout) << "usage: constellar status [--json]\n";
 }
 
-QString activitySummary(QVariantMap const& activity)
-{
-    QString const type = activity.value(QString::fromLatin1(keys::kType)).toString();
-    if (type == QString::fromLatin1(keys::kTypeEncounter))
-    {
-        return u"encounter %1 %2"_s.arg(
-            activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
-            activity.value(QString::fromLatin1(keys::kEncounterName)).toString()
-        );
-    }
-    if (type == QString::fromLatin1(keys::kTypeDungeon))
-    {
-        return u"dungeon +%1"_s.arg(
-            activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString()
-        );
-    }
-    return u"none"_s;
-}
-
-QString zoneSummary(QVariantMap const& zone)
-{
-    if (zone.isEmpty())
-        return u"none"_s;
-    return u"%1 (mapId %2)"_s.arg(
-        zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
-        zone.value(QString::fromLatin1(keys::kMapId)).toString()
-    );
-}
-
 int runStatus(bool json)
 {
     ObserverProxy manager(
         constellar::dbus::kServiceName, constellar::dbus::kObjectPath, QDBusConnection::sessionBus()
     );
+
     if (!manager.isValid())
     {
         QTextStream(stderr) << "constellar: cannot reach constellard: "
@@ -63,22 +34,23 @@ int runStatus(bool json)
         return 1;
     }
 
-    QVariantMap const activity = manager.property("Activity").toMap();
-    QVariantMap const zone = manager.property("Zone").toMap();
+    QVariantMap const activityMap = manager.property("Activity").toMap();
+    QVariantMap const zoneMap = manager.property("Zone").toMap();
 
     QTextStream out(stdout);
     if (json)
     {
         QJsonObject root;
-        root["activity"] = QJsonObject::fromVariantMap(activity);
-        root["zone"] = QJsonObject::fromVariantMap(zone);
+        root["activity"] = QJsonObject::fromVariantMap(activityMap);
+        root["zone"] = QJsonObject::fromVariantMap(zoneMap);
         out << QJsonDocument(root).toJson(QJsonDocument::Compact) << "\n";
     }
     else
     {
-        out << "Activity: " << (activity.isEmpty() ? u"none"_s : activitySummary(activity)) << "\n";
-        out << "Zone:     " << zoneSummary(zone) << "\n";
+        out << "Activity: " << Activity::fromVariantMap(activityMap).toDisplayString() << "\n";
+        out << "Zone:     " << Zone::fromVariantMap(zoneMap).toDisplayString() << "\n";
     }
+
     return 0;
 }
 

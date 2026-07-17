@@ -8,8 +8,10 @@
 #include <QVariantMap>
 #include <QWidget>
 
+#include "Activity.h"
 #include "ActivityKeys.h"
 #include "DBusConstants.h"
+#include "Zone.h"
 #include "observerproxy.h"
 
 using namespace Qt::StringLiterals;
@@ -55,20 +57,18 @@ class StatusWindow : public QWidget
             return;
         }
 
-        QVariantMap const activity = m_manager.property("Activity").toMap();
-        QVariantMap const zone = m_manager.property("Zone").toMap();
+        QVariantMap const activityMap = m_manager.property("Activity").toMap();
+        Activity const activity = Activity::fromVariantMap(activityMap);
+        Zone const zone = Zone::fromVariantMap(m_manager.property("Zone").toMap());
 
-        if (m_previousActivity.isEmpty() && !activity.isEmpty())
+        if (m_previousActivity.isEmpty() && !activityMap.isEmpty())
         {
-            m_events->addItem(u"▶ %1"_s.arg(describeActivity(activity)));
+            m_events->addItem(u"▶ %1"_s.arg(activity.toDisplayString()));
             m_events->scrollToBottom();
         }
-        m_previousActivity = activity;
+        m_previousActivity = activityMap;
 
-        m_label->setText(u"activity: %1\nzone: %2"_s.arg(
-            activity.isEmpty() ? u"none"_s : describeActivity(activity),
-            zone.value(QString::fromLatin1(keys::kZoneName)).toString()
-        ));
+        m_label->setText(u"activity: %1\nzone: %2"_s.arg(activity.toDisplayString(), zone.name()));
     }
 
     static QString shortTime(qint64 epochMs)
@@ -76,31 +76,14 @@ class StatusWindow : public QWidget
         return QDateTime::fromMSecsSinceEpoch(epochMs).toString(u"HH:mm:ss"_s);
     }
 
-    static QString describeActivity(QVariantMap const& activity)
+    void onActivityEnded(QVariantMap const& activityMap)
     {
-        QString const type = activity.value(QString::fromLatin1(keys::kType)).toString();
-        if (type == QString::fromLatin1(keys::kTypeEncounter))
-        {
-            return u"%1 %2"_s.arg(
-                activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
-                activity.value(QString::fromLatin1(keys::kEncounterName)).toString()
-            );
-        }
-        if (type == QString::fromLatin1(keys::kTypeDungeon))
-        {
-            return u"Mythic+ %1"_s.arg(
-                activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString()
-            );
-        }
-        return u"unknown"_s;
-    }
-
-    void onActivityEnded(QVariantMap const& activity)
-    {
-        bool const success = activity.value(QString::fromLatin1(keys::kSuccess)).toBool();
-        qint64 const stopTime = activity.value(QString::fromLatin1(keys::kStopTime)).toLongLong();
+        Activity const activity = Activity::fromVariantMap(activityMap);
+        bool const success = activityMap.value(QString::fromLatin1(keys::kSuccess)).toBool();
+        qint64 const stopTime =
+            activityMap.value(QString::fromLatin1(keys::kStopTime)).toLongLong();
         m_events->addItem(u"■ %1 — %2 — %3"_s.arg(
-            describeActivity(activity), success ? u"SUCCESS"_s : u"FAILED"_s, shortTime(stopTime)
+            activity.toDisplayString(), success ? u"SUCCESS"_s : u"FAILED"_s, shortTime(stopTime)
         ));
         m_events->scrollToBottom();
         m_previousActivity.clear();

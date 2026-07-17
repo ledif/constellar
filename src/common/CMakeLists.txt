@@ -24,6 +24,10 @@ add_custom_command(
 add_library(constellar-common STATIC
     ${OBSERVER_PROXY_H}
     ${OBSERVER_PROXY_CPP}
+    Activity.h
+    Activity.cpp
+    Zone.h
+    Zone.cpp
 )
 
 target_include_directories(constellar-common PUBLIC

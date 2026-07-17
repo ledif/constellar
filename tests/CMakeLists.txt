@@ -22,3 +22,11 @@ add_test(NAME gamestate_test COMMAND gamestate_test)
 add_executable(discordipcclient_test DiscordIpcClientTest.h DiscordIpcClientTest.cpp)
 target_link_libraries(discordipcclient_test PRIVATE Qt6::Core Qt6::Network Qt6::Test constellar-presence)
 add_test(NAME discordipcclient_test COMMAND discordipcclient_test)
+
+add_executable(activity_test ActivityTest.h ActivityTest.cpp)
+target_link_libraries(activity_test PRIVATE Qt6::Core Qt6::Test constellar-common)
+add_test(NAME activity_test COMMAND activity_test)
+
+add_executable(zone_test ZoneTest.h ZoneTest.cpp)
+target_link_libraries(zone_test PRIVATE Qt6::Core Qt6::Test constellar-common)
+add_test(NAME zone_test COMMAND zone_test)
