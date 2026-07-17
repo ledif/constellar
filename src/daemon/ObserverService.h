@@ -21,7 +21,7 @@ class ObserverService : public QObject {
 
     // Starts the underlying LogWatcher. Returns false on failure (bad
     // directory, inotify setup failure, etc.) — main.cpp treats that as
-    // fatal, same posture as tools/logtail.
+    // fatal.
     bool start();
 
     GameState &gameState();
