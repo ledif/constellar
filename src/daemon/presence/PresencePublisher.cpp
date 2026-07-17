@@ -10,36 +10,44 @@ using namespace Qt::StringLiterals;
 
 namespace keys = constellar::keys;
 
-namespace {
+namespace
+{
 
 // Developer Portal Rich Presence asset key (RFC-002 appendix flagged this as
 // a later pass; a single generic image is uploaded now). Per-state art
 // (raid/dungeon/difficulty badges) can replace this with a lookup once more
 // keys exist -- one key is enough to stop showing the blank placeholder.
-const QString kLargeImageKey = u"homestone"_s;
+QString const kLargeImageKey = u"homestone"_s;
 
-void addDefaultAssets(QJsonObject &activity) {
+void addDefaultAssets(QJsonObject& activity)
+{
     QJsonObject assets;
     assets["large_image"] = kLargeImageKey;
     activity["assets"] = assets;
 }
 
-qint64 startTimeSecs(const QVariantMap &activity) {
-    const qint64 startMs = activity.value(QString::fromLatin1(keys::kStartTime)).toLongLong();
+qint64 startTimeSecs(QVariantMap const& activity)
+{
+    qint64 const startMs = activity.value(QString::fromLatin1(keys::kStartTime)).toLongLong();
     return QDateTime::fromMSecsSinceEpoch(startMs, QTimeZone::UTC).toSecsSinceEpoch();
 }
 
 }  // namespace
 
-PresencePublisher::PresencePublisher(DiscordIpcClient &client, const GameState &gameState,
-                                     QObject *parent)
-    : QObject(parent), m_client(client), m_gameState(gameState) {}
+PresencePublisher::PresencePublisher(
+    DiscordIpcClient& client, GameState const& gameState, QObject* parent
+)
+    : QObject(parent), m_client(client), m_gameState(gameState)
+{
+}
 
-QJsonObject PresencePublisher::encounterActivity(const QVariantMap &activity,
-                                                 const QString &zoneName) {
-    const QString encounterName =
+QJsonObject PresencePublisher::encounterActivity(
+    QVariantMap const& activity, QString const& zoneName
+)
+{
+    QString const encounterName =
         activity.value(QString::fromLatin1(keys::kEncounterName)).toString();
-    const QString difficulty = activity.value(QString::fromLatin1(keys::kDifficulty)).toString();
+    QString const difficulty = activity.value(QString::fromLatin1(keys::kDifficulty)).toString();
 
     QJsonObject result;
     result["details"] = u"%1 %2"_s.arg(difficulty, encounterName);
@@ -51,8 +59,9 @@ QJsonObject PresencePublisher::encounterActivity(const QVariantMap &activity,
     return result;
 }
 
-QJsonObject PresencePublisher::dungeonActivity(const QVariantMap &activity) {
-    const uint keystoneLevel = activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toUInt();
+QJsonObject PresencePublisher::dungeonActivity(QVariantMap const& activity)
+{
+    uint const keystoneLevel = activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toUInt();
 
     QJsonObject result;
     result["details"] = u"Mythic+ Key +%1"_s.arg(keystoneLevel);
@@ -64,42 +73,43 @@ QJsonObject PresencePublisher::dungeonActivity(const QVariantMap &activity) {
     return result;
 }
 
-QJsonObject PresencePublisher::idleActivity(const QString &zoneName) {
+QJsonObject PresencePublisher::idleActivity(QString const& zoneName)
+{
     QJsonObject activity;
     // realm/character still require the addon-channel hybrid (ADR-011);
     // zoneName comes for free from Zone (RecordingController's MAP_CHANGE).
     activity["details"] = u"In World of Warcraft"_s;
-    if (!zoneName.isEmpty()) {
+    if (!zoneName.isEmpty())
         activity["state"] = zoneName;
-    }
     addDefaultAssets(activity);
     return activity;
 }
 
-QJsonObject PresencePublisher::activityFor(const QVariantMap &activity, const QVariantMap &zone) {
-    const QString zoneName = zone.value(QString::fromLatin1(keys::kZoneName)).toString();
-    if (activity.isEmpty()) {
+QJsonObject PresencePublisher::activityFor(QVariantMap const& activity, QVariantMap const& zone)
+{
+    QString const zoneName = zone.value(QString::fromLatin1(keys::kZoneName)).toString();
+    if (activity.isEmpty())
         return idleActivity(zoneName);
-    }
 
-    const QString type = activity.value(QString::fromLatin1(keys::kType)).toString();
-    if (type == QString::fromLatin1(keys::kTypeEncounter)) {
+    QString const type = activity.value(QString::fromLatin1(keys::kType)).toString();
+    if (type == QString::fromLatin1(keys::kTypeEncounter))
         return encounterActivity(activity, zoneName);
-    }
-    if (type == QString::fromLatin1(keys::kTypeDungeon)) {
+    if (type == QString::fromLatin1(keys::kTypeDungeon))
         return dungeonActivity(activity);
-    }
     return idleActivity(zoneName);
 }
 
-void PresencePublisher::onActivityChanged(const QVariantMap & /*activity*/) {
+void PresencePublisher::onActivityChanged(QVariantMap const& /*activity*/)
+{
     updatePresence();
 }
 
-void PresencePublisher::onZoneChanged(const QVariantMap & /*zone*/) {
+void PresencePublisher::onZoneChanged(QVariantMap const& /*zone*/)
+{
     updatePresence();
 }
 
-void PresencePublisher::updatePresence() {
+void PresencePublisher::updatePresence()
+{
     m_client.setActivity(activityFor(m_gameState.activity(), m_gameState.zone()));
 }

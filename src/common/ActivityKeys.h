@@ -5,7 +5,8 @@
 // and ADR-012). Source of truth for key names so ObserverService,
 // PresencePublisher, and the CLI never hand-type string literals that can
 // drift out of sync.
-namespace constellar::keys {
+namespace constellar::keys
+{
 
 // Activity bag (also carried by the ActivityEnded signal).
 inline constexpr auto kType = "type";

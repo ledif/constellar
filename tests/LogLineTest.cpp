@@ -7,44 +7,47 @@
 
 #include "LogLine.h"
 
-namespace {
+namespace
+{
 
 // Fixture is hand-written per the grammar in PLAN.md §6, not a captured
 // real combat log (none were available at scaffold time) — swap in real
 // trimmed logs here per PLAN.md §6 once available.
-QStringList loadFixtureLines() {
+QStringList loadFixtureLines()
+{
     QFile file(QStringLiteral(LOGFIXTURES_DIR "/sample.txt"));
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return {};
-    }
     QStringList lines;
     QTextStream stream(&file);
-    while (!stream.atEnd()) {
-        const QString line = stream.readLine();
-        if (!line.isEmpty()) {
+    while (!stream.atEnd())
+    {
+        QString const line = stream.readLine();
+        if (!line.isEmpty())
             lines.append(line);
-        }
     }
     return lines;
 }
 
-LogLine findByType(const QStringList &lines, const QString &type) {
-    for (const QString &raw : lines) {
+LogLine findByType(QStringList const& lines, QString const& type)
+{
+    for (QString const& raw : lines)
+    {
         LogLine line(raw);
-        if (line.isValid() && line.type() == type) {
+        if (line.isValid() && line.type() == type)
             return line;
-        }
     }
     return LogLine(QString());
 }
 
 }  // namespace
 
-void LogLineTest::basicFields() {
-    const QStringList lines = loadFixtureLines();
+void LogLineTest::basicFields()
+{
+    QStringList const lines = loadFixtureLines();
     QVERIFY(!lines.isEmpty());
 
-    const LogLine encounterStart = findByType(lines, QStringLiteral("ENCOUNTER_START"));
+    LogLine const encounterStart = findByType(lines, QStringLiteral("ENCOUNTER_START"));
     QVERIFY(encounterStart.isValid());
     QCOMPARE(encounterStart.argCount(), 6);
     QCOMPARE(encounterStart.argString(1), QStringLiteral("2820"));
@@ -54,15 +57,17 @@ void LogLineTest::basicFields() {
     QCOMPARE(encounterStart.argString(5), QStringLiteral("2549"));
 }
 
-void LogLineTest::type() {
+void LogLineTest::type()
+{
     LogLine line(QStringLiteral("7/27/2024 21:39:13.0951  ENCOUNTER_END,2820,\"Fyrakk\",16,20,1"));
     QVERIFY(line.isValid());
     QCOMPARE(line.type(), QStringLiteral("ENCOUNTER_END"));
 }
 
-void LogLineTest::quotedStringWithComma() {
-    const QStringList lines = loadFixtureLines();
-    const LogLine zoneChange = findByType(lines, QStringLiteral("ZONE_CHANGE"));
+void LogLineTest::quotedStringWithComma()
+{
+    QStringList const lines = loadFixtureLines();
+    LogLine const zoneChange = findByType(lines, QStringLiteral("ZONE_CHANGE"));
     QVERIFY(zoneChange.isValid());
     // The comma and apostrophe inside the quoted zone name must survive as
     // a single arg, not split the line into extra args.
@@ -70,15 +75,16 @@ void LogLineTest::quotedStringWithComma() {
     QCOMPARE(zoneChange.argString(2), QStringLiteral("Amirdrassil, the Dream's Hope"));
 }
 
-void LogLineTest::nestedList() {
-    const QStringList lines = loadFixtureLines();
-    const LogLine keyStart = findByType(lines, QStringLiteral("CHALLENGE_MODE_START"));
+void LogLineTest::nestedList()
+{
+    QStringList const lines = loadFixtureLines();
+    LogLine const keyStart = findByType(lines, QStringLiteral("CHALLENGE_MODE_START"));
     QVERIFY(keyStart.isValid());
     QCOMPARE(keyStart.argCount(), 6);
 
-    const QVariant affixesArg = keyStart.arg(5);
+    QVariant const affixesArg = keyStart.arg(5);
     QCOMPARE(affixesArg.typeId(), QMetaType::QVariantList);
-    const QVariantList affixes = affixesArg.toList();
+    QVariantList const affixes = affixesArg.toList();
     QCOMPARE(affixes.size(), 4);
     QCOMPARE(affixes.at(0).toString(), QStringLiteral("9"));
     QCOMPARE(affixes.at(1).toString(), QStringLiteral("152"));
@@ -86,40 +92,45 @@ void LogLineTest::nestedList() {
     QCOMPARE(affixes.at(3).toString(), QStringLiteral("0"));
 }
 
-void LogLineTest::timestampParsing() {
+void LogLineTest::timestampParsing()
+{
     LogLine line(QStringLiteral("7/27/2024 21:39:13.0951  COMBAT_LOG_VERSION,20"));
     QVERIFY(line.isValid());
-    const QDateTime dt = line.dateTime();
+    QDateTime const dt = line.dateTime();
     QVERIFY(dt.isValid());
     QCOMPARE(dt.date(), QDate(2024, 7, 27));
     QCOMPARE(dt.time(), QTime(21, 39, 13, 95));
 }
 
-void LogLineTest::timestampWithTimezoneOffset() {
+void LogLineTest::timestampWithTimezoneOffset()
+{
     // Real combat logs append a timezone offset with no separator, e.g.
     // ".169-5" — not documented in PLAN.md §6, discovered testing against a
     // live client. Must not be swallowed into the millisecond fraction.
     LogLine line(QStringLiteral("7/11/2026 05:20:02.169-5  COMBAT_LOG_VERSION,22"));
     QVERIFY(line.isValid());
-    const QDateTime dt = line.dateTime();
+    QDateTime const dt = line.dateTime();
     QVERIFY(dt.isValid());
     QCOMPARE(dt.date(), QDate(2026, 7, 11));
     QCOMPARE(dt.time(), QTime(5, 20, 2, 169));
     QCOMPARE(dt.offsetFromUtc(), -5 * 3600);
 }
 
-void LogLineTest::invalidTimestampSeparator() {
+void LogLineTest::invalidTimestampSeparator()
+{
     // Missing the two-space separator between timestamp and payload.
     LogLine line(QStringLiteral("7/27/2024 21:39:13.0951 ENCOUNTER_START,1"));
     QVERIFY(!line.isValid());
 }
 
-void LogLineTest::unbalancedBracketIsInvalid() {
+void LogLineTest::unbalancedBracketIsInvalid()
+{
     LogLine line(QStringLiteral("7/27/2024 21:39:13.0951  CHALLENGE_MODE_START,[1,2"));
     QVERIFY(!line.isValid());
 }
 
-void LogLineTest::emptyFieldsBetweenCommas() {
+void LogLineTest::emptyFieldsBetweenCommas()
+{
     // Consecutive commas denote an empty/missing field, common for optional
     // GUID-type args; make sure they don't get collapsed.
     LogLine line(QStringLiteral("7/27/2024 21:39:13.0951  SPELL_CAST_SUCCESS,,,,Player-1,\"Foo\""));

@@ -6,20 +6,22 @@
 
 #include "GameState.h"
 
-void GameStateTest::setActivityEmitsOnChange() {
+void GameStateTest::setActivityEmitsOnChange()
+{
     GameState state;
     QSignalSpy spy(&state, &GameState::activityChanged);
 
-    const QVariantMap activity{{"type", "encounter"}};
+    QVariantMap const activity{{"type", "encounter"}};
     state.setActivity(activity);
 
     QCOMPARE(spy.count(), 1);
     QCOMPARE(state.activity(), activity);
 }
 
-void GameStateTest::setActivitySkipsOnIdenticalBag() {
+void GameStateTest::setActivitySkipsOnIdenticalBag()
+{
     GameState state;
-    const QVariantMap activity{{"type", "encounter"}};
+    QVariantMap const activity{{"type", "encounter"}};
     state.setActivity(activity);
 
     QSignalSpy spy(&state, &GameState::activityChanged);
@@ -28,20 +30,22 @@ void GameStateTest::setActivitySkipsOnIdenticalBag() {
     QCOMPARE(spy.count(), 0);
 }
 
-void GameStateTest::setZoneEmitsOnChange() {
+void GameStateTest::setZoneEmitsOnChange()
+{
     GameState state;
     QSignalSpy spy(&state, &GameState::zoneChanged);
 
-    const QVariantMap zone{{"zoneName", "Dornogal"}};
+    QVariantMap const zone{{"zoneName", "Dornogal"}};
     state.setZone(zone);
 
     QCOMPARE(spy.count(), 1);
     QCOMPARE(state.zone(), zone);
 }
 
-void GameStateTest::setZoneSkipsOnIdenticalBag() {
+void GameStateTest::setZoneSkipsOnIdenticalBag()
+{
     GameState state;
-    const QVariantMap zone{{"zoneName", "Dornogal"}};
+    QVariantMap const zone{{"zoneName", "Dornogal"}};
     state.setZone(zone);
 
     QSignalSpy spy(&state, &GameState::zoneChanged);
@@ -50,7 +54,8 @@ void GameStateTest::setZoneSkipsOnIdenticalBag() {
     QCOMPARE(spy.count(), 0);
 }
 
-void GameStateTest::clearActivityEmptiesActivity() {
+void GameStateTest::clearActivityEmptiesActivity()
+{
     GameState state;
     state.setActivity(QVariantMap{{"type", "encounter"}});
     QSignalSpy spy(&state, &GameState::activityChanged);
@@ -61,15 +66,16 @@ void GameStateTest::clearActivityEmptiesActivity() {
     QCOMPARE(spy.count(), 1);
 }
 
-void GameStateTest::endActivityEmitsThenClears() {
+void GameStateTest::endActivityEmitsThenClears()
+{
     GameState state;
-    const QVariantMap activity{{"type", "encounter"}};
+    QVariantMap const activity{{"type", "encounter"}};
     state.setActivity(activity);
 
     QSignalSpy endedSpy(&state, &GameState::activityEnded);
     QSignalSpy changedSpy(&state, &GameState::activityChanged);
 
-    const QVariantMap ended{{"type", "encounter"}, {"success", true}};
+    QVariantMap const ended{{"type", "encounter"}, {"success", true}};
     state.endActivity(ended);
 
     QCOMPARE(endedSpy.count(), 1);

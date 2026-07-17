@@ -11,10 +11,12 @@
 
 #include "DiscordIpcClient.h"
 
-namespace {
+namespace
+{
 
-QByteArray encodeFrame(qint32 opcode, const QJsonObject &payload) {
-    const QByteArray json = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+QByteArray encodeFrame(qint32 opcode, QJsonObject const& payload)
+{
+    QByteArray const json = QJsonDocument(payload).toJson(QJsonDocument::Compact);
     QByteArray frame;
     QDataStream stream(&frame, QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -25,40 +27,42 @@ QByteArray encodeFrame(qint32 opcode, const QJsonObject &payload) {
 
 // Reads exactly one frame off a socket that's already known to have one
 // buffered (caller QTRY_VERIFYs bytesAvailable() first).
-bool decodeFrame(QLocalSocket &socket, qint32 &opcode, QJsonObject &payload) {
-    if (socket.bytesAvailable() < 8) {
+bool decodeFrame(QLocalSocket& socket, qint32& opcode, QJsonObject& payload)
+{
+    if (socket.bytesAvailable() < 8)
         return false;
-    }
-    const QByteArray header = socket.peek(8);
+    QByteArray const header = socket.peek(8);
     QDataStream headerStream(header);
     headerStream.setByteOrder(QDataStream::LittleEndian);
     qint32 length = 0;
     headerStream >> opcode >> length;
 
-    if (socket.bytesAvailable() < 8 + length) {
+    if (socket.bytesAvailable() < 8 + length)
         return false;
-    }
     socket.read(8);
-    const QByteArray json = socket.read(length);
+    QByteArray const json = socket.read(length);
     payload = QJsonDocument::fromJson(json).object();
     return true;
 }
 
 }  // namespace
 
-void DiscordIpcClientTest::init() {
+void DiscordIpcClientTest::init()
+{
     m_dir = new QTemporaryDir();
     QVERIFY(m_dir->isValid());
     qputenv("XDG_RUNTIME_DIR", m_dir->path().toUtf8());
 }
 
-void DiscordIpcClientTest::cleanup() {
+void DiscordIpcClientTest::cleanup()
+{
     delete m_dir;
     m_dir = nullptr;
 }
 
-void DiscordIpcClientTest::sendsHandshakeOnConnect() {
-    const QString socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
+void DiscordIpcClientTest::sendsHandshakeOnConnect()
+{
+    QString const socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
     QLocalServer::removeServer(socketPath);
     QLocalServer server;
     QVERIFY(server.listen(socketPath));
@@ -67,7 +71,7 @@ void DiscordIpcClientTest::sendsHandshakeOnConnect() {
     client.start();
 
     QTRY_VERIFY(server.hasPendingConnections());
-    QLocalSocket *peer = server.nextPendingConnection();
+    QLocalSocket* peer = server.nextPendingConnection();
     QVERIFY(peer != nullptr);
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
@@ -80,8 +84,9 @@ void DiscordIpcClientTest::sendsHandshakeOnConnect() {
     QCOMPARE(payload.value("client_id").toString(), QStringLiteral("999999999999999999"));
 }
 
-void DiscordIpcClientTest::becomesReadyOnDispatchReady() {
-    const QString socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
+void DiscordIpcClientTest::becomesReadyOnDispatchReady()
+{
+    QString const socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
     QLocalServer::removeServer(socketPath);
     QLocalServer server;
     QVERIFY(server.listen(socketPath));
@@ -91,7 +96,7 @@ void DiscordIpcClientTest::becomesReadyOnDispatchReady() {
     client.start();
 
     QTRY_VERIFY(server.hasPendingConnections());
-    QLocalSocket *peer = server.nextPendingConnection();
+    QLocalSocket* peer = server.nextPendingConnection();
     QTRY_VERIFY(peer->bytesAvailable() >= 8);  // drain the handshake frame
     qint32 opcode = -1;
     QJsonObject payload;
@@ -109,8 +114,9 @@ void DiscordIpcClientTest::becomesReadyOnDispatchReady() {
     QVERIFY(client.isReady());
 }
 
-void DiscordIpcClientTest::sendsSetActivityAfterReady() {
-    const QString socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
+void DiscordIpcClientTest::sendsSetActivityAfterReady()
+{
+    QString const socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
     QLocalServer::removeServer(socketPath);
     QLocalServer server;
     QVERIFY(server.listen(socketPath));
@@ -119,7 +125,7 @@ void DiscordIpcClientTest::sendsSetActivityAfterReady() {
     client.start();
 
     QTRY_VERIFY(server.hasPendingConnections());
-    QLocalSocket *peer = server.nextPendingConnection();
+    QLocalSocket* peer = server.nextPendingConnection();
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     qint32 opcode = -1;
     QJsonObject payload;
@@ -141,13 +147,16 @@ void DiscordIpcClientTest::sendsSetActivityAfterReady() {
 
     QCOMPARE(opcode, 1);  // FRAME
     QCOMPARE(payload.value("cmd").toString(), QStringLiteral("SET_ACTIVITY"));
-    const QJsonObject args = payload.value("args").toObject();
-    QCOMPARE(args.value("activity").toObject().value("details").toString(),
-             QStringLiteral("Mythic Ulgrax the Devourer"));
+    QJsonObject const args = payload.value("args").toObject();
+    QCOMPARE(
+        args.value("activity").toObject().value("details").toString(),
+        QStringLiteral("Mythic Ulgrax the Devourer")
+    );
 }
 
-void DiscordIpcClientTest::clearActivitySendsNullActivity() {
-    const QString socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
+void DiscordIpcClientTest::clearActivitySendsNullActivity()
+{
+    QString const socketPath = m_dir->path() + QStringLiteral("/discord-ipc-0");
     QLocalServer::removeServer(socketPath);
     QLocalServer server;
     QVERIFY(server.listen(socketPath));
@@ -156,7 +165,7 @@ void DiscordIpcClientTest::clearActivitySendsNullActivity() {
     client.start();
 
     QTRY_VERIFY(server.hasPendingConnections());
-    QLocalSocket *peer = server.nextPendingConnection();
+    QLocalSocket* peer = server.nextPendingConnection();
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     qint32 opcode = -1;
     QJsonObject payload;
@@ -174,7 +183,7 @@ void DiscordIpcClientTest::clearActivitySendsNullActivity() {
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     QVERIFY(decodeFrame(*peer, opcode, payload));
 
-    const QJsonObject args = payload.value("args").toObject();
+    QJsonObject const args = payload.value("args").toObject();
     QVERIFY(args.value("activity").isNull());
 }
 

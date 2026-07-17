@@ -2,7 +2,8 @@
 
 #include <QObject>
 
-class LogWatcherTest : public QObject {
+class LogWatcherTest : public QObject
+{
     Q_OBJECT
 
   private Q_SLOTS:

@@ -18,18 +18,22 @@
 // v1 parses all args eagerly on construction; the reference implementation
 // parses lazily as an optimization for huge lines like COMBATANT_INFO, but
 // that's not required for correctness (PLAN.md §3.3).
-class LogLine {
+class LogLine
+{
   public:
     explicit LogLine(QString rawLine);
 
-    bool isValid() const {
+    bool isValid() const
+    {
         return m_valid;
     }
 
-    const QString &raw() const {
+    QString const& raw() const
+    {
         return m_raw;
     }
-    const QString &rawTimestamp() const {
+    QString const& rawTimestamp() const
+    {
         return m_timestamp;
     }
 
@@ -40,7 +44,8 @@ class LogLine {
     // Convenience for arg(0), the event name (e.g. "ENCOUNTER_START").
     QString type() const;
 
-    int argCount() const {
+    int argCount() const
+    {
         return m_args.size();
     }
 

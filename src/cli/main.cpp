@@ -14,53 +14,68 @@ using namespace Qt::StringLiterals;
 
 namespace keys = constellar::keys;
 
-namespace {
+namespace
+{
 
-void printUsage() {
+void printUsage()
+{
     QTextStream(stdout) << "usage: constellar status [--json]\n";
 }
 
-QString activitySummary(const QVariantMap &activity) {
-    const QString type = activity.value(QString::fromLatin1(keys::kType)).toString();
-    if (type == QString::fromLatin1(keys::kTypeEncounter)) {
+QString activitySummary(QVariantMap const& activity)
+{
+    QString const type = activity.value(QString::fromLatin1(keys::kType)).toString();
+    if (type == QString::fromLatin1(keys::kTypeEncounter))
+    {
         return u"encounter %1 %2"_s.arg(
             activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
-            activity.value(QString::fromLatin1(keys::kEncounterName)).toString());
+            activity.value(QString::fromLatin1(keys::kEncounterName)).toString()
+        );
     }
-    if (type == QString::fromLatin1(keys::kTypeDungeon)) {
+    if (type == QString::fromLatin1(keys::kTypeDungeon))
+    {
         return u"dungeon +%1"_s.arg(
-            activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString());
+            activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString()
+        );
     }
     return u"none"_s;
 }
 
-QString zoneSummary(const QVariantMap &zone) {
-    if (zone.isEmpty()) {
+QString zoneSummary(QVariantMap const& zone)
+{
+    if (zone.isEmpty())
         return u"none"_s;
-    }
-    return u"%1 (mapId %2)"_s.arg(zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
-                                  zone.value(QString::fromLatin1(keys::kMapId)).toString());
+    return u"%1 (mapId %2)"_s.arg(
+        zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
+        zone.value(QString::fromLatin1(keys::kMapId)).toString()
+    );
 }
 
-int runStatus(bool json) {
-    ObserverProxy manager(constellar::dbus::kServiceName, constellar::dbus::kObjectPath,
-                          QDBusConnection::sessionBus());
-    if (!manager.isValid()) {
+int runStatus(bool json)
+{
+    ObserverProxy manager(
+        constellar::dbus::kServiceName, constellar::dbus::kObjectPath, QDBusConnection::sessionBus()
+    );
+    if (!manager.isValid())
+    {
         QTextStream(stderr) << "constellar: cannot reach constellard: "
                             << manager.lastError().message() << "\n";
         return 1;
     }
 
-    const QVariantMap activity = manager.property("Activity").toMap();
-    const QVariantMap zone = manager.property("Zone").toMap();
+    QVariantMap const activity = manager.property("Activity").toMap();
+    QVariantMap const zone = manager.property("Zone").toMap();
 
     QTextStream out(stdout);
-    if (json) {
+    if (json)
+    {
         QJsonObject root;
         root["activity"] = QJsonObject::fromVariantMap(activity);
         root["zone"] = QJsonObject::fromVariantMap(zone);
         out << QJsonDocument(root).toJson(QJsonDocument::Compact) << "\n";
-    } else {
+    }
+    else
+    {
         out << "Activity: " << (activity.isEmpty() ? u"none"_s : activitySummary(activity)) << "\n";
         out << "Zone:     " << zoneSummary(zone) << "\n";
     }
@@ -69,17 +84,20 @@ int runStatus(bool json) {
 
 }  // namespace
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
     QCoreApplication app(argc, argv);
 
-    if (argc < 2) {
+    if (argc < 2)
+    {
         printUsage();
         return 1;
     }
 
-    const QString command = QString::fromLocal8Bit(argv[1]);
-    if (command == u"status"_s) {
-        const bool json = argc >= 3 && QString::fromLocal8Bit(argv[2]) == u"--json"_s;
+    QString const command = QString::fromLocal8Bit(argv[1]);
+    if (command == u"status"_s)
+    {
+        bool const json = argc >= 3 && QString::fromLocal8Bit(argv[2]) == u"--json"_s;
         return runStatus(json);
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 
-namespace constellar::dbus {
+namespace constellar::dbus
+{
 
 inline constexpr auto kServiceName = "io.github.ledif.constellar";
 inline constexpr auto kObjectPath = "/io/github/ledif/constellar/Observer";

@@ -18,35 +18,37 @@ class GameState;
 // v1 scope: details/state/timestamps only. large_image/small_image/buttons
 // need Developer Portal asset keys that don't exist yet (RFC-002 appendix);
 // they're a later pass, not a functional gap in this MVP.
-class PresencePublisher : public QObject {
+class PresencePublisher : public QObject
+{
     Q_OBJECT
 
   public:
-    explicit PresencePublisher(DiscordIpcClient &client, const GameState &gameState,
-                               QObject *parent = nullptr);
+    explicit PresencePublisher(
+        DiscordIpcClient& client, GameState const& gameState, QObject* parent = nullptr
+    );
 
     // Pure mapping helpers, exposed for testing without a live socket.
     // encounterActivity/dungeonActivity take the Activity bag (ActivityKeys.h
     // keys); zoneName is the Zone bag's zoneName, empty if no MAP_CHANGE has
     // been seen yet -- falls back to a generic state.
-    static QJsonObject encounterActivity(const QVariantMap &activity, const QString &zoneName = {});
-    static QJsonObject dungeonActivity(const QVariantMap &activity);
-    static QJsonObject idleActivity(const QString &zoneName = {});
+    static QJsonObject encounterActivity(QVariantMap const& activity, QString const& zoneName = {});
+    static QJsonObject dungeonActivity(QVariantMap const& activity);
+    static QJsonObject idleActivity(QString const& zoneName = {});
 
     // The full activity+zone -> Discord payload mapping, as one pure
     // function. Recomputing from both bags on every change (rather than
     // patching in place) is what makes a Zone-only change unable to clobber
     // an in-progress Activity -- it only falls back to idle when activity
     // is empty.
-    static QJsonObject activityFor(const QVariantMap &activity, const QVariantMap &zone);
+    static QJsonObject activityFor(QVariantMap const& activity, QVariantMap const& zone);
 
   public Q_SLOTS:
-    void onActivityChanged(const QVariantMap &activity);
-    void onZoneChanged(const QVariantMap &zone);
+    void onActivityChanged(QVariantMap const& activity);
+    void onZoneChanged(QVariantMap const& zone);
 
   private:
     void updatePresence();
 
-    DiscordIpcClient &m_client;
-    const GameState &m_gameState;
+    DiscordIpcClient& m_client;
+    GameState const& m_gameState;
 };

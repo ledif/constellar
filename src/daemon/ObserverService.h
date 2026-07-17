@@ -13,23 +13,24 @@
 // (ADR-012) that ObserverAdaptor publishes over DBus and PresencePublisher
 // projects into Discord Rich Presence. Still no libobs/ObsEngine or
 // MetadataStore — this is detection only, per HANDOFF.md roadmap item 5.
-class ObserverService : public QObject {
+class ObserverService : public QObject
+{
     Q_OBJECT
 
   public:
-    explicit ObserverService(QString logDirectory, QObject *parent = nullptr);
+    explicit ObserverService(QString logDirectory, QObject* parent = nullptr);
 
     // Starts the underlying LogWatcher. Returns false on failure (bad
     // directory, inotify setup failure, etc.) — main.cpp treats that as
     // fatal.
     bool start();
 
-    GameState &gameState();
+    GameState& gameState();
 
   private:
     static QString raidDifficultyDisplayName(int difficultyId);
-    static QVariantMap encounterBag(const RecordingController::RaidEncounter &encounter);
-    static QVariantMap dungeonBag(const RecordingController::DungeonRun &dungeon);
+    static QVariantMap encounterBag(RecordingController::RaidEncounter const& encounter);
+    static QVariantMap dungeonBag(RecordingController::DungeonRun const& dungeon);
 
     QString m_logDirectory;
     GameState m_gameState;

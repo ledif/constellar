@@ -6,7 +6,8 @@
 // signal-handling side (onActivityChanged/onZoneChanged) is a thin
 // pass-through to activityFor()+DiscordIpcClient::setActivity, exercised
 // end-to-end by DiscordIpcClientTest instead of re-mocked here.
-class PresencePublisherTest : public QObject {
+class PresencePublisherTest : public QObject
+{
     Q_OBJECT
 
   private Q_SLOTS:

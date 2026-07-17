@@ -14,11 +14,12 @@
 // OAuth. Discord being absent is the normal case: connection failures are
 // silent (qDebug, not qWarning) and just retry on a timer -- presence must
 // never affect daemon health (RFC-002).
-class DiscordIpcClient : public QObject {
+class DiscordIpcClient : public QObject
+{
     Q_OBJECT
 
   public:
-    explicit DiscordIpcClient(QString appId, QObject *parent = nullptr);
+    explicit DiscordIpcClient(QString appId, QObject* parent = nullptr);
 
     // Starts the connect/handshake/retry loop. No-op if appId is empty.
     void start();
@@ -27,12 +28,13 @@ class DiscordIpcClient : public QObject {
     // stay under Discord's ~5 updates / 20s SET_ACTIVITY rate limit
     // (ADR-010); the latest call wins if several land inside one window.
     // Silently dropped if not yet connected -- applied once ready() fires.
-    void setActivity(const QJsonObject &activity);
+    void setActivity(QJsonObject const& activity);
 
     // Clears the activity (e.g. WoW closed). Same coalescing as setActivity.
     void clearActivity();
 
-    bool isReady() const {
+    bool isReady() const
+    {
         return m_ready;
     }
 
@@ -49,8 +51,8 @@ class DiscordIpcClient : public QObject {
     void flushThrottle();
 
   private:
-    void handleFrame(qint32 opcode, const QJsonObject &payload);
-    void sendFrame(qint32 opcode, const QJsonObject &payload);
+    void handleFrame(qint32 opcode, QJsonObject const& payload);
+    void sendFrame(qint32 opcode, QJsonObject const& payload);
     void sendPending();
     void scheduleReconnect();
     static QString socketPath(int index);

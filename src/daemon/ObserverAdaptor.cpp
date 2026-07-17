@@ -9,67 +9,83 @@
 
 using namespace Qt::StringLiterals;
 
-ObserverAdaptor::ObserverAdaptor(ObserverService *service)
-    : QDBusAbstractAdaptor(service), m_service(service) {
+ObserverAdaptor::ObserverAdaptor(ObserverService* service)
+    : QDBusAbstractAdaptor(service), m_service(service)
+{
     setAutoRelaySignals(true);
-    GameState &gameState = m_service->gameState();
-    connect(&gameState, &GameState::activityChanged, this, [this](const QVariantMap &activity) {
-        emitPropertiesChanged(u"Activity"_s, activity);
-    });
-    connect(&gameState, &GameState::zoneChanged, this,
-            [this](const QVariantMap &zone) { emitPropertiesChanged(u"Zone"_s, zone); });
+    GameState& gameState = m_service->gameState();
+    connect(
+        &gameState, &GameState::activityChanged, this,
+        [this](QVariantMap const& activity) { emitPropertiesChanged(u"Activity"_s, activity); }
+    );
+    connect(
+        &gameState, &GameState::zoneChanged, this,
+        [this](QVariantMap const& zone) { emitPropertiesChanged(u"Zone"_s, zone); }
+    );
     connect(&gameState, &GameState::activityEnded, this, &ObserverAdaptor::ActivityEnded);
 }
 
-QVariantMap ObserverAdaptor::activity() const {
+QVariantMap ObserverAdaptor::activity() const
+{
     return m_service->gameState().activity();
 }
 
-QVariantMap ObserverAdaptor::zone() const {
+QVariantMap ObserverAdaptor::zone() const
+{
     return m_service->gameState().zone();
 }
 
-void ObserverAdaptor::emitPropertiesChanged(const QString &name, const QVariant &value) {
-    QDBusMessage signal =
-        QDBusMessage::createSignal(constellar::dbus::kObjectPath,
-                                   u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s);
+void ObserverAdaptor::emitPropertiesChanged(QString const& name, QVariant const& value)
+{
+    QDBusMessage signal = QDBusMessage::createSignal(
+        constellar::dbus::kObjectPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s
+    );
     signal << u"io.github.ledif.constellar.Observer"_s << QVariantMap{{name, value}}
            << QStringList{};
     QDBusConnection::sessionBus().send(signal);
 }
 
-void ObserverAdaptor::Pause() {
+void ObserverAdaptor::Pause()
+{
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::Resume() {
+void ObserverAdaptor::Resume()
+{
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::StartManualRecording() {
+void ObserverAdaptor::StartManualRecording()
+{
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::StopManualRecording() {
+void ObserverAdaptor::StopManualRecording()
+{
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::ReloadConfig() {
+void ObserverAdaptor::ReloadConfig()
+{
     // Phase 0 stub.
 }
 
-QStringList ObserverAdaptor::ListRecordings(const QVariantMap & /*filter*/) {
+QStringList ObserverAdaptor::ListRecordings(QVariantMap const& /*filter*/)
+{
     return {};
 }
 
-void ObserverAdaptor::DeleteRecording(const QString & /*id*/) {
+void ObserverAdaptor::DeleteRecording(QString const& /*id*/)
+{
     // Phase 0 stub.
 }
 
-QVariantMap ObserverAdaptor::GetConfig() {
+QVariantMap ObserverAdaptor::GetConfig()
+{
     return {};
 }
 
-void ObserverAdaptor::SetConfig(const QVariantMap & /*config*/) {
+void ObserverAdaptor::SetConfig(QVariantMap const& /*config*/)
+{
     // Phase 0 stub.
 }

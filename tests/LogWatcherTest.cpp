@@ -8,19 +8,25 @@
 
 #include "LogWatcher.h"
 
-namespace {
+namespace
+{
 
 // LogSignalSpy avoids registering LogLine with the QMetaType system (which
 // QSignalSpy would otherwise need for a non-trivial parameter type) by just
 // collecting the interesting bits via a plain lambda connection.
-class ReceivedLines {
+class ReceivedLines
+{
   public:
-    explicit ReceivedLines(LogWatcher &watcher) {
-        QObject::connect(&watcher, &LogWatcher::lineReceived,
-                         [this](const LogLine &line) { m_lines.append(line.raw()); });
+    explicit ReceivedLines(LogWatcher& watcher)
+    {
+        QObject::connect(
+            &watcher, &LogWatcher::lineReceived,
+            [this](LogLine const& line) { m_lines.append(line.raw()); }
+        );
     }
 
-    const QVector<QString> &lines() const {
+    QVector<QString> const& lines() const
+    {
         return m_lines;
     }
 
@@ -28,13 +34,15 @@ class ReceivedLines {
     QVector<QString> m_lines;
 };
 
-QString timestampPrefix() {
+QString timestampPrefix()
+{
     return QStringLiteral("7/27/2024 21:39:13.0951  ");
 }
 
 }  // namespace
 
-void LogWatcherTest::tailsNewWrites() {
+void LogWatcherTest::tailsNewWrites()
+{
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
@@ -53,7 +61,8 @@ void LogWatcherTest::tailsNewWrites() {
     QVERIFY(received.lines().at(1).contains(QStringLiteral("ZONE_CHANGE")));
 }
 
-void LogWatcherTest::handlesPartialLineAtEof() {
+void LogWatcherTest::handlesPartialLineAtEof()
+{
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
@@ -74,11 +83,13 @@ void LogWatcherTest::handlesPartialLineAtEof() {
     file.close();
 
     QTRY_COMPARE_WITH_TIMEOUT(received.lines().size(), 1, 2000);
-    QCOMPARE(received.lines().at(0),
-             timestampPrefix() + QStringLiteral("ENCOUNTER_START,1,2,3,4,5"));
+    QCOMPARE(
+        received.lines().at(0), timestampPrefix() + QStringLiteral("ENCOUNTER_START,1,2,3,4,5")
+    );
 }
 
-void LogWatcherTest::resetsOffsetOnFileRecreation() {
+void LogWatcherTest::resetsOffsetOnFileRecreation()
+{
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
@@ -86,7 +97,7 @@ void LogWatcherTest::resetsOffsetOnFileRecreation() {
     ReceivedLines received(watcher);
     QVERIFY(watcher.start());
 
-    const QString path = dir.filePath(QStringLiteral("WoWCombatLog.txt"));
+    QString const path = dir.filePath(QStringLiteral("WoWCombatLog.txt"));
 
     {
         QFile file(path);
@@ -107,7 +118,8 @@ void LogWatcherTest::resetsOffsetOnFileRecreation() {
     QVERIFY(received.lines().at(1).contains(QStringLiteral("\"B\"")));
 }
 
-void LogWatcherTest::ignoresNonCombatLogFiles() {
+void LogWatcherTest::ignoresNonCombatLogFiles()
+{
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
@@ -124,7 +136,8 @@ void LogWatcherTest::ignoresNonCombatLogFiles() {
     QCOMPARE(received.lines().size(), 0);
 }
 
-void LogWatcherTest::emitsIdleTimeoutAfterInactivity() {
+void LogWatcherTest::emitsIdleTimeoutAfterInactivity()
+{
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 

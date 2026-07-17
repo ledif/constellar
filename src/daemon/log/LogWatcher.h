@@ -17,13 +17,14 @@ class QSocketNotifier;
 // Does not itself decide when a "session" starts/stops; RecordingController
 // (not yet implemented) is the consumer that turns idleTimeout()/
 // lineReceived() into buffer start/stop decisions.
-class LogWatcher : public QObject {
+class LogWatcher : public QObject
+{
     Q_OBJECT
 
   public:
     // idleTimeoutMs: emit idleTimeout() after this long without any write to
     // any watched file. 0 disables the idle timer.
-    explicit LogWatcher(QString directory, int idleTimeoutMs = 60'000, QObject *parent = nullptr);
+    explicit LogWatcher(QString directory, int idleTimeoutMs = 60'000, QObject* parent = nullptr);
     ~LogWatcher() override;
 
     // Opens the inotify fd, watches the directory, and picks up any
@@ -32,12 +33,13 @@ class LogWatcher : public QObject {
     bool start();
     void stop();
 
-    bool isRunning() const {
+    bool isRunning() const
+    {
         return m_inotifyFd >= 0;
     }
 
   Q_SIGNALS:
-    void lineReceived(const LogLine &line);
+    void lineReceived(LogLine const& line);
     void idleTimeout();
 
   private Q_SLOTS:
@@ -45,24 +47,25 @@ class LogWatcher : public QObject {
     void onIdleTimer();
 
   private:
-    struct WatchedFile {
+    struct WatchedFile
+    {
         qint64 offset = 0;
         QByteArray pendingPartial;
     };
 
     void scanExistingFiles();
-    void handleCreateOrMove(const QString &fileName);
-    void handleDelete(const QString &fileName);
-    void handleModify(const QString &fileName);
-    void readNewData(const QString &fileName, WatchedFile &file);
+    void handleCreateOrMove(QString const& fileName);
+    void handleDelete(QString const& fileName);
+    void handleModify(QString const& fileName);
+    void readNewData(QString const& fileName, WatchedFile& file);
     void resetIdleTimer();
-    static bool isCombatLogName(const QString &fileName);
+    static bool isCombatLogName(QString const& fileName);
 
     QString m_directory;
     int m_idleTimeoutMs;
     int m_inotifyFd = -1;
     int m_dirWatchDescriptor = -1;
-    QSocketNotifier *m_notifier = nullptr;
+    QSocketNotifier* m_notifier = nullptr;
     QTimer m_idleTimer;
     QHash<QString, WatchedFile> m_files;
 };

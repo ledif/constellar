@@ -24,7 +24,8 @@
 // per PLAN.md §3.4's "M+ nests encounters" rule) are consumed but produce
 // no signal of their own yet — there's no timeline/chapter concept until
 // MetadataStore exists.
-class RecordingController : public QObject {
+class RecordingController : public QObject
+{
     Q_OBJECT
 
   public:
@@ -33,9 +34,16 @@ class RecordingController : public QObject {
     // can't threshold on the raw ID — this is a minimal stand-in for the
     // full instanceDifficulty table (PLAN.md §3.5/§6), covering just the
     // four raid difficulties needed to decide record-or-skip.
-    enum class RaidDifficulty { LFR = 0, Normal = 1, Heroic = 2, Mythic = 3 };
+    enum class RaidDifficulty
+    {
+        LFR = 0,
+        Normal = 1,
+        Heroic = 2,
+        Mythic = 3
+    };
 
-    struct Config {
+    struct Config
+    {
         int preRollSeconds = 15;
         int raidOverrunSeconds = 20;
         RaidDifficulty minDifficulty = RaidDifficulty::Normal;
@@ -43,28 +51,30 @@ class RecordingController : public QObject {
         int minKeystoneLevel = 2;
     };
 
-    struct RaidEncounter {
+    struct RaidEncounter
+    {
         int encounterId = 0;
         QString encounterName;
         int difficultyId = 0;
         QDateTime startTime;
     };
 
-    struct DungeonRun {
+    struct DungeonRun
+    {
         int zoneId = 0;
         int mapId = 0;
         int keystoneLevel = 0;
         QDateTime startTime;
     };
 
-    explicit RecordingController(Config config, QObject *parent = nullptr);
+    explicit RecordingController(Config config, QObject* parent = nullptr);
 
     // Maps a WoW difficultyID to a RaidDifficulty rank, or nullopt if it's
     // not one of the four raid difficulties (e.g. a dungeon/M+ ID).
     static std::optional<RaidDifficulty> raidDifficultyFromId(int difficultyId);
 
   public Q_SLOTS:
-    void onLineReceived(const LogLine &line);
+    void onLineReceived(LogLine const& line);
 
   Q_SIGNALS:
     // Emitted the instant ENCOUNTER_START clears the difficulty threshold.
@@ -72,40 +82,41 @@ class RecordingController : public QObject {
     // scheduling delay: the replay buffer runs continuously (PLAN.md §2), so
     // "starting" a recording just means picking where in the buffer to cut
     // from — that's ObsEngine's job once it exists.
-    void recordingStarted(const RaidEncounter &encounter, const QDateTime &preRollFrom);
+    void recordingStarted(RaidEncounter const& encounter, QDateTime const& preRollFrom);
 
     // Emitted after Config::raidOverrunSeconds have really elapsed past
     // ENCOUNTER_END (or immediately, pre-empted, if a re-pull starts before
     // the overrun finishes — see onLineReceived).
-    void recordingStopped(const RaidEncounter &encounter, bool success, const QDateTime &stopTime);
+    void recordingStopped(RaidEncounter const& encounter, bool success, QDateTime const& stopTime);
 
     // Emitted the instant CHALLENGE_MODE_START clears the keystone-level
     // threshold. Mirrors recordingStarted()'s pre-roll semantics.
-    void dungeonStarted(const DungeonRun &dungeon, const QDateTime &preRollFrom);
+    void dungeonStarted(DungeonRun const& dungeon, QDateTime const& preRollFrom);
 
     // Emitted after Config::dungeonOverrunSeconds have elapsed past
     // CHALLENGE_MODE_END (or immediately, pre-empted, if the key is zoned
     // back into before the overrun finishes — see handleChallengeModeStart).
     // durationMs is the log's own in-key duration (arg 4), used later for
     // keystone-upgrade-level calculations; unrelated to stopTime's overrun.
-    void dungeonStopped(const DungeonRun &dungeon, bool success, int durationMs,
-                        const QDateTime &stopTime);
+    void dungeonStopped(
+        DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
+    );
 
     // Emitted on every MAP_CHANGE line -- fires on zoning into/out of any
     // area, not just raids/dungeons. Consumers that only care about
     // instanced content filter that themselves.
-    void zoneChanged(int mapId, const QString &zoneName);
+    void zoneChanged(int mapId, QString const& zoneName);
 
   private Q_SLOTS:
     void onOverrunElapsed();
     void onDungeonOverrunElapsed();
 
   private:
-    void handleEncounterStart(const LogLine &line);
-    void handleEncounterEnd(const LogLine &line);
+    void handleEncounterStart(LogLine const& line);
+    void handleEncounterEnd(LogLine const& line);
     void finishPendingStop();
-    void handleChallengeModeStart(const LogLine &line);
-    void handleChallengeModeEnd(const LogLine &line);
+    void handleChallengeModeStart(LogLine const& line);
+    void handleChallengeModeEnd(LogLine const& line);
     void finishPendingDungeonStop();
 
     Config m_config;

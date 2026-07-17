@@ -21,7 +21,8 @@ class ObserverService;
 // QDBusAbstractAdaptor does not emit org.freedesktop.DBus.Properties
 // .PropertiesChanged automatically -- Activity/Zone changes are relayed by
 // hand via emitPropertiesChanged() (ADR-012).
-class ObserverAdaptor : public QDBusAbstractAdaptor {
+class ObserverAdaptor : public QDBusAbstractAdaptor
+{
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "io.github.ledif.constellar.Observer")
 
@@ -29,7 +30,7 @@ class ObserverAdaptor : public QDBusAbstractAdaptor {
     Q_PROPERTY(QVariantMap Zone READ zone)
 
   public:
-    explicit ObserverAdaptor(ObserverService *service);
+    explicit ObserverAdaptor(ObserverService* service);
 
     QVariantMap activity() const;
     QVariantMap zone() const;
@@ -40,17 +41,17 @@ class ObserverAdaptor : public QDBusAbstractAdaptor {
     void StartManualRecording();
     void StopManualRecording();
     void ReloadConfig();
-    QStringList ListRecordings(const QVariantMap &filter);
-    void DeleteRecording(const QString &id);
+    QStringList ListRecordings(QVariantMap const& filter);
+    void DeleteRecording(QString const& id);
     QVariantMap GetConfig();
-    void SetConfig(const QVariantMap &config);
+    void SetConfig(QVariantMap const& config);
 
   Q_SIGNALS:
-    void ActivityEnded(const QVariantMap &activity);
-    void Error(const QString &code, const QString &message);
+    void ActivityEnded(QVariantMap const& activity);
+    void Error(QString const& code, QString const& message);
 
   private:
-    void emitPropertiesChanged(const QString &name, const QVariant &value);
+    void emitPropertiesChanged(QString const& name, QVariant const& value);
 
-    ObserverService *m_service;
+    ObserverService* m_service;
 };

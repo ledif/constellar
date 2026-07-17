@@ -8,10 +8,13 @@
 
 namespace keys = constellar::keys;
 
-namespace {
+namespace
+{
 
-QVariantMap encounterBag(const QString &encounterName, const QString &difficulty,
-                         const QDateTime &start) {
+QVariantMap encounterBag(
+    QString const& encounterName, QString const& difficulty, QDateTime const& start
+)
+{
     return QVariantMap{
         {keys::kType, QString::fromLatin1(keys::kTypeEncounter)},
         {keys::kEncounterName, encounterName},
@@ -20,7 +23,8 @@ QVariantMap encounterBag(const QString &encounterName, const QString &difficulty
     };
 }
 
-QVariantMap dungeonBag(uint keystoneLevel, const QDateTime &start) {
+QVariantMap dungeonBag(uint keystoneLevel, QDateTime const& start)
+{
     return QVariantMap{
         {keys::kType, QString::fromLatin1(keys::kTypeDungeon)},
         {keys::kKeystoneLevel, keystoneLevel},
@@ -28,50 +32,61 @@ QVariantMap dungeonBag(uint keystoneLevel, const QDateTime &start) {
     };
 }
 
-QVariantMap zoneBag(const QString &zoneName) {
+QVariantMap zoneBag(QString const& zoneName)
+{
     return QVariantMap{{keys::kZoneName, zoneName}};
 }
 
 }  // namespace
 
-void PresencePublisherTest::encounterActivityMapsDifficultyAndName() {
-    const QDateTime start =
+void PresencePublisherTest::encounterActivityMapsDifficultyAndName()
+{
+    QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
-    const QJsonObject activity = PresencePublisher::encounterActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start));
+    QJsonObject const activity = PresencePublisher::encounterActivity(
+        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start)
+    );
 
     QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
     QCOMPARE(activity.value("state").toString(), QStringLiteral("Raid Encounter"));
-    QCOMPARE(activity.value("timestamps").toObject().value("start").toInteger(),
-             start.toUTC().toSecsSinceEpoch());
+    QCOMPARE(
+        activity.value("timestamps").toObject().value("start").toInteger(),
+        start.toUTC().toSecsSinceEpoch()
+    );
 }
 
-void PresencePublisherTest::encounterActivityUsesZoneNameAsState() {
-    const QDateTime start =
+void PresencePublisherTest::encounterActivityUsesZoneNameAsState()
+{
+    QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
-    const QJsonObject activity = PresencePublisher::encounterActivity(
+    QJsonObject const activity = PresencePublisher::encounterActivity(
         encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start),
-        QStringLiteral("Nerub-ar Palace"));
+        QStringLiteral("Nerub-ar Palace")
+    );
 
     QCOMPARE(activity.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
 }
 
-void PresencePublisherTest::dungeonActivityMapsKeystoneLevel() {
-    const QDateTime start =
+void PresencePublisherTest::dungeonActivityMapsKeystoneLevel()
+{
+    QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
-    const QJsonObject activity = PresencePublisher::dungeonActivity(dungeonBag(18, start));
+    QJsonObject const activity = PresencePublisher::dungeonActivity(dungeonBag(18, start));
 
     QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic+ Key +18"));
     QCOMPARE(activity.value("state").toString(), QStringLiteral("In a dungeon"));
-    QCOMPARE(activity.value("timestamps").toObject().value("start").toInteger(),
-             start.toUTC().toSecsSinceEpoch());
+    QCOMPARE(
+        activity.value("timestamps").toObject().value("start").toInteger(),
+        start.toUTC().toSecsSinceEpoch()
+    );
 }
 
-void PresencePublisherTest::idleActivityHasNoTimestamp() {
-    const QJsonObject activity =
+void PresencePublisherTest::idleActivityHasNoTimestamp()
+{
+    QJsonObject const activity =
         PresencePublisher::idleActivity(QStringLiteral("March on Quel'Danas"));
 
     QCOMPARE(activity.value("details").toString(), QStringLiteral("In World of Warcraft"));
@@ -79,24 +94,30 @@ void PresencePublisherTest::idleActivityHasNoTimestamp() {
     QVERIFY(!activity.contains("timestamps"));
 }
 
-void PresencePublisherTest::idleActivityOmitsStateWithoutZone() {
-    const QJsonObject activity = PresencePublisher::idleActivity();
+void PresencePublisherTest::idleActivityOmitsStateWithoutZone()
+{
+    QJsonObject const activity = PresencePublisher::idleActivity();
 
     QVERIFY(!activity.contains("state"));
 }
 
-void PresencePublisherTest::activitiesIncludeLargeImageAsset() {
-    const QDateTime start =
+void PresencePublisherTest::activitiesIncludeLargeImageAsset()
+{
+    QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
-    const QJsonObject encounter = PresencePublisher::encounterActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start));
-    const QJsonObject dungeon = PresencePublisher::dungeonActivity(dungeonBag(18, start));
-    const QJsonObject idle = PresencePublisher::idleActivity();
+    QJsonObject const encounter = PresencePublisher::encounterActivity(
+        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start)
+    );
+    QJsonObject const dungeon = PresencePublisher::dungeonActivity(dungeonBag(18, start));
+    QJsonObject const idle = PresencePublisher::idleActivity();
 
-    for (const QJsonObject &activity : {encounter, dungeon, idle}) {
-        QCOMPARE(activity.value("assets").toObject().value("large_image").toString(),
-                 QStringLiteral("homestone"));
+    for (QJsonObject const& activity : {encounter, dungeon, idle})
+    {
+        QCOMPARE(
+            activity.value("assets").toObject().value("large_image").toString(),
+            QStringLiteral("homestone")
+        );
     }
 }
 
@@ -105,24 +126,26 @@ void PresencePublisherTest::activitiesIncludeLargeImageAsset() {
 // unconditionally, so a MAP_CHANGE mid-pull clobbered encounter presence
 // with idle. activityFor() recomputes from both bags every time and only
 // falls back to idle when Activity is empty, so this can't happen anymore.
-void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange() {
-    const QDateTime start =
+void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange()
+{
+    QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
-    const QVariantMap activity =
+    QVariantMap const activity =
         encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start);
-    const QVariantMap zone = zoneBag(QStringLiteral("Nerub-ar Palace"));
+    QVariantMap const zone = zoneBag(QStringLiteral("Nerub-ar Palace"));
 
-    const QJsonObject result = PresencePublisher::activityFor(activity, zone);
+    QJsonObject const result = PresencePublisher::activityFor(activity, zone);
 
     QCOMPARE(result.value("details").toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
     QCOMPARE(result.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
     QVERIFY(result.value("details").toString() != QStringLiteral("In World of Warcraft"));
 }
 
-void PresencePublisherTest::activityForFallsBackToIdleWhenActivityEmpty() {
-    const QVariantMap zone = zoneBag(QStringLiteral("Dornogal"));
+void PresencePublisherTest::activityForFallsBackToIdleWhenActivityEmpty()
+{
+    QVariantMap const zone = zoneBag(QStringLiteral("Dornogal"));
 
-    const QJsonObject result = PresencePublisher::activityFor(QVariantMap{}, zone);
+    QJsonObject const result = PresencePublisher::activityFor(QVariantMap{}, zone);
 
     QCOMPARE(result, PresencePublisher::idleActivity(QStringLiteral("Dornogal")));
 }

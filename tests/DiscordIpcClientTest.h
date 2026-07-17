@@ -6,7 +6,8 @@
 // server (QLocalServer standing in for the real desktop client), per
 // ADR-010. Covers the handshake and a SET_ACTIVITY round trip; reconnect
 // backoff isn't timing-tested here to keep the suite fast.
-class DiscordIpcClientTest : public QObject {
+class DiscordIpcClientTest : public QObject
+{
     Q_OBJECT
 
   private Q_SLOTS:
@@ -19,5 +20,5 @@ class DiscordIpcClientTest : public QObject {
     void clearActivitySendsNullActivity();
 
   private:
-    class QTemporaryDir *m_dir = nullptr;
+    class QTemporaryDir* m_dir = nullptr;
 };

@@ -2,7 +2,8 @@
 
 #include <QObject>
 
-class RecordingControllerTest : public QObject {
+class RecordingControllerTest : public QObject
+{
     Q_OBJECT
 
   private Q_SLOTS:
