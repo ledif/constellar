@@ -6,6 +6,8 @@
 #include "DiscordIpcClient.h"
 #include "GameState.h"
 
+using namespace Qt::StringLiterals;
+
 namespace keys = constellar::keys;
 
 namespace {
@@ -14,7 +16,7 @@ namespace {
 // a later pass; a single generic image is uploaded now). Per-state art
 // (raid/dungeon/difficulty badges) can replace this with a lookup once more
 // keys exist -- one key is enough to stop showing the blank placeholder.
-const QString kLargeImageKey = QStringLiteral("homestone");
+const QString kLargeImageKey = u"homestone"_s;
 
 void addDefaultAssets(QJsonObject &activity) {
     QJsonObject assets;
@@ -40,8 +42,8 @@ QJsonObject PresencePublisher::encounterActivity(const QVariantMap &activity,
     const QString difficulty = activity.value(QString::fromLatin1(keys::kDifficulty)).toString();
 
     QJsonObject result;
-    result["details"] = QStringLiteral("%1 %2").arg(difficulty, encounterName);
-    result["state"] = zoneName.isEmpty() ? QStringLiteral("Raid Encounter") : zoneName;
+    result["details"] = u"%1 %2"_s.arg(difficulty, encounterName);
+    result["state"] = zoneName.isEmpty() ? u"Raid Encounter"_s : zoneName;
     QJsonObject timestamps;
     timestamps["start"] = startTimeSecs(activity);
     result["timestamps"] = timestamps;
@@ -53,8 +55,8 @@ QJsonObject PresencePublisher::dungeonActivity(const QVariantMap &activity) {
     const uint keystoneLevel = activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toUInt();
 
     QJsonObject result;
-    result["details"] = QStringLiteral("Mythic+ Key +%1").arg(keystoneLevel);
-    result["state"] = QStringLiteral("In a dungeon");
+    result["details"] = u"Mythic+ Key +%1"_s.arg(keystoneLevel);
+    result["state"] = u"In a dungeon"_s;
     QJsonObject timestamps;
     timestamps["start"] = startTimeSecs(activity);
     result["timestamps"] = timestamps;
@@ -66,7 +68,7 @@ QJsonObject PresencePublisher::idleActivity(const QString &zoneName) {
     QJsonObject activity;
     // realm/character still require the addon-channel hybrid (ADR-011);
     // zoneName comes for free from Zone (RecordingController's MAP_CHANGE).
-    activity["details"] = QStringLiteral("In World of Warcraft");
+    activity["details"] = u"In World of Warcraft"_s;
     if (!zoneName.isEmpty()) {
         activity["state"] = zoneName;
     }

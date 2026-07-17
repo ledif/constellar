@@ -10,6 +10,8 @@
 #include "DBusConstants.h"
 #include "observerproxy.h"
 
+using namespace Qt::StringLiterals;
+
 namespace keys = constellar::keys;
 
 namespace {
@@ -21,24 +23,23 @@ void printUsage() {
 QString activitySummary(const QVariantMap &activity) {
     const QString type = activity.value(QString::fromLatin1(keys::kType)).toString();
     if (type == QString::fromLatin1(keys::kTypeEncounter)) {
-        return QStringLiteral("encounter %1 %2")
-            .arg(activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
-                 activity.value(QString::fromLatin1(keys::kEncounterName)).toString());
+        return u"encounter %1 %2"_s.arg(
+            activity.value(QString::fromLatin1(keys::kDifficulty)).toString(),
+            activity.value(QString::fromLatin1(keys::kEncounterName)).toString());
     }
     if (type == QString::fromLatin1(keys::kTypeDungeon)) {
-        return QStringLiteral("dungeon +%1")
-            .arg(activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString());
+        return u"dungeon +%1"_s.arg(
+            activity.value(QString::fromLatin1(keys::kKeystoneLevel)).toString());
     }
-    return QStringLiteral("none");
+    return u"none"_s;
 }
 
 QString zoneSummary(const QVariantMap &zone) {
     if (zone.isEmpty()) {
-        return QStringLiteral("none");
+        return u"none"_s;
     }
-    return QStringLiteral("%1 (mapId %2)")
-        .arg(zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
-             zone.value(QString::fromLatin1(keys::kMapId)).toString());
+    return u"%1 (mapId %2)"_s.arg(zone.value(QString::fromLatin1(keys::kZoneName)).toString(),
+                                  zone.value(QString::fromLatin1(keys::kMapId)).toString());
 }
 
 int runStatus(bool json) {
@@ -60,8 +61,7 @@ int runStatus(bool json) {
         root["zone"] = QJsonObject::fromVariantMap(zone);
         out << QJsonDocument(root).toJson(QJsonDocument::Compact) << "\n";
     } else {
-        out << "Activity: "
-            << (activity.isEmpty() ? QStringLiteral("none") : activitySummary(activity)) << "\n";
+        out << "Activity: " << (activity.isEmpty() ? u"none"_s : activitySummary(activity)) << "\n";
         out << "Zone:     " << zoneSummary(zone) << "\n";
     }
     return 0;
@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
     }
 
     const QString command = QString::fromLocal8Bit(argv[1]);
-    if (command == QStringLiteral("status")) {
-        const bool json = argc >= 3 && QString::fromLocal8Bit(argv[2]) == QStringLiteral("--json");
+    if (command == u"status"_s) {
+        const bool json = argc >= 3 && QString::fromLocal8Bit(argv[2]) == u"--json"_s;
         return runStatus(json);
     }
 

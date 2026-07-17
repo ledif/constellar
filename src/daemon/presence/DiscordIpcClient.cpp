@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QUuid>
 
+using namespace Qt::StringLiterals;
+
 namespace {
 
 constexpr qint32 kOpHandshake = 0;
@@ -69,7 +71,7 @@ void DiscordIpcClient::sendPending() {
     args["activity"] = *m_pendingActivity;
 
     QJsonObject command;
-    command["cmd"] = QStringLiteral("SET_ACTIVITY");
+    command["cmd"] = u"SET_ACTIVITY"_s;
     command["args"] = args;
     command["nonce"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
@@ -123,8 +125,8 @@ void DiscordIpcClient::onReadyRead() {
 void DiscordIpcClient::handleFrame(qint32 opcode, const QJsonObject &payload) {
     switch (opcode) {
         case kOpFrame:
-            if (payload.value("cmd").toString() == QStringLiteral("DISPATCH") &&
-                payload.value("evt").toString() == QStringLiteral("READY")) {
+            if (payload.value("cmd").toString() == u"DISPATCH"_s &&
+                payload.value("evt").toString() == u"READY"_s) {
                 m_ready = true;
                 Q_EMIT ready();
                 sendPending();
@@ -182,7 +184,7 @@ QString DiscordIpcClient::socketPath(int index) {
         base = qEnvironmentVariable("TMPDIR");
     }
     if (base.isEmpty()) {
-        base = QStringLiteral("/tmp");
+        base = u"/tmp"_s;
     }
-    return base + QStringLiteral("/discord-ipc-%1").arg(index);
+    return base + u"/discord-ipc-%1"_s.arg(index);
 }

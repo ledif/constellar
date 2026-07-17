@@ -4,6 +4,8 @@
 
 #include "ActivityKeys.h"
 
+using namespace Qt::StringLiterals;
+
 namespace keys = constellar::keys;
 
 ObserverService::ObserverService(QString logDirectory, QObject *parent)
@@ -60,19 +62,19 @@ QString ObserverService::raidDifficultyDisplayName(int difficultyId) {
     const std::optional<RecordingController::RaidDifficulty> difficulty =
         RecordingController::raidDifficultyFromId(difficultyId);
     if (!difficulty) {
-        return QStringLiteral("Unknown");
+        return u"Unknown"_s;
     }
     switch (*difficulty) {
         case RecordingController::RaidDifficulty::LFR:
-            return QStringLiteral("LFR");
+            return u"LFR"_s;
         case RecordingController::RaidDifficulty::Normal:
-            return QStringLiteral("Normal");
+            return u"Normal"_s;
         case RecordingController::RaidDifficulty::Heroic:
-            return QStringLiteral("Heroic");
+            return u"Heroic"_s;
         case RecordingController::RaidDifficulty::Mythic:
-            return QStringLiteral("Mythic");
+            return u"Mythic"_s;
     }
-    return QStringLiteral("Unknown");
+    return u"Unknown"_s;
 }
 
 QVariantMap ObserverService::encounterBag(const RecordingController::RaidEncounter &encounter) {

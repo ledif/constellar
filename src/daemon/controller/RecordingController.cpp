@@ -1,5 +1,7 @@
 #include "RecordingController.h"
 
+using namespace Qt::StringLiterals;
+
 RecordingController::RecordingController(Config config, QObject *parent)
     : QObject(parent), m_config(std::move(config)) {
     m_overrunTimer.setSingleShot(true);
@@ -31,21 +33,21 @@ void RecordingController::onLineReceived(const LogLine &line) {
     }
 
     const QString type = line.type();
-    if (type == QStringLiteral("ENCOUNTER_START")) {
+    if (type == u"ENCOUNTER_START"_s) {
         // Inside an active M+ key, boss pulls are sub-segment chapters of
         // the dungeon recording, not separate recordings (PLAN.md §3.4).
         if (!m_dungeonActive) {
             handleEncounterStart(line);
         }
-    } else if (type == QStringLiteral("ENCOUNTER_END")) {
+    } else if (type == u"ENCOUNTER_END"_s) {
         if (!m_dungeonActive) {
             handleEncounterEnd(line);
         }
-    } else if (type == QStringLiteral("CHALLENGE_MODE_START")) {
+    } else if (type == u"CHALLENGE_MODE_START"_s) {
         handleChallengeModeStart(line);
-    } else if (type == QStringLiteral("CHALLENGE_MODE_END")) {
+    } else if (type == u"CHALLENGE_MODE_END"_s) {
         handleChallengeModeEnd(line);
-    } else if (type == QStringLiteral("MAP_CHANGE")) {
+    } else if (type == u"MAP_CHANGE"_s) {
         // MAP_CHANGE args: uiMapID, zoneName, x, y, z, w (confirmed against
         // real logs; not in the original RFC-001 grammar).
         if (line.argCount() >= 3) {
@@ -107,7 +109,7 @@ void RecordingController::handleEncounterEnd(const LogLine &line) {
         return;
     }
 
-    m_pendingSuccess = line.argString(5) == QStringLiteral("1");
+    m_pendingSuccess = line.argString(5) == u"1"_s;
     m_pendingStopTime = line.dateTime().addSecs(m_config.raidOverrunSeconds);
     m_overrunTimer.start(m_config.raidOverrunSeconds * 1000);
 }
@@ -169,7 +171,7 @@ void RecordingController::handleChallengeModeEnd(const LogLine &line) {
         return;
     }
 
-    m_pendingDungeonSuccess = line.argString(2) == QStringLiteral("1");
+    m_pendingDungeonSuccess = line.argString(2) == u"1"_s;
     m_pendingDungeonDurationMs = line.argString(4).toInt();
     m_pendingDungeonStopTime = line.dateTime().addSecs(m_config.dungeonOverrunSeconds);
     m_dungeonOverrunTimer.start(m_config.dungeonOverrunSeconds * 1000);

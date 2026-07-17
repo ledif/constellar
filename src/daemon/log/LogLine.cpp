@@ -4,6 +4,8 @@
 #include <QTimeZone>
 #include <QVector>
 
+using namespace Qt::StringLiterals;
+
 LogLine::LogLine(QString rawLine) : m_raw(std::move(rawLine)) {
     parse();
 }
@@ -13,8 +15,8 @@ QDateTime LogLine::dateTime() const {
     // fraction, timezone offset (hours, optionally ":mm"). The offset suffix
     // isn't in PLAN.md's grammar spec but is present on every line of a real
     // combat log — without it we'd silently parse the wrong instant.
-    static const QRegularExpression pattern(QStringLiteral(
-        R"(^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\.(\d+)([+-]\d{1,2}(?::\d{2})?)?$)"));
+    static const QRegularExpression pattern(
+        uR"(^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\.(\d+)([+-]\d{1,2}(?::\d{2})?)?$)"_s);
 
     const QRegularExpressionMatch match = pattern.match(m_timestamp);
     if (!match.hasMatch()) {
@@ -48,7 +50,7 @@ QDateTime LogLine::dateTime() const {
     const bool negative = offsetStr.startsWith(QLatin1Char('-'));
     const QStringList parts = offsetStr.mid(1).split(QLatin1Char(':'));
     const int offsetHours = parts.value(0).toInt();
-    const int offsetMinutes = parts.value(1, QStringLiteral("0")).toInt();
+    const int offsetMinutes = parts.value(1, u"0"_s).toInt();
     int offsetSeconds = offsetHours * 3600 + offsetMinutes * 60;
     if (negative) {
         offsetSeconds = -offsetSeconds;
@@ -86,7 +88,7 @@ bool isSet(const QVariant &value) {
 }  // namespace
 
 void LogLine::parse() {
-    const int sep = m_raw.indexOf(QStringLiteral("  "));
+    const int sep = m_raw.indexOf(u"  "_s);
     if (sep < 0) {
         m_valid = false;
         return;

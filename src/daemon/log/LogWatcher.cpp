@@ -11,6 +11,8 @@
 #include <QFileInfo>
 #include <QSocketNotifier>
 
+using namespace Qt::StringLiterals;
+
 namespace {
 constexpr size_t kInotifyEventSize = sizeof(struct inotify_event);
 constexpr size_t kInotifyBufferLen = 1024 * (kInotifyEventSize + 16);
@@ -27,8 +29,7 @@ LogWatcher::~LogWatcher() {
 }
 
 bool LogWatcher::isCombatLogName(const QString &fileName) {
-    return fileName.startsWith(QStringLiteral("WoWCombatLog")) &&
-           fileName.endsWith(QStringLiteral(".txt"));
+    return fileName.startsWith(u"WoWCombatLog"_s) && fileName.endsWith(u".txt"_s);
 }
 
 bool LogWatcher::start() {

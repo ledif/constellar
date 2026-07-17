@@ -7,16 +7,17 @@
 #include "GameState.h"
 #include "ObserverService.h"
 
+using namespace Qt::StringLiterals;
+
 ObserverAdaptor::ObserverAdaptor(ObserverService *service)
     : QDBusAbstractAdaptor(service), m_service(service) {
     setAutoRelaySignals(true);
     GameState &gameState = m_service->gameState();
     connect(&gameState, &GameState::activityChanged, this, [this](const QVariantMap &activity) {
-        emitPropertiesChanged(QStringLiteral("Activity"), activity);
+        emitPropertiesChanged(u"Activity"_s, activity);
     });
-    connect(&gameState, &GameState::zoneChanged, this, [this](const QVariantMap &zone) {
-        emitPropertiesChanged(QStringLiteral("Zone"), zone);
-    });
+    connect(&gameState, &GameState::zoneChanged, this,
+            [this](const QVariantMap &zone) { emitPropertiesChanged(u"Zone"_s, zone); });
     connect(&gameState, &GameState::activityEnded, this, &ObserverAdaptor::ActivityEnded);
 }
 
@@ -29,10 +30,10 @@ QVariantMap ObserverAdaptor::zone() const {
 }
 
 void ObserverAdaptor::emitPropertiesChanged(const QString &name, const QVariant &value) {
-    QDBusMessage signal = QDBusMessage::createSignal(
-        constellar::dbus::kObjectPath, QStringLiteral("org.freedesktop.DBus.Properties"),
-        QStringLiteral("PropertiesChanged"));
-    signal << QStringLiteral("io.github.ledif.constellar.Observer") << QVariantMap{{name, value}}
+    QDBusMessage signal =
+        QDBusMessage::createSignal(constellar::dbus::kObjectPath,
+                                   u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s);
+    signal << u"io.github.ledif.constellar.Observer"_s << QVariantMap{{name, value}}
            << QStringList{};
     QDBusConnection::sessionBus().send(signal);
 }

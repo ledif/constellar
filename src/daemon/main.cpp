@@ -14,33 +14,33 @@
 #include "ObserverService.h"
 #include "PresencePublisher.h"
 
+using namespace Qt::StringLiterals;
+
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
-    QCoreApplication::setApplicationName(QStringLiteral("constellard"));
+    QCoreApplication::setApplicationName(u"constellard"_s);
 
     QCommandLineParser parser;
     parser.setApplicationDescription(
-        QStringLiteral("constellard - WoW combat log watcher and recording daemon"));
+        u"constellard - WoW combat log watcher and recording daemon"_s);
     parser.addHelpOption();
-    const QCommandLineOption logDirOption(
-        QStringList{QStringLiteral("log-dir")},
-        QStringLiteral("Path to the WoW Logs directory to watch (falls back to "
-                       "CONSTELLAR_LOG_DIR if unset)."),
-        QStringLiteral("path"));
+    const QCommandLineOption logDirOption(QStringList{u"log-dir"_s},
+                                          u"Path to the WoW Logs directory to watch (falls back to "
+                                          "CONSTELLAR_LOG_DIR if unset)."_s,
+                                          u"path"_s);
     parser.addOption(logDirOption);
     const QCommandLineOption discordAppIdOption(
-        QStringList{QStringLiteral("discord-app-id")},
-        QStringLiteral("Discord Application ID to publish Rich Presence as (falls back to "
-                       "CONSTELLAR_DISCORD_APP_ID if unset). Presence is off unless this is set "
-                       "(RFC-002) -- no app has been registered yet."),
-        QStringLiteral("id"));
+        QStringList{u"discord-app-id"_s},
+        u"Discord Application ID to publish Rich Presence as (falls back to "
+        "CONSTELLAR_DISCORD_APP_ID if unset). Presence is off unless this is set "
+        "(RFC-002) -- no app has been registered yet."_s,
+        u"id"_s);
     parser.addOption(discordAppIdOption);
     parser.process(app);
 
     QString logDirectory = parser.value(logDirOption);
     if (logDirectory.isEmpty()) {
-        logDirectory =
-            QProcessEnvironment::systemEnvironment().value(QStringLiteral("CONSTELLAR_LOG_DIR"));
+        logDirectory = QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_LOG_DIR"_s);
     }
     if (logDirectory.isEmpty()) {
         QTextStream(stderr) << "constellard: no log directory given. Pass --log-dir <path> or set "
@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
 
     QString discordAppId = parser.value(discordAppIdOption);
     if (discordAppId.isEmpty()) {
-        discordAppId = QProcessEnvironment::systemEnvironment().value(
-            QStringLiteral("CONSTELLAR_DISCORD_APP_ID"));
+        discordAppId =
+            QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
     }
     // Off by default, config-gated (RFC-002): the publisher and IPC client
     // no-op harmlessly with an empty app ID, but skip constructing them
