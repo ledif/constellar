@@ -6,13 +6,11 @@ podman_run := "podman run --rm -v " + justfile_directory() + ":/src:Z -w /src " 
 default:
     @just --list
 
-# Reformat C++ sources with clang-format. With no args, formats everything
-# under src/; pass paths to format only those (used by the lefthook
-# pre-commit hook, which passes the staged files).
+# Format either a list of files, or everything in src/ and tests/
 format *files:
     {{podman_run}} bash -c 'clang-format -i $(if [ -n "{{files}}" ]; then echo "{{files}}"; else find src tests -type f \( -name "*.cpp" -o -name "*.h" \); fi)'
 
-# Check formatting without modifying files; exits non-zero on drift (CI use).
+# Check clang-format
 format-check:
     {{podman_run}} bash -c 'clang-format --dry-run --Werror $(find src tests -type f \( -name "*.cpp" -o -name "*.h" \))'
 
@@ -20,13 +18,16 @@ format-check:
 build-image:
     podman build -t {{image}} -f container/Containerfile .
 
-# Configure the CMake build directory (idempotent; re-run after adding files).
-setup:
+# Configure the CMake stuff
+configure:
     rm -rf {{build_dir}}
     {{podman_run}} cmake -S . -B {{build_dir}} -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
-# Compile.
 build:
+    #!/bin/bash
+    if [ ! -d build ]; then
+      just configure
+    fi
     {{podman_run}} cmake --build {{build_dir}}
 
 # Run the unit test suite.
