@@ -22,6 +22,11 @@ constellar_add_test(logwatcher_test
     LIBS constellar::combatlog
 )
 
+constellar_add_test(inotifyeventparser_test
+    SOURCES InotifyEventParserTest.h InotifyEventParserTest.cpp
+    LIBS constellar::combatlog
+)
+
 constellar_add_test(activitytracker_test
     SOURCES ActivityTrackerTest.h ActivityTrackerTest.cpp
     LIBS constellar::tracker

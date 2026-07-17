@@ -3,7 +3,6 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QSocketNotifier>
 
 using namespace Qt::StringLiterals;
 
@@ -13,6 +12,10 @@ LogWatcher::LogWatcher(std::filesystem::path directory, int idleTimeoutMs, QObje
     m_idleTimer.setSingleShot(true);
     m_idleTimer.setInterval(idleTimeoutMs);
     connect(&m_idleTimer, &QTimer::timeout, this, &LogWatcher::onIdleTimer);
+    connect(
+        &m_inotifyWatcher, &constellar::inotify::InotifyWatcher::events, this,
+        &LogWatcher::onInotifyEvents
+    );
 }
 
 LogWatcher::~LogWatcher()
@@ -33,21 +36,12 @@ bool LogWatcher::start()
     if (!m_inotifyWatcher.start(m_directory))
         return false;
 
-    m_notifier = new QSocketNotifier(m_inotifyWatcher.fd(), QSocketNotifier::Read, this);
-    connect(m_notifier, &QSocketNotifier::activated, this, &LogWatcher::onInotifyReadyRead);
-
     scanExistingFiles();
     return true;
 }
 
 void LogWatcher::stop()
 {
-    if (m_notifier)
-    {
-        m_notifier->setEnabled(false);
-        m_notifier->deleteLater();
-        m_notifier = nullptr;
-    }
     m_inotifyWatcher.stop();
     m_files.clear();
     m_idleTimer.stop();
@@ -141,9 +135,9 @@ void LogWatcher::onIdleTimer()
     Q_EMIT idleTimeout();
 }
 
-void LogWatcher::onInotifyReadyRead()
+void LogWatcher::onInotifyEvents(std::vector<constellar::inotify::WatchEvent> const& events)
 {
-    for (constellar::inotify::WatchEvent const& event : m_inotifyWatcher.readEvents())
+    for (constellar::inotify::WatchEvent const& event : events)
     {
         if (event.created)
             handleCreateOrMove(event.name);

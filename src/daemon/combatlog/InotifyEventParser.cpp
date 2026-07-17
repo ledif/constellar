@@ -30,10 +30,12 @@ std::optional<std::pair<ParsedEvent, std::span<std::byte const>>> nextEvent(
 
     ParsedEvent parsed;
     parsed.mask = header.mask;
+
     if (header.len > 0)
     {
         auto const* namePtr = reinterpret_cast<char const*>(data.data() + kEventHeaderSize);
-        parsed.name = QString::fromLocal8Bit(namePtr);
+        std::size_t const nameLen = ::strnlen(namePtr, header.len);
+        parsed.name = QString::fromLocal8Bit(namePtr, static_cast<qsizetype>(nameLen));
     }
 
     return std::make_pair(std::move(parsed), data.subspan(totalSize));

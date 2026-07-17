@@ -10,8 +10,6 @@
 #include "InotifyWatcher.h"
 #include "LogLine.h"
 
-class QSocketNotifier;
-
 class LogWatcher : public QObject
 {
     Q_OBJECT
@@ -36,7 +34,7 @@ class LogWatcher : public QObject
     void idleTimeout();
 
   private Q_SLOTS:
-    void onInotifyReadyRead();
+    void onInotifyEvents(std::vector<constellar::inotify::WatchEvent> const& events);
     void onIdleTimer();
 
   private:
@@ -55,8 +53,7 @@ class LogWatcher : public QObject
     static bool isCombatLogName(QString const& fileName);
 
     QString m_directory;
-    constellar::inotify::Watcher m_inotifyWatcher;
-    QSocketNotifier* m_notifier = nullptr;
+    constellar::inotify::InotifyWatcher m_inotifyWatcher;
     QTimer m_idleTimer;
     QHash<QString, WatchedFile> m_files;
 };
