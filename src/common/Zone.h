@@ -26,7 +26,7 @@ class Zone
     }
 
     // "March on Quel'Danas (mapId 2214)", or "none".
-    QString toDisplayString() const;
+    QString toString() const;
 
   private:
     QString m_name;

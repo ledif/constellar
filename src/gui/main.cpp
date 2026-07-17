@@ -63,12 +63,12 @@ class StatusWindow : public QWidget
 
         if (m_previousActivity.isEmpty() && !activityMap.isEmpty())
         {
-            m_events->addItem(u"▶ %1"_s.arg(activity.toDisplayString()));
+            m_events->addItem(u"▶ %1"_s.arg(activity.toString()));
             m_events->scrollToBottom();
         }
         m_previousActivity = activityMap;
 
-        m_label->setText(u"activity: %1\nzone: %2"_s.arg(activity.toDisplayString(), zone.name()));
+        m_label->setText(u"activity: %1\nzone: %2"_s.arg(activity.toString(), zone.name()));
     }
 
     static QString shortTime(qint64 epochMs)
@@ -83,7 +83,7 @@ class StatusWindow : public QWidget
         qint64 const stopTime =
             activityMap.value(QString::fromLatin1(keys::kStopTime)).toLongLong();
         m_events->addItem(u"■ %1 — %2 — %3"_s.arg(
-            activity.toDisplayString(), success ? u"SUCCESS"_s : u"FAILED"_s, shortTime(stopTime)
+            activity.toString(), success ? u"SUCCESS"_s : u"FAILED"_s, shortTime(stopTime)
         ));
         m_events->scrollToBottom();
         m_previousActivity.clear();

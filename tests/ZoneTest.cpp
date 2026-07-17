@@ -12,7 +12,7 @@ void ZoneTest::emptyMapIsEmpty()
     Zone const zone = Zone::fromVariantMap(QVariantMap{});
 
     QVERIFY(zone.isEmpty());
-    QCOMPARE(zone.toDisplayString(), QStringLiteral("none"));
+    QCOMPARE(zone.toString(), QStringLiteral("none"));
 }
 
 void ZoneTest::mapsNameAndMapId()
@@ -27,7 +27,7 @@ void ZoneTest::mapsNameAndMapId()
     QVERIFY(!zone.isEmpty());
     QCOMPARE(zone.name(), QStringLiteral("Nerub-ar Palace"));
     QCOMPARE(zone.mapId(), 2255u);
-    QCOMPARE(zone.toDisplayString(), QStringLiteral("Nerub-ar Palace (mapId 2255)"));
+    QCOMPARE(zone.toString(), QStringLiteral("Nerub-ar Palace (mapId 2255)"));
 }
 
 QTEST_MAIN(ZoneTest)

@@ -47,8 +47,8 @@ int runStatus(bool json)
     }
     else
     {
-        out << "Activity: " << Activity::fromVariantMap(activityMap).toDisplayString() << "\n";
-        out << "Zone:     " << Zone::fromVariantMap(zoneMap).toDisplayString() << "\n";
+        out << "Activity: " << Activity::fromVariantMap(activityMap).toString() << "\n";
+        out << "Zone:     " << Zone::fromVariantMap(zoneMap).toString() << "\n";
     }
 
     return 0;

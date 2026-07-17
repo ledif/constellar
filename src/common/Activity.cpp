@@ -25,7 +25,7 @@ Activity Activity::fromVariantMap(QVariantMap const& map)
     return activity;
 }
 
-QString Activity::toDisplayString() const
+QString Activity::toString() const
 {
     switch (m_type)
     {

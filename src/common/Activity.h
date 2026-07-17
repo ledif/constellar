@@ -43,7 +43,7 @@ class Activity
 
     // Human-readable summary: "Mythic Ulgrax the Devourer", "Mythic+ 18", or
     // "none".
-    QString toDisplayString() const;
+    QString toString() const;
 
   private:
     Type m_type = Type::None;

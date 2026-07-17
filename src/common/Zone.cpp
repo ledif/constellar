@@ -14,7 +14,7 @@ Zone Zone::fromVariantMap(QVariantMap const& map)
     return zone;
 }
 
-QString Zone::toDisplayString() const
+QString Zone::toString() const
 {
     if (isEmpty())
         return u"none"_s;
