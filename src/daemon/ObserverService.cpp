@@ -8,7 +8,7 @@ using namespace Qt::StringLiterals;
 
 namespace keys = constellar::keys;
 
-ObserverService::ObserverService(std::filesystem::path logDirectory, QObject* parent)
+ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObject* parent)
     : QObject(parent),
       m_logDirectory(std::move(logDirectory)),
       m_watcher(m_logDirectory),
