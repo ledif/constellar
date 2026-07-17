@@ -13,6 +13,5 @@ class GameStateTest : public QObject
     void setActivitySkipsOnIdenticalBag();
     void setZoneEmitsOnChange();
     void setZoneSkipsOnIdenticalBag();
-    void clearActivityEmptiesActivity();
     void endActivityEmitsThenClears();
 };

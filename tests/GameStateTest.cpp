@@ -54,18 +54,6 @@ void GameStateTest::setZoneSkipsOnIdenticalBag()
     QCOMPARE(spy.count(), 0);
 }
 
-void GameStateTest::clearActivityEmptiesActivity()
-{
-    GameState state;
-    state.setActivity(QVariantMap{{"type", "encounter"}});
-    QSignalSpy spy(&state, &GameState::activityChanged);
-
-    state.clearActivity();
-
-    QVERIFY(state.activity().isEmpty());
-    QCOMPARE(spy.count(), 1);
-}
-
 void GameStateTest::endActivityEmitsThenClears()
 {
     GameState state;

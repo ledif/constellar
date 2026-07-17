@@ -20,11 +20,6 @@ void GameState::setActivity(QVariantMap const& activity)
     Q_EMIT activityChanged(m_activity);
 }
 
-void GameState::clearActivity()
-{
-    setActivity({});
-}
-
 void GameState::setZone(QVariantMap const& zone)
 {
     if (m_zone == zone)
@@ -36,5 +31,5 @@ void GameState::setZone(QVariantMap const& zone)
 void GameState::endActivity(QVariantMap const& endedActivity)
 {
     Q_EMIT activityEnded(endedActivity);
-    clearActivity();
+    setActivity({});
 }

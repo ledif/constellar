@@ -3,12 +3,6 @@
 #include <QObject>
 #include <QVariantMap>
 
-// Single source of truth for the two metadata dictionaries ObserverDBusAdaptor
-// publishes as DBus properties (ADR-012). ObserverService fills this in from
-// ActivityTracker's decisions; ObserverDBusAdaptor reads it for
-// Activity/Zone and relays its signals as PropertiesChanged/ActivityEnded;
-// PresencePublisher reads it as a pure projection instead of keeping its own
-// shadow state.
 class GameState : public QObject
 {
     Q_OBJECT
@@ -19,20 +13,14 @@ class GameState : public QObject
     QVariantMap activity() const;
     QVariantMap zone() const;
 
-    // No-op (no signal) if unchanged, so PropertiesChanged doesn't storm.
     void setActivity(QVariantMap const& activity);
-    void clearActivity();
-    void setZone(QVariantMap const& zone);
-
-    // The one genuine edge: emits activityEnded with the outcome metadata,
-    // then clears Activity. Replaces "build ended metadata, emit, then
-    // clear" as one call at every call site.
     void endActivity(QVariantMap const& endedActivity);
+    void setZone(QVariantMap const& zone);
 
   Q_SIGNALS:
     void activityChanged(QVariantMap const& activity);
-    void zoneChanged(QVariantMap const& zone);
     void activityEnded(QVariantMap const& endedActivity);
+    void zoneChanged(QVariantMap const& zone);
 
   private:
     QVariantMap m_activity;
