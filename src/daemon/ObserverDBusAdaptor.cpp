@@ -1,4 +1,4 @@
-#include "ObserverAdaptor.h"
+#include "ObserverDBusAdaptor.h"
 
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -9,7 +9,7 @@
 
 using namespace Qt::StringLiterals;
 
-ObserverAdaptor::ObserverAdaptor(ObserverService* service)
+ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service)
     : QDBusAbstractAdaptor(service), m_service(service)
 {
     setAutoRelaySignals(true);
@@ -22,20 +22,20 @@ ObserverAdaptor::ObserverAdaptor(ObserverService* service)
         &gameState, &GameState::zoneChanged, this,
         [this](QVariantMap const& zone) { emitPropertiesChanged(u"Zone"_s, zone); }
     );
-    connect(&gameState, &GameState::activityEnded, this, &ObserverAdaptor::ActivityEnded);
+    connect(&gameState, &GameState::activityEnded, this, &ObserverDBusAdaptor::ActivityEnded);
 }
 
-QVariantMap ObserverAdaptor::activity() const
+QVariantMap ObserverDBusAdaptor::activity() const
 {
     return m_service->gameState().activity();
 }
 
-QVariantMap ObserverAdaptor::zone() const
+QVariantMap ObserverDBusAdaptor::zone() const
 {
     return m_service->gameState().zone();
 }
 
-void ObserverAdaptor::emitPropertiesChanged(QString const& name, QVariant const& value)
+void ObserverDBusAdaptor::emitPropertiesChanged(QString const& name, QVariant const& value)
 {
     QDBusMessage signal = QDBusMessage::createSignal(
         constellar::dbus::kObjectPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s
@@ -45,47 +45,47 @@ void ObserverAdaptor::emitPropertiesChanged(QString const& name, QVariant const&
     QDBusConnection::sessionBus().send(signal);
 }
 
-void ObserverAdaptor::Pause()
+void ObserverDBusAdaptor::Pause()
 {
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::Resume()
+void ObserverDBusAdaptor::Resume()
 {
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::StartManualRecording()
+void ObserverDBusAdaptor::StartManualRecording()
 {
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::StopManualRecording()
+void ObserverDBusAdaptor::StopManualRecording()
 {
     // Phase 0 stub.
 }
 
-void ObserverAdaptor::ReloadConfig()
+void ObserverDBusAdaptor::ReloadConfig()
 {
     // Phase 0 stub.
 }
 
-QStringList ObserverAdaptor::ListRecordings(QVariantMap const& /*filter*/)
+QStringList ObserverDBusAdaptor::ListRecordings(QVariantMap const& /*filter*/)
 {
     return {};
 }
 
-void ObserverAdaptor::DeleteRecording(QString const& /*id*/)
+void ObserverDBusAdaptor::DeleteRecording(QString const& /*id*/)
 {
     // Phase 0 stub.
 }
 
-QVariantMap ObserverAdaptor::GetConfig()
+QVariantMap ObserverDBusAdaptor::GetConfig()
 {
     return {};
 }
 
-void ObserverAdaptor::SetConfig(QVariantMap const& /*config*/)
+void ObserverDBusAdaptor::SetConfig(QVariantMap const& /*config*/)
 {
     // Phase 0 stub.
 }

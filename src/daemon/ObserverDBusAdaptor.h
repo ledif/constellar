@@ -21,7 +21,7 @@ class ObserverService;
 // QDBusAbstractAdaptor does not emit org.freedesktop.DBus.Properties
 // .PropertiesChanged automatically -- Activity/Zone changes are relayed by
 // hand via emitPropertiesChanged() (ADR-012).
-class ObserverAdaptor : public QDBusAbstractAdaptor
+class ObserverDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "io.github.ledif.constellar.Observer")
@@ -30,7 +30,7 @@ class ObserverAdaptor : public QDBusAbstractAdaptor
     Q_PROPERTY(QVariantMap Zone READ zone)
 
   public:
-    explicit ObserverAdaptor(ObserverService* service);
+    explicit ObserverDBusAdaptor(ObserverService* service);
 
     QVariantMap activity() const;
     QVariantMap zone() const;

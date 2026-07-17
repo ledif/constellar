@@ -3,9 +3,9 @@
 #include <QObject>
 #include <QVariantMap>
 
-// Single source of truth for the two metadata dictionaries ObserverAdaptor
+// Single source of truth for the two metadata dictionaries ObserverDBusAdaptor
 // publishes as DBus properties (ADR-012). ObserverService fills this in from
-// ActivityTracker's decisions; ObserverAdaptor reads it for
+// ActivityTracker's decisions; ObserverDBusAdaptor reads it for
 // Activity/Zone and relays its signals as PropertiesChanged/ActivityEnded;
 // PresencePublisher reads it as a pure projection instead of keeping its own
 // shadow state.

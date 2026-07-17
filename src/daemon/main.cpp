@@ -12,7 +12,7 @@
 #include "DBusConstants.h"
 #include "DiscordIpcClient.h"
 #include "GameState.h"
-#include "ObserverAdaptor.h"
+#include "ObserverDBusAdaptor.h"
 #include "ObserverService.h"
 #include "PresencePublisher.h"
 
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     }
 
     auto* service = new ObserverService(std::filesystem::path(logDirectory.toStdString()), &app);
-    new ObserverAdaptor(service);
+    new ObserverDBusAdaptor(service);
 
     QString discordAppId = parser.value(discordAppIdOption);
     if (discordAppId.isEmpty())

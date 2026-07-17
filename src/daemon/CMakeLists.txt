@@ -29,8 +29,8 @@ target_link_libraries(constellar-activitymetadata PUBLIC Qt6::Core constellar-co
 
 add_executable(constellard
     main.cpp
-    ObserverAdaptor.h
-    ObserverAdaptor.cpp
+    ObserverDBusAdaptor.h
+    ObserverDBusAdaptor.cpp
     ObserverService.h
     ObserverService.cpp
 )
