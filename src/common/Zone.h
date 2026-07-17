@@ -3,10 +3,7 @@
 #include <QString>
 #include <QVariantMap>
 
-// Client-side view of the Zone fact bag carried by ObserverProxy's Zone
-// property (see ActivityKeys.h). Parses the a{sv} wire format once so the
-// CLI and GUI don't each hand-roll their own QVariantMap parsing and
-// display-string formatting.
+// Client-side view of the zone fact exposed on the wire
 class Zone
 {
   public:
@@ -25,7 +22,6 @@ class Zone
         return m_mapId;
     }
 
-    // "March on Quel'Danas (mapId 2214)", or "none".
     QString toString() const;
 
   private:
