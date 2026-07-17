@@ -18,8 +18,8 @@ add_subdirectory(presence)
 # metadata dictionaries (ADR-012). Own static library so tests/ can exercise
 # the translation without constructing the whole pipeline.
 add_library(constellar-activitymetadata STATIC
-    ActivityMetadataBuilder.h
-    ActivityMetadataBuilder.cpp
+    ActivityMetadata.h
+    ActivityMetadata.cpp
 )
 
 target_include_directories(constellar-activitymetadata PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

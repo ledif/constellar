@@ -32,7 +32,7 @@ Early development. Constellar is not yet feature-complete or packaged for end us
 
 ## AI Disclosure
 
-Claude was used to write large portions of this codebase. Everything in the `main` branch is manually reviewed and tested by a human (an actual C++ dev) on a best-effort basis.
+All code in the `main` branch is either written by a human or manually reviewed / tested by a human (an actual C++ dev). All non-code text intended to be read by humans (Markdown, code comments, etc) is strictly written by a human.
 
 ## License
 

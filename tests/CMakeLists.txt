@@ -31,10 +31,10 @@ add_executable(zone_test ZoneTest.h ZoneTest.cpp)
 target_link_libraries(zone_test PRIVATE Qt6::Core Qt6::Test constellar-common)
 add_test(NAME zone_test COMMAND zone_test)
 
-add_executable(activitymetadatabuilder_test
-    ActivityMetadataBuilderTest.h
-    ActivityMetadataBuilderTest.cpp
+add_executable(activitymetadata_test
+    ActivityMetadataTest.h
+    ActivityMetadataTest.cpp
 )
-target_link_libraries(activitymetadatabuilder_test PRIVATE Qt6::Core Qt6::Test
-                                                            constellar-activitymetadata)
-add_test(NAME activitymetadatabuilder_test COMMAND activitymetadatabuilder_test)
+target_link_libraries(activitymetadata_test PRIVATE Qt6::Core Qt6::Test
+                                                     constellar-activitymetadata)
+add_test(NAME activitymetadata_test COMMAND activitymetadata_test)

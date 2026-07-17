@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-class ActivityMetadataBuilderTest : public QObject
+class ActivityMetadataTest : public QObject
 {
     Q_OBJECT
 

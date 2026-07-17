@@ -1,13 +1,13 @@
-#include "ActivityMetadataBuilderTest.h"
+#include "ActivityMetadataTest.h"
 
 #include <QTest>
 
 #include "ActivityKeys.h"
-#include "ActivityMetadataBuilder.h"
+#include "ActivityMetadata.h"
 
 namespace keys = constellar::keys;
 
-void ActivityMetadataBuilderTest::encounterMetadataMapsDifficultyAndName()
+void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
 {
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
@@ -18,7 +18,7 @@ void ActivityMetadataBuilderTest::encounterMetadataMapsDifficultyAndName()
         .startTime = start,
     };
 
-    QVariantMap const metadata = ActivityMetadataBuilder::encounterMetadata(encounter);
+    ActivityMetadata const metadata = ActivityMetadata::fromEncounter(encounter);
 
     QCOMPARE(metadata.value(keys::kType).toString(), QString::fromLatin1(keys::kTypeEncounter));
     QCOMPARE(metadata.value(keys::kEncounterId).toUInt(), 2902u);
@@ -30,7 +30,7 @@ void ActivityMetadataBuilderTest::encounterMetadataMapsDifficultyAndName()
     QCOMPARE(metadata.value(keys::kStartTime).toLongLong(), start.toMSecsSinceEpoch());
 }
 
-void ActivityMetadataBuilderTest::encounterMetadataUnknownDifficultyIdIsUnknown()
+void ActivityMetadataTest::encounterMetadataUnknownDifficultyIdIsUnknown()
 {
     ActivityTracker::RaidEncounter const encounter{
         .encounterId = 1,
@@ -38,12 +38,12 @@ void ActivityMetadataBuilderTest::encounterMetadataUnknownDifficultyIdIsUnknown(
         .difficultyId = 999,
     };
 
-    QVariantMap const metadata = ActivityMetadataBuilder::encounterMetadata(encounter);
+    ActivityMetadata const metadata = ActivityMetadata::fromEncounter(encounter);
 
     QCOMPARE(metadata.value(keys::kDifficulty).toString(), QStringLiteral("Unknown"));
 }
 
-void ActivityMetadataBuilderTest::encounterEndedMetadataAddsSuccessAndStopTime()
+void ActivityMetadataTest::encounterEndedMetadataAddsSuccessAndStopTime()
 {
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
@@ -53,8 +53,8 @@ void ActivityMetadataBuilderTest::encounterEndedMetadataAddsSuccessAndStopTime()
         .difficultyId = 14,  // Normal
     };
 
-    QVariantMap const metadata =
-        ActivityMetadataBuilder::encounterEndedMetadata(encounter, true, stopTime);
+    ActivityMetadata const metadata =
+        ActivityMetadata::fromEncounterEnded(encounter, true, stopTime);
 
     QCOMPARE(metadata.value(keys::kSuccess).toBool(), true);
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
@@ -62,7 +62,7 @@ void ActivityMetadataBuilderTest::encounterEndedMetadataAddsSuccessAndStopTime()
     QCOMPARE(metadata.value(keys::kDifficulty).toString(), QStringLiteral("Normal"));
 }
 
-void ActivityMetadataBuilderTest::dungeonMetadataMapsKeystoneLevel()
+void ActivityMetadataTest::dungeonMetadataMapsKeystoneLevel()
 {
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
@@ -73,7 +73,7 @@ void ActivityMetadataBuilderTest::dungeonMetadataMapsKeystoneLevel()
         .startTime = start,
     };
 
-    QVariantMap const metadata = ActivityMetadataBuilder::dungeonMetadata(dungeon);
+    ActivityMetadata const metadata = ActivityMetadata::fromDungeon(dungeon);
 
     QCOMPARE(metadata.value(keys::kType).toString(), QString::fromLatin1(keys::kTypeDungeon));
     QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2255u);
@@ -82,7 +82,7 @@ void ActivityMetadataBuilderTest::dungeonMetadataMapsKeystoneLevel()
     QCOMPARE(metadata.value(keys::kStartTime).toLongLong(), start.toMSecsSinceEpoch());
 }
 
-void ActivityMetadataBuilderTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
+void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
 {
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
@@ -92,21 +92,21 @@ void ActivityMetadataBuilderTest::dungeonEndedMetadataAddsSuccessDurationAndStop
         .keystoneLevel = 18,
     };
 
-    QVariantMap const metadata =
-        ActivityMetadataBuilder::dungeonEndedMetadata(dungeon, false, 1'234'567, stopTime);
+    ActivityMetadata const metadata =
+        ActivityMetadata::fromDungeonEnded(dungeon, false, 1'234'567, stopTime);
 
     QCOMPARE(metadata.value(keys::kSuccess).toBool(), false);
     QCOMPARE(metadata.value(keys::kDurationMs).toLongLong(), 1'234'567);
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
 }
 
-void ActivityMetadataBuilderTest::zoneMetadataMapsMapIdAndZoneName()
+void ActivityMetadataTest::zoneMetadataMapsMapIdAndZoneName()
 {
-    QVariantMap const metadata =
-        ActivityMetadataBuilder::zoneMetadata(2214, QStringLiteral("March on Quel'Danas"));
+    ActivityMetadata const metadata =
+        ActivityMetadata::fromZone(2214, QStringLiteral("March on Quel'Danas"));
 
     QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2214u);
     QCOMPARE(metadata.value(keys::kZoneName).toString(), QStringLiteral("March on Quel'Danas"));
 }
 
-QTEST_MAIN(ActivityMetadataBuilderTest)
+QTEST_MAIN(ActivityMetadataTest)

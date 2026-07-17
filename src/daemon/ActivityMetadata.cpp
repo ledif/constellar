@@ -1,4 +1,4 @@
-#include "ActivityMetadataBuilder.h"
+#include "ActivityMetadata.h"
 
 #include "ActivityKeys.h"
 
@@ -6,12 +6,17 @@ using namespace Qt::StringLiterals;
 
 namespace keys = constellar::keys;
 
-QString ActivityMetadataBuilder::raidDifficultyDisplayName(int difficultyId)
+namespace
+{
+
+QString raidDifficultyDisplayName(int difficultyId)
 {
     std::optional<ActivityTracker::RaidDifficulty> const difficulty =
         ActivityTracker::raidDifficultyFromId(difficultyId);
+
     if (!difficulty)
         return u"Unknown"_s;
+
     switch (*difficulty)
     {
         case ActivityTracker::RaidDifficulty::LFR:
@@ -26,11 +31,11 @@ QString ActivityMetadataBuilder::raidDifficultyDisplayName(int difficultyId)
     return u"Unknown"_s;
 }
 
-QVariantMap ActivityMetadataBuilder::encounterMetadata(
-    ActivityTracker::RaidEncounter const& encounter
-)
+}  // namespace
+
+ActivityMetadata ActivityMetadata::fromEncounter(ActivityTracker::RaidEncounter const& encounter)
 {
-    QVariantMap metadata;
+    ActivityMetadata metadata;
     metadata[keys::kType] = QString::fromLatin1(keys::kTypeEncounter);
     metadata[keys::kEncounterId] = static_cast<uint>(encounter.encounterId);
     metadata[keys::kEncounterName] = encounter.encounterName;
@@ -40,19 +45,19 @@ QVariantMap ActivityMetadataBuilder::encounterMetadata(
     return metadata;
 }
 
-QVariantMap ActivityMetadataBuilder::encounterEndedMetadata(
+ActivityMetadata ActivityMetadata::fromEncounterEnded(
     ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
 )
 {
-    QVariantMap metadata = encounterMetadata(encounter);
+    ActivityMetadata metadata = fromEncounter(encounter);
     metadata[keys::kSuccess] = success;
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;
 }
 
-QVariantMap ActivityMetadataBuilder::dungeonMetadata(ActivityTracker::DungeonRun const& dungeon)
+ActivityMetadata ActivityMetadata::fromDungeon(ActivityTracker::DungeonRun const& dungeon)
 {
-    QVariantMap metadata;
+    ActivityMetadata metadata;
     metadata[keys::kType] = QString::fromLatin1(keys::kTypeDungeon);
     metadata[keys::kMapId] = static_cast<uint>(dungeon.mapId);
     metadata[keys::kZoneId] = static_cast<uint>(dungeon.zoneId);
@@ -61,19 +66,19 @@ QVariantMap ActivityMetadataBuilder::dungeonMetadata(ActivityTracker::DungeonRun
     return metadata;
 }
 
-QVariantMap ActivityMetadataBuilder::dungeonEndedMetadata(
+ActivityMetadata ActivityMetadata::fromDungeonEnded(
     ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
     QDateTime const& stopTime
 )
 {
-    QVariantMap metadata = dungeonMetadata(dungeon);
+    ActivityMetadata metadata = fromDungeon(dungeon);
     metadata[keys::kSuccess] = success;
     metadata[keys::kDurationMs] = static_cast<qint64>(durationMs);
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;
 }
 
-QVariantMap ActivityMetadataBuilder::zoneMetadata(int mapId, QString const& zoneName)
+ActivityMetadata ActivityMetadata::fromZone(int mapId, QString const& zoneName)
 {
-    return QVariantMap{{keys::kMapId, static_cast<uint>(mapId)}, {keys::kZoneName, zoneName}};
+    return ActivityMetadata{{keys::kMapId, static_cast<uint>(mapId)}, {keys::kZoneName, zoneName}};
 }

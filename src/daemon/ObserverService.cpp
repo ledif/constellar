@@ -1,6 +1,6 @@
 #include "ObserverService.h"
 
-#include "ActivityMetadataBuilder.h"
+#include "ActivityMetadata.h"
 
 ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObject* parent)
     : QObject(parent),
@@ -14,14 +14,14 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
     // update our state when the tracker detects we moved zones
     connect(
         &m_tracker, &ActivityTracker::zoneChanged, this, [this](int mapId, QString const& zoneName)
-        { m_gameState.setZone(ActivityMetadataBuilder::zoneMetadata(mapId, zoneName)); }
+        { m_gameState.setZone(ActivityMetadata::fromZone(mapId, zoneName)); }
     );
 
     // update our state when the tracker detects we started/ended a key
     connect(
         &m_tracker, &ActivityTracker::dungeonStarted, this,
         [this](ActivityTracker::DungeonRun const& dungeon, QDateTime const& /*preRollFrom*/)
-        { m_gameState.setActivity(ActivityMetadataBuilder::dungeonMetadata(dungeon)); }
+        { m_gameState.setActivity(ActivityMetadata::fromDungeon(dungeon)); }
     );
 
     connect(
@@ -32,9 +32,7 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
         )
         {
             m_gameState.endActivity(
-                ActivityMetadataBuilder::dungeonEndedMetadata(
-                    dungeon, success, durationMs, stopTime
-                )
+                ActivityMetadata::fromDungeonEnded(dungeon, success, durationMs, stopTime)
             );
         }
     );
@@ -44,7 +42,7 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
         &m_tracker, &ActivityTracker::encounterStarted, this,
         [this](
             ActivityTracker::RaidEncounter const& encounter, QDateTime const& /*preRollFrom*/
-        ) { m_gameState.setActivity(ActivityMetadataBuilder::encounterMetadata(encounter)); }
+        ) { m_gameState.setActivity(ActivityMetadata::fromEncounter(encounter)); }
     );
 
     connect(
@@ -54,7 +52,7 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
         )
         {
             m_gameState.endActivity(
-                ActivityMetadataBuilder::encounterEndedMetadata(encounter, success, stopTime)
+                ActivityMetadata::fromEncounterEnded(encounter, success, stopTime)
             );
         }
     );
