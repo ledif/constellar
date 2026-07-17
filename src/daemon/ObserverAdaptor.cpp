@@ -13,7 +13,7 @@ ObserverAdaptor::ObserverAdaptor(ObserverService* service)
     : QDBusAbstractAdaptor(service), m_service(service)
 {
     setAutoRelaySignals(true);
-    GameState& gameState = m_service->gameState();
+    GameState const& gameState = m_service->gameState();
     connect(
         &gameState, &GameState::activityChanged, this,
         [this](QVariantMap const& activity) { emitPropertiesChanged(u"Activity"_s, activity); }

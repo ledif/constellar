@@ -46,7 +46,7 @@ void LogWatcherTest::tailsNewWrites()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
-    LogWatcher watcher(dir.path());
+    LogWatcher watcher(dir.path().toStdString());
     ReceivedLines received(watcher);
     QVERIFY(watcher.start());
 
@@ -66,7 +66,7 @@ void LogWatcherTest::handlesPartialLineAtEof()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
-    LogWatcher watcher(dir.path());
+    LogWatcher watcher(dir.path().toStdString());
     ReceivedLines received(watcher);
     QVERIFY(watcher.start());
 
@@ -93,7 +93,7 @@ void LogWatcherTest::resetsOffsetOnFileRecreation()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
-    LogWatcher watcher(dir.path());
+    LogWatcher watcher(dir.path().toStdString());
     ReceivedLines received(watcher);
     QVERIFY(watcher.start());
 
@@ -123,7 +123,7 @@ void LogWatcherTest::ignoresNonCombatLogFiles()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
-    LogWatcher watcher(dir.path());
+    LogWatcher watcher(dir.path().toStdString());
     ReceivedLines received(watcher);
     QVERIFY(watcher.start());
 
@@ -141,7 +141,7 @@ void LogWatcherTest::emitsIdleTimeoutAfterInactivity()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
 
-    LogWatcher watcher(dir.path(), /*idleTimeoutMs=*/100);
+    LogWatcher watcher(dir.path().toStdString(), /*idleTimeoutMs=*/100);
     QSignalSpy idleSpy(&watcher, &LogWatcher::idleTimeout);
     QVERIFY(watcher.start());
 

@@ -8,7 +8,7 @@ using namespace Qt::StringLiterals;
 
 namespace keys = constellar::keys;
 
-ObserverService::ObserverService(QString logDirectory, QObject* parent)
+ObserverService::ObserverService(std::filesystem::path logDirectory, QObject* parent)
     : QObject(parent),
       m_logDirectory(std::move(logDirectory)),
       m_watcher(m_logDirectory),
@@ -72,7 +72,7 @@ bool ObserverService::start()
     return m_watcher.start();
 }
 
-GameState& ObserverService::gameState()
+GameState const& ObserverService::gameState() const
 {
     return m_gameState;
 }

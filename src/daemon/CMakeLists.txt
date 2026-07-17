@@ -1,8 +1,3 @@
-# GameState is the shared fact-bag state (ADR-012) that both ObserverService
-# and PresencePublisher (constellar-presence) need, so it's its own static
-# library rather than living inline in the constellard executable target --
-# same reasoning as log/controller/presence, just flat rather than in a
-# subdirectory since it's a single header+source pair.
 add_library(constellar-gamestate STATIC
     GameState.h
     GameState.cpp

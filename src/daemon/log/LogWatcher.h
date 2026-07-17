@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include <QHash>
 #include <QObject>
 #include <QString>
@@ -24,7 +26,9 @@ class LogWatcher : public QObject
   public:
     // idleTimeoutMs: emit idleTimeout() after this long without any write to
     // any watched file. 0 disables the idle timer.
-    explicit LogWatcher(QString directory, int idleTimeoutMs = 60'000, QObject* parent = nullptr);
+    explicit LogWatcher(
+        std::filesystem::path directory, int idleTimeoutMs = 60'000, QObject* parent = nullptr
+    );
     ~LogWatcher() override;
 
     // Opens the inotify fd, watches the directory, and picks up any

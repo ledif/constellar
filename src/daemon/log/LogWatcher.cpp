@@ -19,8 +19,10 @@ constexpr size_t kInotifyEventSize = sizeof(struct inotify_event);
 constexpr size_t kInotifyBufferLen = 1024 * (kInotifyEventSize + 16);
 }  // namespace
 
-LogWatcher::LogWatcher(QString directory, int idleTimeoutMs, QObject* parent)
-    : QObject(parent), m_directory(std::move(directory)), m_idleTimeoutMs(idleTimeoutMs)
+LogWatcher::LogWatcher(std::filesystem::path directory, int idleTimeoutMs, QObject* parent)
+    : QObject(parent),
+      m_directory(QString::fromStdString(directory.string())),
+      m_idleTimeoutMs(idleTimeoutMs)
 {
     m_idleTimer.setSingleShot(true);
     connect(&m_idleTimer, &QTimer::timeout, this, &LogWatcher::onIdleTimer);

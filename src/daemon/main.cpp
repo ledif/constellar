@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -53,7 +55,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    auto* service = new ObserverService(logDirectory, &app);
+    auto* service = new ObserverService(std::filesystem::path(logDirectory.toStdString()), &app);
     new ObserverAdaptor(service);
 
     QString discordAppId = parser.value(discordAppIdOption);
