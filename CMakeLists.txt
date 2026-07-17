@@ -18,7 +18,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         CACHE STRING "Build type" FORCE)
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test Widgets)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 
