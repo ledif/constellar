@@ -18,16 +18,16 @@ void ZoneTest::emptyMapIsEmpty()
 void ZoneTest::mapsNameAndMapId()
 {
     QVariantMap const map{
-        {keys::kZoneName, QStringLiteral("Nerub-ar Palace")},
+        {keys::kZoneName, QStringLiteral("Eversong Woods")},
         {keys::kMapId, 2255u},
     };
 
     Zone const zone = Zone::fromVariantMap(map);
 
     QVERIFY(!zone.isEmpty());
-    QCOMPARE(zone.name(), QStringLiteral("Nerub-ar Palace"));
+    QCOMPARE(zone.name(), QStringLiteral("Eversong Woods"));
     QCOMPARE(zone.mapId(), 2255u);
-    QCOMPARE(zone.toString(), QStringLiteral("Nerub-ar Palace (mapId 2255)"));
+    QCOMPARE(zone.toString(), QStringLiteral("Eversong Woods"));
 }
 
 QTEST_MAIN(ZoneTest)

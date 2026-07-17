@@ -18,5 +18,6 @@ QString Zone::toString() const
 {
     if (isEmpty())
         return u"none"_s;
-    return u"%1 (mapId %2)"_s.arg(m_name).arg(m_mapId);
+
+    return m_name;
 }
