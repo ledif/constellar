@@ -1,14 +1,10 @@
 #pragma once
 
-// Key vocabulary for the Activity/Zone a{sv} fact bags carried by
-// io.github.ledif.constellar.Observer (see data/io.github.ledif.constellar.xml
-// and ADR-012). Source of truth for key names so ObserverService,
-// PresencePublisher, and the CLI never hand-type string literals that can
-// drift out of sync.
+// Key vocabulary for the Activity/Zone a{sv} fact bags
 namespace constellar::keys
 {
 
-// Activity bag (also carried by the ActivityEnded signal).
+// Activity bag
 inline constexpr auto kType = "type";
 inline constexpr auto kEncounterId = "encounterId";
 inline constexpr auto kEncounterName = "encounterName";
@@ -19,15 +15,15 @@ inline constexpr auto kZoneId = "zoneId";
 inline constexpr auto kKeystoneLevel = "keystoneLevel";
 inline constexpr auto kStartTime = "startTime";
 
-// ActivityEnded-only additions.
+// ActivityEnded-only additions
 inline constexpr auto kSuccess = "success";
 inline constexpr auto kDurationMs = "durationMs";
 inline constexpr auto kStopTime = "stopTime";
 
-// Zone bag.
+// Zone stuff
 inline constexpr auto kZoneName = "zoneName";
 
-// Activity "type" values.
+// kType ("type") values
 inline constexpr auto kTypeEncounter = "encounter";
 inline constexpr auto kTypeDungeon = "dungeon";
 

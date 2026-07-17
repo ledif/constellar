@@ -1,18 +1,9 @@
-# Shared code: DBus constants + a generated client proxy for the Observer
-# interface, consumed by both the CLI and the GUI so they never hand-roll
-# their own marshalling.
-
 find_program(QDBUSXML2CPP NAMES qdbusxml2cpp-qt6 qdbusxml2cpp6 qdbusxml2cpp REQUIRED)
 
 set(OBSERVER_XML ${CMAKE_SOURCE_DIR}/data/io.github.ledif.constellar.xml)
 set(OBSERVER_PROXY_H ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.h)
 set(OBSERVER_PROXY_CPP ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.cpp)
 
-# Client-side proxy is fully mechanical, so it's generated. The server-side
-# adaptor (src/daemon/ObserverAdaptor.*) is hand-written instead: the
-# generated adaptor skeleton needs its method bodies filled in by hand
-# anyway, so we skip generation there and keep data/io.github.ledif.constellar.xml
-# as the documented source of truth for both sides.
 add_custom_command(
     OUTPUT ${OBSERVER_PROXY_H} ${OBSERVER_PROXY_CPP}
     COMMAND ${QDBUSXML2CPP} -p ${OBSERVER_PROXY_H}:${OBSERVER_PROXY_CPP} -c ObserverProxy ${OBSERVER_XML}
