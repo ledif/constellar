@@ -25,7 +25,7 @@ void ActivityTest::encounterMapsDifficultyAndName()
 
     Activity const activity = Activity::fromVariantMap(map);
 
-    QCOMPARE(activity.type(), Activity::Type::Encounter);
+    QCOMPARE(activity.type(), ActivityType::Encounter);
     QCOMPARE(activity.difficulty(), QStringLiteral("Mythic"));
     QCOMPARE(activity.encounterName(), QStringLiteral("Ulgrax the Devourer"));
     QCOMPARE(activity.toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
@@ -40,7 +40,7 @@ void ActivityTest::dungeonMapsKeystoneLevel()
 
     Activity const activity = Activity::fromVariantMap(map);
 
-    QCOMPARE(activity.type(), Activity::Type::Dungeon);
+    QCOMPARE(activity.type(), ActivityType::Dungeon);
     QCOMPARE(activity.keystoneLevel(), 18u);
     QCOMPARE(activity.toString(), QStringLiteral("Mythic+ 18"));
 }
