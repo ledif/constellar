@@ -82,15 +82,15 @@ class ActivityTracker : public QObject
     // scheduling delay: the replay buffer runs continuously (PLAN.md §2), so
     // "starting" a recording just means picking where in the buffer to cut
     // from — that's ObsEngine's job once it exists.
-    void recordingStarted(RaidEncounter const& encounter, QDateTime const& preRollFrom);
+    void encounterStarted(RaidEncounter const& encounter, QDateTime const& preRollFrom);
 
     // Emitted after Config::raidOverrunSeconds have really elapsed past
     // ENCOUNTER_END (or immediately, pre-empted, if a re-pull starts before
     // the overrun finishes — see onLineReceived).
-    void recordingStopped(RaidEncounter const& encounter, bool success, QDateTime const& stopTime);
+    void encounterStopped(RaidEncounter const& encounter, bool success, QDateTime const& stopTime);
 
     // Emitted the instant CHALLENGE_MODE_START clears the keystone-level
-    // threshold. Mirrors recordingStarted()'s pre-roll semantics.
+    // threshold. Mirrors encounterStarted()'s pre-roll semantics.
     void dungeonStarted(DungeonRun const& dungeon, QDateTime const& preRollFrom);
 
     // Emitted after Config::dungeonOverrunSeconds have elapsed past

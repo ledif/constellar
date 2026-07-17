@@ -106,12 +106,12 @@ struct Collector
     explicit Collector(ActivityTracker& tracker)
     {
         QObject::connect(
-            &tracker, &ActivityTracker::recordingStarted,
+            &tracker, &ActivityTracker::encounterStarted,
             [this](ActivityTracker::RaidEncounter const& encounter, QDateTime const& preRollFrom)
             { started.append({encounter, preRollFrom}); }
         );
         QObject::connect(
-            &tracker, &ActivityTracker::recordingStopped,
+            &tracker, &ActivityTracker::encounterStopped,
             [this](
                 ActivityTracker::RaidEncounter const& encounter, bool success,
                 QDateTime const& stopTime

@@ -11,16 +11,6 @@
 
 class ObserverService;
 
-// DBus adaptor for io.github.ledif.constellar.Observer. Hand-written rather
-// than qdbusxml2cpp-generated: the generated skeleton needs its method
-// bodies filled in by hand anyway, so we skip the generation step on the
-// server side and keep data/io.github.ledif.constellar.xml as the
-// documented source of truth. The client-side proxy (src/common) *is*
-// generated, since that code is fully mechanical.
-//
-// QDBusAbstractAdaptor does not emit org.freedesktop.DBus.Properties
-// .PropertiesChanged automatically -- Activity/Zone changes are relayed by
-// hand via emitPropertiesChanged() (ADR-012).
 class ObserverDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT

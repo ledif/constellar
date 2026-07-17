@@ -104,7 +104,7 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
     m_active = true;
 
     QDateTime const preRollFrom = m_current.startTime.addSecs(-m_config.preRollSeconds);
-    Q_EMIT recordingStarted(m_current, preRollFrom);
+    Q_EMIT encounterStarted(m_current, preRollFrom);
 }
 
 void ActivityTracker::handleEncounterEnd(LogLine const& line)
@@ -135,7 +135,7 @@ void ActivityTracker::onOverrunElapsed()
 
 void ActivityTracker::finishPendingStop()
 {
-    Q_EMIT recordingStopped(m_current, m_pendingSuccess, m_pendingStopTime);
+    Q_EMIT encounterStopped(m_current, m_pendingSuccess, m_pendingStopTime);
 }
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)

@@ -8,30 +8,22 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
       m_watcher(logDirectory),
       m_tracker(ActivityTracker::Config{})
 {
+    // send lines to the activity tracker
     connect(&m_watcher, &LogWatcher::lineReceived, &m_tracker, &ActivityTracker::onLineReceived);
 
+    // update our state when the tracker detects we moved zones
     connect(
-        &m_tracker, &ActivityTracker::recordingStarted, this,
-        [this](
-            ActivityTracker::RaidEncounter const& encounter, QDateTime const& /*preRollFrom*/
-        ) { m_gameState.setActivity(ActivityMetadataBuilder::encounterMetadata(encounter)); }
+        &m_tracker, &ActivityTracker::zoneChanged, this, [this](int mapId, QString const& zoneName)
+        { m_gameState.setZone(ActivityMetadataBuilder::zoneMetadata(mapId, zoneName)); }
     );
-    connect(
-        &m_tracker, &ActivityTracker::recordingStopped, this,
-        [this](
-            ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
-        )
-        {
-            m_gameState.endActivity(
-                ActivityMetadataBuilder::encounterEndedMetadata(encounter, success, stopTime)
-            );
-        }
-    );
+
+    // update our state when the tracker detects we started/ended a key
     connect(
         &m_tracker, &ActivityTracker::dungeonStarted, this,
         [this](ActivityTracker::DungeonRun const& dungeon, QDateTime const& /*preRollFrom*/)
         { m_gameState.setActivity(ActivityMetadataBuilder::dungeonMetadata(dungeon)); }
     );
+
     connect(
         &m_tracker, &ActivityTracker::dungeonStopped, this,
         [this](
@@ -46,9 +38,25 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
             );
         }
     );
+
+    // update our state when the tracker detects we started/ended a raid pull
     connect(
-        &m_tracker, &ActivityTracker::zoneChanged, this, [this](int mapId, QString const& zoneName)
-        { m_gameState.setZone(ActivityMetadataBuilder::zoneMetadata(mapId, zoneName)); }
+        &m_tracker, &ActivityTracker::encounterStarted, this,
+        [this](
+            ActivityTracker::RaidEncounter const& encounter, QDateTime const& /*preRollFrom*/
+        ) { m_gameState.setActivity(ActivityMetadataBuilder::encounterMetadata(encounter)); }
+    );
+
+    connect(
+        &m_tracker, &ActivityTracker::encounterStopped, this,
+        [this](
+            ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
+        )
+        {
+            m_gameState.endActivity(
+                ActivityMetadataBuilder::encounterEndedMetadata(encounter, success, stopTime)
+            );
+        }
     );
 }
 
