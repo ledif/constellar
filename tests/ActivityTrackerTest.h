@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-class RecordingControllerTest : public QObject
+class ActivityTrackerTest : public QObject
 {
     Q_OBJECT
 

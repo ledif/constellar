@@ -124,7 +124,7 @@ void PresencePublisherTest::activitiesIncludeLargeImageAsset()
 // Regression test for the live bug ADR-012/TASK-001 fixed by construction:
 // onZoneChanged used to call m_client.setActivity(idleActivity(...))
 // unconditionally, so a MAP_CHANGE mid-pull clobbered encounter presence
-// with idle. activityFor() recomputes from both bags every time and only
+// with idle. activityFor() recomputes from both every time and only
 // falls back to idle when Activity is empty, so this can't happen anymore.
 void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange()
 {

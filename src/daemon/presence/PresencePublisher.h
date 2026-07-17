@@ -9,9 +9,9 @@
 class DiscordIpcClient;
 class GameState;
 
-// Consumes GameState's Activity/Zone fact bags (ADR-012) and turns them
+// Consumes GameState's Activity/Zone metadata (ADR-012) and turns them
 // into Discord Rich Presence payloads pushed through a DiscordIpcClient
-// (RFC-002). A sibling of RecordingController, not a dependent -- it only
+// (RFC-002). A sibling of ActivityTracker, not a dependent -- it only
 // reads GameState, which ObserverService already fills in. A pure
 // projection: no shadow state of its own.
 //
@@ -28,15 +28,15 @@ class PresencePublisher : public QObject
     );
 
     // Pure mapping helpers, exposed for testing without a live socket.
-    // encounterActivity/dungeonActivity take the Activity bag (ActivityKeys.h
-    // keys); zoneName is the Zone bag's zoneName, empty if no MAP_CHANGE has
-    // been seen yet -- falls back to a generic state.
+    // encounterActivity/dungeonActivity take the Activity metadata
+    // (ActivityKeys.h keys); zoneName is the Zone metadata's zoneName, empty
+    // if no MAP_CHANGE has been seen yet -- falls back to a generic state.
     static QJsonObject encounterActivity(QVariantMap const& activity, QString const& zoneName = {});
     static QJsonObject dungeonActivity(QVariantMap const& activity);
     static QJsonObject idleActivity(QString const& zoneName = {});
 
     // The full activity+zone -> Discord payload mapping, as one pure
-    // function. Recomputing from both bags on every change (rather than
+    // function. Recomputing from both on every change (rather than
     // patching in place) is what makes a Zone-only change unable to clobber
     // an in-progress Activity -- it only falls back to idle when activity
     // is empty.

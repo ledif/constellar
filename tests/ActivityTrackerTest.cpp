@@ -1,10 +1,10 @@
-#include "RecordingControllerTest.h"
+#include "ActivityTrackerTest.h"
 
 #include <QTest>
 #include <QVector>
 
+#include "ActivityTracker.h"
 #include "LogLine.h"
-#include "RecordingController.h"
 
 namespace
 {
@@ -67,26 +67,26 @@ QString challengeModeEndLine(QString const& hms, int mapId, bool success, int le
 
 struct Started
 {
-    RecordingController::RaidEncounter encounter;
+    ActivityTracker::RaidEncounter encounter;
     QDateTime preRollFrom;
 };
 
 struct Stopped
 {
-    RecordingController::RaidEncounter encounter;
+    ActivityTracker::RaidEncounter encounter;
     bool success;
     QDateTime stopTime;
 };
 
 struct DungeonStarted
 {
-    RecordingController::DungeonRun dungeon;
+    ActivityTracker::DungeonRun dungeon;
     QDateTime preRollFrom;
 };
 
 struct DungeonStopped
 {
-    RecordingController::DungeonRun dungeon;
+    ActivityTracker::DungeonRun dungeon;
     bool success;
     int durationMs;
     QDateTime stopTime;
@@ -103,35 +103,34 @@ struct ZoneChanged
 // DungeonRun) aren't registered QMetaTypes.
 struct Collector
 {
-    explicit Collector(RecordingController& controller)
+    explicit Collector(ActivityTracker& tracker)
     {
         QObject::connect(
-            &controller, &RecordingController::recordingStarted,
-            [this](
-                RecordingController::RaidEncounter const& encounter, QDateTime const& preRollFrom
-            ) { started.append({encounter, preRollFrom}); }
+            &tracker, &ActivityTracker::recordingStarted,
+            [this](ActivityTracker::RaidEncounter const& encounter, QDateTime const& preRollFrom)
+            { started.append({encounter, preRollFrom}); }
         );
         QObject::connect(
-            &controller, &RecordingController::recordingStopped,
+            &tracker, &ActivityTracker::recordingStopped,
             [this](
-                RecordingController::RaidEncounter const& encounter, bool success,
+                ActivityTracker::RaidEncounter const& encounter, bool success,
                 QDateTime const& stopTime
             ) { stopped.append({encounter, success, stopTime}); }
         );
         QObject::connect(
-            &controller, &RecordingController::dungeonStarted,
-            [this](RecordingController::DungeonRun const& dungeon, QDateTime const& preRollFrom)
+            &tracker, &ActivityTracker::dungeonStarted,
+            [this](ActivityTracker::DungeonRun const& dungeon, QDateTime const& preRollFrom)
             { dungeonStarted.append({dungeon, preRollFrom}); }
         );
         QObject::connect(
-            &controller, &RecordingController::dungeonStopped,
+            &tracker, &ActivityTracker::dungeonStopped,
             [this](
-                RecordingController::DungeonRun const& dungeon, bool success, int durationMs,
+                ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
                 QDateTime const& stopTime
             ) { dungeonStopped.append({dungeon, success, durationMs, stopTime}); }
         );
         QObject::connect(
-            &controller, &RecordingController::zoneChanged,
+            &tracker, &ActivityTracker::zoneChanged,
             [this](int mapId, QString const& zoneName) { zoneChanges.append({mapId, zoneName}); }
         );
     }
@@ -145,13 +144,13 @@ struct Collector
 
 }  // namespace
 
-void RecordingControllerTest::startsRecordingAboveThreshold()
+void ActivityTrackerTest::startsRecordingAboveThreshold()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
     // Heroic (15) clears the default minDifficulty of Normal.
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
     )));
 
@@ -165,44 +164,44 @@ void RecordingControllerTest::startsRecordingAboveThreshold()
     );
 }
 
-void RecordingControllerTest::skipsBelowThreshold()
+void ActivityTrackerTest::skipsBelowThreshold()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
     // LFR (17) ranks below the default minDifficulty of Normal, despite
     // having a numerically larger difficultyID.
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 17
     )));
 
     QCOMPARE(collector.started.size(), 0);
 }
 
-void RecordingControllerTest::skipsUnknownDifficulty()
+void ActivityTrackerTest::skipsUnknownDifficulty()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
     // 8 isn't one of the four raid difficulty IDs (e.g. a M+ dungeon ID).
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 8
     )));
 
     QCOMPARE(collector.started.size(), 0);
 }
 
-void RecordingControllerTest::stopsAfterOverrunDelay()
+void ActivityTrackerTest::stopsAfterOverrunDelay()
 {
-    RecordingController::Config config;
+    ActivityTracker::Config config;
     config.raidOverrunSeconds = 1;
-    RecordingController controller(config);
-    Collector collector(controller);
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
     )));
-    controller.onLineReceived(LogLine(encounterEndLine(
+    tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:52:31.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, true
     )));
 
@@ -215,22 +214,22 @@ void RecordingControllerTest::stopsAfterOverrunDelay()
     );
 }
 
-void RecordingControllerTest::repullDuringOverrunEndsPreviousImmediately()
+void ActivityTrackerTest::repullDuringOverrunEndsPreviousImmediately()
 {
-    RecordingController::Config config;
+    ActivityTracker::Config config;
     config.raidOverrunSeconds = 5;  // long enough that a same-tick repull preempts it
-    RecordingController controller(config);
-    Collector collector(controller);
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:00.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
     )));
-    controller.onLineReceived(LogLine(encounterEndLine(
+    tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:41:00.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, false
     )));
 
     // Re-pull the same boss before the 5s overrun tail would have elapsed.
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:41:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
     )));
 
@@ -240,12 +239,12 @@ void RecordingControllerTest::repullDuringOverrunEndsPreviousImmediately()
     QCOMPARE(collector.started.size(), 2);
 }
 
-void RecordingControllerTest::ignoresUnhandledLines()
+void ActivityTrackerTest::ignoresUnhandledLines()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(
+    tracker.onLineReceived(LogLine(
         timestamp(QStringLiteral("21:40:06.0000")) + QStringLiteral("  ZONE_CHANGE,2549,\"Foo\",16")
     ));
 
@@ -255,41 +254,41 @@ void RecordingControllerTest::ignoresUnhandledLines()
     QCOMPARE(collector.dungeonStopped.size(), 0);
 }
 
-void RecordingControllerTest::ignoresStrayEncounterEndWithoutStart()
+void ActivityTrackerTest::ignoresStrayEncounterEndWithoutStart()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(encounterEndLine(
+    tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, true
     )));
 
     QCOMPARE(collector.stopped.size(), 0);
 }
 
-void RecordingControllerTest::ignoresMismatchedEncounterEnd()
+void ActivityTrackerTest::ignoresMismatchedEncounterEnd()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
     )));
     // A END for a different encounterID shouldn't stop the one we're tracking.
-    controller.onLineReceived(LogLine(encounterEndLine(
+    tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:41:00.0000"), 9999, QStringLiteral("Someone Else"), 15, true
     )));
 
     QCOMPARE(collector.stopped.size(), 0);
 }
 
-void RecordingControllerTest::dungeonStartsAboveKeystoneThreshold()
+void ActivityTrackerTest::dungeonStartsAboveKeystoneThreshold()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
     // Level 10 clears the default minKeystoneLevel of 2.
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
 
@@ -303,30 +302,30 @@ void RecordingControllerTest::dungeonStartsAboveKeystoneThreshold()
     );
 }
 
-void RecordingControllerTest::dungeonSkipsBelowKeystoneThreshold()
+void ActivityTrackerTest::dungeonSkipsBelowKeystoneThreshold()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
     // Level 1 falls below the default minKeystoneLevel of 2.
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 1
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 0);
 }
 
-void RecordingControllerTest::dungeonStopsAfterOverrunDelay()
+void ActivityTrackerTest::dungeonStopsAfterOverrunDelay()
 {
-    RecordingController::Config config;
+    ActivityTracker::Config config;
     config.dungeonOverrunSeconds = 1;
-    RecordingController controller(config);
-    Collector collector(controller);
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
-    controller.onLineReceived(
+    tracker.onLineReceived(
         LogLine(challengeModeEndLine(QStringLiteral("22:10:00.0000"), 501, true, 10, 1800000))
     );
 
@@ -340,22 +339,22 @@ void RecordingControllerTest::dungeonStopsAfterOverrunDelay()
     );
 }
 
-void RecordingControllerTest::dungeonRepullDuringOverrunEndsPreviousImmediately()
+void ActivityTrackerTest::dungeonRepullDuringOverrunEndsPreviousImmediately()
 {
-    RecordingController::Config config;
+    ActivityTracker::Config config;
     config.dungeonOverrunSeconds = 5;  // long enough that a same-tick restart preempts it
-    RecordingController controller(config);
-    Collector collector(controller);
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
-    controller.onLineReceived(
+    tracker.onLineReceived(
         LogLine(challengeModeEndLine(QStringLiteral("21:41:00.0000"), 501, false, 10, 60000))
     );
 
     // A new key starts before the 5s overrun tail would have elapsed.
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:41:05.0000"), QStringLiteral("The Stonevault"), 2652, 501, 12
     )));
 
@@ -366,19 +365,19 @@ void RecordingControllerTest::dungeonRepullDuringOverrunEndsPreviousImmediately(
     QCOMPARE(collector.dungeonStarted.at(1).dungeon.keystoneLevel, 12);
 }
 
-void RecordingControllerTest::dungeonSuppressesNestedEncounterSignals()
+void ActivityTrackerTest::dungeonSuppressesNestedEncounterSignals()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
     // A boss pull inside the key is a sub-segment, not a separate recording.
-    controller.onLineReceived(LogLine(encounterStartLine(
+    tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:42:00.0000"), 2661, QStringLiteral("Skarmorak"), 8, 501
     )));
-    controller.onLineReceived(LogLine(encounterEndLine(
+    tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:45:00.0000"), 2661, QStringLiteral("Skarmorak"), 8, true
     )));
 
@@ -387,29 +386,29 @@ void RecordingControllerTest::dungeonSuppressesNestedEncounterSignals()
     QCOMPARE(collector.dungeonStarted.size(), 1);
 }
 
-void RecordingControllerTest::dungeonIgnoresReStartWhileStillActive()
+void ActivityTrackerTest::dungeonIgnoresReStartWhileStillActive()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
     // Zoning out and back into the same still-active key re-fires START
     // without an intervening END.
-    controller.onLineReceived(LogLine(challengeModeStartLine(
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
         QStringLiteral("21:41:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
 }
 
-void RecordingControllerTest::mapChangeEmitsZoneChanged()
+void ActivityTrackerTest::mapChangeEmitsZoneChanged()
 {
-    RecordingController controller({});
-    Collector collector(controller);
+    ActivityTracker tracker({});
+    Collector collector(tracker);
 
-    controller.onLineReceived(LogLine(
+    tracker.onLineReceived(LogLine(
         mapChangeLine(QStringLiteral("18:57:18.8690"), 2533, QStringLiteral("March on Quel'Danas"))
     ));
 
@@ -418,4 +417,4 @@ void RecordingControllerTest::mapChangeEmitsZoneChanged()
     QCOMPARE(collector.zoneChanges.at(0).zoneName, QStringLiteral("March on Quel'Danas"));
 }
 
-QTEST_MAIN(RecordingControllerTest)
+QTEST_MAIN(ActivityTrackerTest)

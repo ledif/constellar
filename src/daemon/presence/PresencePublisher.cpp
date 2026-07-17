@@ -77,7 +77,7 @@ QJsonObject PresencePublisher::idleActivity(QString const& zoneName)
 {
     QJsonObject activity;
     // realm/character still require the addon-channel hybrid (ADR-011);
-    // zoneName comes for free from Zone (RecordingController's MAP_CHANGE).
+    // zoneName comes for free from Zone (ActivityTracker's MAP_CHANGE).
     activity["details"] = u"In World of Warcraft"_s;
     if (!zoneName.isEmpty())
         activity["state"] = zoneName;

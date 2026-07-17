@@ -16,9 +16,9 @@ class QSocketNotifier;
 // multiple files in the directory, and file recreation (new key on
 // create/delete rather than following renames — see PLAN.md §3.2).
 //
-// Does not itself decide when a "session" starts/stops; RecordingController
-// (not yet implemented) is the consumer that turns idleTimeout()/
-// lineReceived() into buffer start/stop decisions.
+// Does not itself decide when a "session" starts/stops; ActivityTracker
+// is the consumer that turns idleTimeout()/lineReceived() into buffer
+// start/stop decisions.
 class LogWatcher : public QObject
 {
     Q_OBJECT

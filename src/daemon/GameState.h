@@ -3,9 +3,9 @@
 #include <QObject>
 #include <QVariantMap>
 
-// Single source of truth for the two fact bags ObserverAdaptor publishes as
-// DBus properties (ADR-012). ObserverService fills this in from
-// RecordingController's decisions; ObserverAdaptor reads it for
+// Single source of truth for the two metadata dictionaries ObserverAdaptor
+// publishes as DBus properties (ADR-012). ObserverService fills this in from
+// ActivityTracker's decisions; ObserverAdaptor reads it for
 // Activity/Zone and relays its signals as PropertiesChanged/ActivityEnded;
 // PresencePublisher reads it as a pure projection instead of keeping its own
 // shadow state.
@@ -24,9 +24,9 @@ class GameState : public QObject
     void clearActivity();
     void setZone(QVariantMap const& zone);
 
-    // The one genuine edge: emits activityEnded with the outcome bag, then
-    // clears Activity. Replaces "build ended bag, emit, then clear" as one
-    // call at every call site.
+    // The one genuine edge: emits activityEnded with the outcome metadata,
+    // then clears Activity. Replaces "build ended metadata, emit, then
+    // clear" as one call at every call site.
     void endActivity(QVariantMap const& endedActivity);
 
   Q_SIGNALS:

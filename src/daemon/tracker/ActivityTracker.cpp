@@ -1,20 +1,19 @@
-#include "RecordingController.h"
+#include "ActivityTracker.h"
 
 using namespace Qt::StringLiterals;
 
-RecordingController::RecordingController(Config config, QObject* parent)
+ActivityTracker::ActivityTracker(Config config, QObject* parent)
     : QObject(parent), m_config(std::move(config))
 {
     m_overrunTimer.setSingleShot(true);
-    connect(&m_overrunTimer, &QTimer::timeout, this, &RecordingController::onOverrunElapsed);
+    connect(&m_overrunTimer, &QTimer::timeout, this, &ActivityTracker::onOverrunElapsed);
     m_dungeonOverrunTimer.setSingleShot(true);
     connect(
-        &m_dungeonOverrunTimer, &QTimer::timeout, this,
-        &RecordingController::onDungeonOverrunElapsed
+        &m_dungeonOverrunTimer, &QTimer::timeout, this, &ActivityTracker::onDungeonOverrunElapsed
     );
 }
 
-std::optional<RecordingController::RaidDifficulty> RecordingController::raidDifficultyFromId(
+std::optional<ActivityTracker::RaidDifficulty> ActivityTracker::raidDifficultyFromId(
     int difficultyId
 )
 {
@@ -33,7 +32,7 @@ std::optional<RecordingController::RaidDifficulty> RecordingController::raidDiff
     }
 }
 
-void RecordingController::onLineReceived(LogLine const& line)
+void ActivityTracker::onLineReceived(LogLine const& line)
 {
     if (!line.isValid())
         return;
@@ -68,7 +67,7 @@ void RecordingController::onLineReceived(LogLine const& line)
     }
 }
 
-void RecordingController::handleEncounterStart(LogLine const& line)
+void ActivityTracker::handleEncounterStart(LogLine const& line)
 {
     // ENCOUNTER_START args: encounterID, encounterName, difficultyID,
     // groupSize, instanceID (PLAN.md §6).
@@ -108,7 +107,7 @@ void RecordingController::handleEncounterStart(LogLine const& line)
     Q_EMIT recordingStarted(m_current, preRollFrom);
 }
 
-void RecordingController::handleEncounterEnd(LogLine const& line)
+void ActivityTracker::handleEncounterEnd(LogLine const& line)
 {
     // ENCOUNTER_END args: encounterID, encounterName, difficultyID,
     // groupSize, success(0/1) (PLAN.md §6).
@@ -128,18 +127,18 @@ void RecordingController::handleEncounterEnd(LogLine const& line)
     m_overrunTimer.start(m_config.raidOverrunSeconds * 1000);
 }
 
-void RecordingController::onOverrunElapsed()
+void ActivityTracker::onOverrunElapsed()
 {
     finishPendingStop();
     m_active = false;
 }
 
-void RecordingController::finishPendingStop()
+void ActivityTracker::finishPendingStop()
 {
     Q_EMIT recordingStopped(m_current, m_pendingSuccess, m_pendingStopTime);
 }
 
-void RecordingController::handleChallengeModeStart(LogLine const& line)
+void ActivityTracker::handleChallengeModeStart(LogLine const& line)
 {
     // CHALLENGE_MODE_START args: zoneName, zoneID, mapID, keystoneLevel,
     // affixes[] (PLAN.md §6; confirmed against real logs).
@@ -182,7 +181,7 @@ void RecordingController::handleChallengeModeStart(LogLine const& line)
     Q_EMIT dungeonStarted(m_currentDungeon, preRollFrom);
 }
 
-void RecordingController::handleChallengeModeEnd(LogLine const& line)
+void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
 {
     // CHALLENGE_MODE_END args: mapID, success(0/1), keystoneLevel,
     // durationMs, plus trailing fields PLAN.md §6 doesn't mention (confirmed
@@ -196,13 +195,13 @@ void RecordingController::handleChallengeModeEnd(LogLine const& line)
     m_dungeonOverrunTimer.start(m_config.dungeonOverrunSeconds * 1000);
 }
 
-void RecordingController::onDungeonOverrunElapsed()
+void ActivityTracker::onDungeonOverrunElapsed()
 {
     finishPendingDungeonStop();
     m_dungeonActive = false;
 }
 
-void RecordingController::finishPendingDungeonStop()
+void ActivityTracker::finishPendingDungeonStop()
 {
     Q_EMIT dungeonStopped(
         m_currentDungeon, m_pendingDungeonSuccess, m_pendingDungeonDurationMs,

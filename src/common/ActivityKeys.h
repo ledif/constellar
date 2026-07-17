@@ -1,10 +1,10 @@
 #pragma once
 
-// Key vocabulary for the Activity/Zone a{sv} fact bags
+// Key vocabulary for the Activity/Zone a{sv} metadata
 namespace constellar::keys
 {
 
-// Activity bag
+// Activity metadata
 inline constexpr auto kType = "type";
 inline constexpr auto kEncounterId = "encounterId";
 inline constexpr auto kEncounterName = "encounterName";

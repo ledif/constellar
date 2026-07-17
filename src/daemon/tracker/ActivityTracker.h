@@ -24,7 +24,7 @@
 // per PLAN.md §3.4's "M+ nests encounters" rule) are consumed but produce
 // no signal of their own yet — there's no timeline/chapter concept until
 // MetadataStore exists.
-class RecordingController : public QObject
+class ActivityTracker : public QObject
 {
     Q_OBJECT
 
@@ -67,7 +67,7 @@ class RecordingController : public QObject
         QDateTime startTime;
     };
 
-    explicit RecordingController(Config config, QObject* parent = nullptr);
+    explicit ActivityTracker(Config config, QObject* parent = nullptr);
 
     // Maps a WoW difficultyID to a RaidDifficulty rank, or nullopt if it's
     // not one of the four raid difficulties (e.g. a dungeon/M+ ID).

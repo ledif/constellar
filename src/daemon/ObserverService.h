@@ -5,9 +5,9 @@
 #include <QObject>
 #include <QString>
 
+#include "ActivityTracker.h"
 #include "GameState.h"
 #include "LogWatcher.h"
-#include "RecordingController.h"
 
 class ObserverService : public QObject
 {
@@ -21,13 +21,9 @@ class ObserverService : public QObject
     GameState const& gameState() const;
 
   private:
-    static QString raidDifficultyDisplayName(int difficultyId);
-    static QVariantMap encounterBag(RecordingController::RaidEncounter const& encounter);
-    static QVariantMap dungeonBag(RecordingController::DungeonRun const& dungeon);
-
     std::filesystem::path m_logDirectory;
     GameState m_gameState;
 
     LogWatcher m_watcher;
-    RecordingController m_controller;
+    ActivityTracker m_tracker;
 };

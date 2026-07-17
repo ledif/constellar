@@ -7,9 +7,9 @@ add_executable(logwatcher_test LogWatcherTest.h LogWatcherTest.cpp)
 target_link_libraries(logwatcher_test PRIVATE Qt6::Core Qt6::Test constellar-log)
 add_test(NAME logwatcher_test COMMAND logwatcher_test)
 
-add_executable(recordingcontroller_test RecordingControllerTest.h RecordingControllerTest.cpp)
-target_link_libraries(recordingcontroller_test PRIVATE Qt6::Core Qt6::Test constellar-controller)
-add_test(NAME recordingcontroller_test COMMAND recordingcontroller_test)
+add_executable(activitytracker_test ActivityTrackerTest.h ActivityTrackerTest.cpp)
+target_link_libraries(activitytracker_test PRIVATE Qt6::Core Qt6::Test constellar-tracker)
+add_test(NAME activitytracker_test COMMAND activitytracker_test)
 
 add_executable(presencepublisher_test PresencePublisherTest.h PresencePublisherTest.cpp)
 target_link_libraries(presencepublisher_test PRIVATE Qt6::Core Qt6::Test constellar-presence)
@@ -30,3 +30,11 @@ add_test(NAME activity_test COMMAND activity_test)
 add_executable(zone_test ZoneTest.h ZoneTest.cpp)
 target_link_libraries(zone_test PRIVATE Qt6::Core Qt6::Test constellar-common)
 add_test(NAME zone_test COMMAND zone_test)
+
+add_executable(activitymetadatabuilder_test
+    ActivityMetadataBuilderTest.h
+    ActivityMetadataBuilderTest.cpp
+)
+target_link_libraries(activitymetadatabuilder_test PRIVATE Qt6::Core Qt6::Test
+                                                            constellar-activitymetadata)
+add_test(NAME activitymetadatabuilder_test COMMAND activitymetadatabuilder_test)
