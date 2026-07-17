@@ -4,7 +4,3 @@ pre-commit:
       glob: "*.{cpp,h}"
       run: just format {staged_files}
       stage_fixed: true
-    cmake-format:
-      glob: "{*.cmake,*CMakeLists.txt}"
-      run: just format {staged_files}
-      stage_fixed: true

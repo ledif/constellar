@@ -6,28 +6,13 @@ podman_run := "podman run --rm -v " + justfile_directory() + ":/src:Z -w /src " 
 default:
     @just --list
 
-# Format C++ and CMake (cmake-format) sources
+# clang-format
 format *files:
-    {{podman_run}} bash -c ' \
-        files="{{files}}"; \
-        if [ -n "$files" ]; then \
-            cpp_files=$(printf "%s\n" $files | grep -E "\.(cpp|h)$" || true); \
-            cmake_files=$(printf "%s\n" $files | grep -E "(^|/)CMakeLists\.txt$|\.cmake$" || true); \
-        else \
-            cpp_files=$(find src tests -type f \( -name "*.cpp" -o -name "*.h" \)); \
-            cmake_files=$(find . -path ./build -prune -o -type f \( -name CMakeLists.txt -o -name "*.cmake" \) -print); \
-        fi; \
-        [ -n "$cpp_files" ] && clang-format -i $cpp_files; \
-        [ -n "$cmake_files" ] && cmake-format -i $cmake_files; \
-        true \
-    '
+    {{podman_run}} bash -c 'clang-format -i $(if [ -n "{{files}}" ]; then echo "{{files}}"; else find src tests -type f \( -name "*.cpp" -o -name "*.h" \); fi)'
 
-# Check clang-format and cmake-format
+# Check clang-format
 check-format:
-    {{podman_run}} bash -c ' \
-        clang-format --dry-run --Werror $(find src tests -type f \( -name "*.cpp" -o -name "*.h" \)) && \
-        cmake-format --check $(find . -path ./build -prune -o -type f \( -name CMakeLists.txt -o -name "*.cmake" \) -print) \
-    '
+    {{podman_run}} bash -c 'clang-format --dry-run --Werror $(find src tests -type f \( -name "*.cpp" -o -name "*.h" \))'
 
 # Build the container image used for all other recipes.
 build-image:
@@ -106,3 +91,16 @@ run-gui:
 
 clean:
     rm -rf {{build_dir}}
+
+[private]
+cmake-format *files:
+    {{podman_run}} bash -c 'cmake-format -i $(if [ -n "{{files}}" ]; then echo "{{files}}"; else find . -path ./build -prune -o -type f \( -name CMakeLists.txt -o -name "*.cmake" \) -print; fi)'
+
+[private]
+cmake-format-check:
+    {{podman_run}} bash -c 'cmake-format --check $(find . -path ./build -prune -o -type f \( -name CMakeLists.txt -o -name "*.cmake" \) -print)'
+
+[private]
+cmake-lint:
+    {{podman_run}} bash -c 'cmake-lint $(find . -path ./build -prune -o -type f \( -name CMakeLists.txt -o -name "*.cmake" \) -print)'
+
