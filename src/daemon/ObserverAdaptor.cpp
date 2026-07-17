@@ -11,6 +11,7 @@ ObserverAdaptor::ObserverAdaptor(ObserverService *service)
     connect(service, &ObserverService::encounterEnded, this, &ObserverAdaptor::EncounterEnded);
     connect(service, &ObserverService::dungeonDetected, this, &ObserverAdaptor::DungeonDetected);
     connect(service, &ObserverService::dungeonEnded, this, &ObserverAdaptor::DungeonEnded);
+    connect(service, &ObserverService::zoneChanged, this, &ObserverAdaptor::ZoneChanged);
 }
 
 QString ObserverAdaptor::state() const {

@@ -21,4 +21,6 @@ class RecordingControllerTest : public QObject {
     void dungeonRepullDuringOverrunEndsPreviousImmediately();
     void dungeonSuppressesNestedEncounterSignals();
     void dungeonIgnoresReStartWhileStillActive();
+
+    void mapChangeEmitsZoneChanged();
 };

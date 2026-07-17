@@ -11,6 +11,8 @@ class PresencePublisherTest : public QObject {
 
   private Q_SLOTS:
     void encounterActivityMapsDifficultyAndName();
+    void encounterActivityUsesZoneNameAsState();
     void dungeonActivityMapsKeystoneLevel();
     void idleActivityHasNoTimestamp();
+    void idleActivityOmitsStateWithoutZone();
 };

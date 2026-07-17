@@ -51,6 +51,7 @@ ObserverService::ObserverService(QString logDirectory, QObject *parent)
                 Q_EMIT dungeonEnded(dungeon.mapId, dungeon.keystoneLevel, success, durationMs,
                                     stopTime.toString(Qt::ISODateWithMs));
             });
+    connect(&m_controller, &RecordingController::zoneChanged, this, &ObserverService::zoneChanged);
 }
 
 bool ObserverService::start() {

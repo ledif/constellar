@@ -18,6 +18,17 @@ void PresencePublisherTest::encounterActivityMapsDifficultyAndName() {
              start.toUTC().toSecsSinceEpoch());
 }
 
+void PresencePublisherTest::encounterActivityUsesZoneNameAsState() {
+    const QDateTime start =
+        QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
+
+    const QJsonObject activity = PresencePublisher::encounterActivity(
+        QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start,
+        QStringLiteral("Nerub-ar Palace"));
+
+    QCOMPARE(activity.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
+}
+
 void PresencePublisherTest::dungeonActivityMapsKeystoneLevel() {
     const QDateTime start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
@@ -31,10 +42,18 @@ void PresencePublisherTest::dungeonActivityMapsKeystoneLevel() {
 }
 
 void PresencePublisherTest::idleActivityHasNoTimestamp() {
-    const QJsonObject activity = PresencePublisher::idleActivity();
+    const QJsonObject activity =
+        PresencePublisher::idleActivity(QStringLiteral("March on Quel'Danas"));
 
     QCOMPARE(activity.value("details").toString(), QStringLiteral("In World of Warcraft"));
+    QCOMPARE(activity.value("state").toString(), QStringLiteral("March on Quel'Danas"));
     QVERIFY(!activity.contains("timestamps"));
+}
+
+void PresencePublisherTest::idleActivityOmitsStateWithoutZone() {
+    const QJsonObject activity = PresencePublisher::idleActivity();
+
+    QVERIFY(!activity.contains("state"));
 }
 
 QTEST_MAIN(PresencePublisherTest)

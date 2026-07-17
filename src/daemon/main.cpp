@@ -71,6 +71,10 @@ int main(int argc, char *argv[]) {
                          &PresencePublisher::onDungeonEnded);
         QObject::connect(service, &ObserverService::stateChanged, presence,
                          &PresencePublisher::onStateChanged);
+        QObject::connect(service, &ObserverService::zoneChanged, presence,
+                         &PresencePublisher::onZoneChanged);
+        QObject::connect(&app, &QCoreApplication::aboutToQuit, presence,
+                         [discordClient]() { discordClient->clearActivity(); });
         discordClient->start();
     }
 

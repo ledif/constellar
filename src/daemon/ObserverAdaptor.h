@@ -53,6 +53,7 @@ class ObserverAdaptor : public QDBusAbstractAdaptor {
     void DungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
                       const QString &stopTime);
     void StateChanged(const QString &state);
+    void ZoneChanged(int mapId, const QString &zoneName);
     void Error(const QString &code, const QString &message);
 
   private:

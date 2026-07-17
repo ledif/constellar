@@ -41,6 +41,7 @@ class ObserverService : public QObject {
     void dungeonDetected(int zoneId, int mapId, int keystoneLevel, const QString &startTime);
     void dungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
                       const QString &stopTime);
+    void zoneChanged(int mapId, const QString &zoneName);
 
   private:
     void setState(const QString &state);

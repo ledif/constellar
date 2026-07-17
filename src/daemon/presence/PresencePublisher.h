@@ -23,10 +23,12 @@ class PresencePublisher : public QObject {
     explicit PresencePublisher(DiscordIpcClient &client, QObject *parent = nullptr);
 
     // Pure mapping helpers, exposed for testing without a live socket.
+    // zoneName is the MAP_CHANGE-derived label (RecordingController), empty
+    // if no MAP_CHANGE has been seen yet -- falls back to a generic state.
     static QJsonObject encounterActivity(const QString &encounterName, const QString &difficulty,
-                                         const QDateTime &startTime);
+                                         const QDateTime &startTime, const QString &zoneName = {});
     static QJsonObject dungeonActivity(int keystoneLevel, const QDateTime &startTime);
-    static QJsonObject idleActivity();
+    static QJsonObject idleActivity(const QString &zoneName = {});
 
   public Q_SLOTS:
     void onEncounterDetected(int encounterId, const QString &encounterName,
@@ -37,7 +39,9 @@ class PresencePublisher : public QObject {
     void onDungeonEnded(int mapId, int keystoneLevel, bool success, int durationMs,
                         const QString &stopTime);
     void onStateChanged(const QString &state);
+    void onZoneChanged(int mapId, const QString &zoneName);
 
   private:
     DiscordIpcClient &m_client;
+    QString m_currentZoneName;
 };

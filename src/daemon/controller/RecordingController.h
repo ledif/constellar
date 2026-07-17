@@ -15,6 +15,10 @@
 // ObsEngine, Phase 2) or SQLite (MetadataStore); it just emits start/stop
 // decisions.
 //
+// MAP_CHANGE is tracked minimally (mapId + zone name only, via zoneChanged())
+// since PresencePublisher needs a zone label for idle/raid presence
+// (RFC-002); it's not a state-machine input like ENCOUNTER_*/CHALLENGE_MODE_*.
+//
 // Delves and ZONE_CHANGE handling are out of scope here. While a M+ key is
 // active, nested ENCOUNTER_START/ENCOUNTER_END lines (boss sub-segments,
 // per PLAN.md §3.4's "M+ nests encounters" rule) are consumed but produce
@@ -86,6 +90,11 @@ class RecordingController : public QObject {
     // keystone-upgrade-level calculations; unrelated to stopTime's overrun.
     void dungeonStopped(const DungeonRun &dungeon, bool success, int durationMs,
                         const QDateTime &stopTime);
+
+    // Emitted on every MAP_CHANGE line -- fires on zoning into/out of any
+    // area, not just raids/dungeons. Consumers that only care about
+    // instanced content filter that themselves.
+    void zoneChanged(int mapId, const QString &zoneName);
 
   private Q_SLOTS:
     void onOverrunElapsed();

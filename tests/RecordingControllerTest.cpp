@@ -39,6 +39,13 @@ QString challengeModeStartLine(const QString &hms, const QString &zoneName, int 
                                 .arg(level);
 }
 
+QString mapChangeLine(const QString &hms, int mapId, const QString &zoneName) {
+    return timestamp(hms) +
+           QStringLiteral("  MAP_CHANGE,%1,\"%2\",10956.25,10152.08,-4002.08,-5208.33")
+               .arg(mapId)
+               .arg(zoneName);
+}
+
 QString challengeModeEndLine(const QString &hms, int mapId, bool success, int level,
                              int durationMs) {
     return timestamp(hms) + QStringLiteral("  CHALLENGE_MODE_END,%1,%2,%3,%4,0.000000,0.000000")
@@ -71,6 +78,11 @@ struct DungeonStopped {
     QDateTime stopTime;
 };
 
+struct ZoneChanged {
+    int mapId;
+    QString zoneName;
+};
+
 // Collects signal emissions via plain lambdas rather than QSignalSpy, same
 // reasoning as LogWatcherTest: the signal parameters (RaidEncounter,
 // DungeonRun) aren't registered QMetaTypes.
@@ -94,12 +106,16 @@ struct Collector {
                                 int durationMs, const QDateTime &stopTime) {
                              dungeonStopped.append({dungeon, success, durationMs, stopTime});
                          });
+        QObject::connect(
+            &controller, &RecordingController::zoneChanged,
+            [this](int mapId, const QString &zoneName) { zoneChanges.append({mapId, zoneName}); });
     }
 
     QVector<Started> started;
     QVector<Stopped> stopped;
     QVector<DungeonStarted> dungeonStarted;
     QVector<DungeonStopped> dungeonStopped;
+    QVector<ZoneChanged> zoneChanges;
 };
 
 }  // namespace
@@ -315,6 +331,18 @@ void RecordingControllerTest::dungeonIgnoresReStartWhileStillActive() {
         QStringLiteral("21:41:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10)));
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
+}
+
+void RecordingControllerTest::mapChangeEmitsZoneChanged() {
+    RecordingController controller({});
+    Collector collector(controller);
+
+    controller.onLineReceived(LogLine(mapChangeLine(QStringLiteral("18:57:18.8690"), 2533,
+                                                    QStringLiteral("March on Quel'Danas"))));
+
+    QCOMPARE(collector.zoneChanges.size(), 1);
+    QCOMPARE(collector.zoneChanges.at(0).mapId, 2533);
+    QCOMPARE(collector.zoneChanges.at(0).zoneName, QStringLiteral("March on Quel'Danas"));
 }
 
 QTEST_MAIN(RecordingControllerTest)

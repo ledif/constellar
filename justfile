@@ -41,31 +41,43 @@ shell:
 # Requires a log directory; see run-daemon-live for pointing it at a real
 # WoW Logs directory mounted read-only.
 run-daemon log_dir:
-    podman run --rm -it \
+    exec podman run --rm -it \
+        --security-opt label=disable \
         -v {{justfile_directory()}}:/src:Z -w /src \
-        -v /run/user/$(id -u):/run/user/$(id -u):Z \
+        -v /run/user/$(id -u):/run/user/$(id -u) \
         -e DBUS_SESSION_BUS_ADDRESS \
+        -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir {{log_dir}}
 
 # Run the daemon against the host session bus and a real WoW Logs directory
 # (read-only mount, SELinux relabeling disabled like log-tail). This plus
-# `just run-gui` in a second terminal is the live detection MVP.
-run-daemon-live path:
-    podman run --rm -it \
+# `just run-gui` in a second terminal is the live detection MVP. Pass
+# discord_app_id to enable Rich Presence (RFC-002); left empty, presence
+# stays off (main.cpp no-ops without an app ID). /run/user is shared
+# rootless-netns state across concurrent podman processes and can't be
+# exclusively relabeled (:Z) without racing other containers — same fix as
+# run-gui. `exec`'d so podman replaces the recipe's shell as PID 1 of the
+# foreground process group -- otherwise Ctrl-C's SIGINT can get eaten by
+# the wrapper shell instead of reaching the container.
+run-daemon-live path discord_app_id="1527462779290652672":
+    exec podman run --rm -it \
         --security-opt label=disable \
         -v {{justfile_directory()}}:/src:Z -w /src \
-        -v /run/user/$(id -u):/run/user/$(id -u):Z \
+        -v /run/user/$(id -u):/run/user/$(id -u) \
         -v "{{path}}":/wow-logs:ro \
         -e DBUS_SESSION_BUS_ADDRESS \
+        -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
+        -e CONSTELLAR_DISCORD_APP_ID={{discord_app_id}} \
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
 # Run `constellar status` against the host session bus, inside the container.
 run-cli *args:
     podman run --rm -it \
+        --security-opt label=disable \
         -v {{justfile_directory()}}:/src:Z -w /src \
-        -v /run/user/$(id -u):/run/user/$(id -u):Z \
+        -v /run/user/$(id -u):/run/user/$(id -u) \
         -e DBUS_SESSION_BUS_ADDRESS \
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/cli/constellar {{args}}
@@ -87,9 +99,10 @@ smoke:
 # /tmp/.X11-unix is a shared system socket dir owned outside our user/SELinux
 # domain, so it can't be exclusively relabeled (:Z) the way /src and
 # /run/user can — disable SELinux confinement for this container instead
-# (same fix as log-tail's real-game-install mount).
+# (same fix as log-tail's real-game-install mount). `exec`'d for clean
+# Ctrl-C (see run-daemon-live).
 run-gui:
-    podman run --rm -it \
+    exec podman run --rm -it \
         --security-opt label=disable \
         -v {{justfile_directory()}}:/src -w /src \
         -v /run/user/$(id -u):/run/user/$(id -u) \

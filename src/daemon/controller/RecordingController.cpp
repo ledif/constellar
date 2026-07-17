@@ -45,6 +45,12 @@ void RecordingController::onLineReceived(const LogLine &line) {
         handleChallengeModeStart(line);
     } else if (type == QStringLiteral("CHALLENGE_MODE_END")) {
         handleChallengeModeEnd(line);
+    } else if (type == QStringLiteral("MAP_CHANGE")) {
+        // MAP_CHANGE args: uiMapID, zoneName, x, y, z, w (confirmed against
+        // real logs; not in the original RFC-001 grammar).
+        if (line.argCount() >= 3) {
+            Q_EMIT zoneChanged(line.argString(1).toInt(), line.argString(2));
+        }
     }
 }
 

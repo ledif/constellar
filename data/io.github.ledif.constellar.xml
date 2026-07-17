@@ -63,6 +63,10 @@
     <signal name="StateChanged">
       <arg name="state" type="s"/>
     </signal>
+    <signal name="ZoneChanged">
+      <arg name="mapId" type="i"/>
+      <arg name="zoneName" type="s"/>
+    </signal>
     <signal name="Error">
       <arg name="code" type="s"/>
       <arg name="message" type="s"/>
