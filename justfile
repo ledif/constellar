@@ -72,6 +72,13 @@ run-daemon-live path discord_app_id="1527462779290652672":
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
+# Kill a daemon started by run-daemon/run-daemon-live from another terminal,
+# for when Ctrl-C in that terminal doesn't reach the container (podman/TTY
+# signal-forwarding quirk, seen even with the run-daemon-live `exec` fix).
+# No-ops quietly if nothing is running.
+kill-daemon:
+    podman ps --filter ancestor={{image}} --no-trunc | grep constellard | awk '{print $1}' | xargs -r podman kill
+
 # Run `constellar status` against the host session bus, inside the container.
 run-cli *args:
     podman run --rm -it \

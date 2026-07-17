@@ -15,4 +15,5 @@ class PresencePublisherTest : public QObject {
     void dungeonActivityMapsKeystoneLevel();
     void idleActivityHasNoTimestamp();
     void idleActivityOmitsStateWithoutZone();
+    void activitiesIncludeLargeImageAsset();
 };

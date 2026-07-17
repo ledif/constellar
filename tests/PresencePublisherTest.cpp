@@ -56,4 +56,19 @@ void PresencePublisherTest::idleActivityOmitsStateWithoutZone() {
     QVERIFY(!activity.contains("state"));
 }
 
+void PresencePublisherTest::activitiesIncludeLargeImageAsset() {
+    const QDateTime start =
+        QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
+
+    const QJsonObject encounter = PresencePublisher::encounterActivity(
+        QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start);
+    const QJsonObject dungeon = PresencePublisher::dungeonActivity(18, start);
+    const QJsonObject idle = PresencePublisher::idleActivity();
+
+    for (const QJsonObject &activity : {encounter, dungeon, idle}) {
+        QCOMPARE(activity.value("assets").toObject().value("large_image").toString(),
+                 QStringLiteral("homestone"));
+    }
+}
+
 QTEST_MAIN(PresencePublisherTest)

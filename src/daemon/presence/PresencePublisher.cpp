@@ -2,6 +2,22 @@
 
 #include "DiscordIpcClient.h"
 
+namespace {
+
+// Developer Portal Rich Presence asset key (RFC-002 appendix flagged this as
+// a later pass; a single generic image is uploaded now). Per-state art
+// (raid/dungeon/difficulty badges) can replace this with a lookup once more
+// keys exist -- one key is enough to stop showing the blank placeholder.
+const QString kLargeImageKey = QStringLiteral("homestone");
+
+void addDefaultAssets(QJsonObject &activity) {
+    QJsonObject assets;
+    assets["large_image"] = kLargeImageKey;
+    activity["assets"] = assets;
+}
+
+}  // namespace
+
 PresencePublisher::PresencePublisher(DiscordIpcClient &client, QObject *parent)
     : QObject(parent), m_client(client) {}
 
@@ -15,6 +31,7 @@ QJsonObject PresencePublisher::encounterActivity(const QString &encounterName,
     QJsonObject timestamps;
     timestamps["start"] = startTime.toUTC().toSecsSinceEpoch();
     activity["timestamps"] = timestamps;
+    addDefaultAssets(activity);
     return activity;
 }
 
@@ -25,6 +42,7 @@ QJsonObject PresencePublisher::dungeonActivity(int keystoneLevel, const QDateTim
     QJsonObject timestamps;
     timestamps["start"] = startTime.toUTC().toSecsSinceEpoch();
     activity["timestamps"] = timestamps;
+    addDefaultAssets(activity);
     return activity;
 }
 
@@ -36,6 +54,7 @@ QJsonObject PresencePublisher::idleActivity(const QString &zoneName) {
     if (!zoneName.isEmpty()) {
         activity["state"] = zoneName;
     }
+    addDefaultAssets(activity);
     return activity;
 }
 
