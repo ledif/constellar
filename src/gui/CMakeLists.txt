@@ -1,5 +1,8 @@
 set(BUILD_SHARED_LIBS OFF)
 
+# qml/ is a subdirectory of the module root so we need this for some reason
+qt6_policy(SET QTP0004 NEW)
+
 ecm_add_qml_module(constellar-qml
   URI "io.github.ledif.constellar"
   VERSION 1.0

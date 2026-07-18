@@ -17,4 +17,3 @@ target_sources(constellar-combatlog
 )
 
 target_link_libraries(constellar-combatlog PUBLIC Qt6::Core)
-

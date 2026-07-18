@@ -9,11 +9,8 @@
 #include <QString>
 #include <QTimer>
 
-// Talks to the local Discord desktop client over its Unix IPC socket
-// ($XDG_RUNTIME_DIR/discord-ipc-{0..9}), per ADR-010. App-ID-only, no bot/
-// OAuth. Discord being absent is the normal case: connection failures are
-// silent (qDebug, not qWarning) and just retry on a timer -- presence must
-// never affect daemon health (RFC-002).
+// Talks to the local Discord desktop client over a socket at
+//   $XDG_RUNTIME_DIR/discord-ipc-{0..9})
 class DiscordIpcClient : public QObject
 {
     Q_OBJECT
@@ -21,22 +18,12 @@ class DiscordIpcClient : public QObject
   public:
     explicit DiscordIpcClient(QString appId, QObject* parent = nullptr);
 
-    // Starts the connect/handshake/retry loop. No-op if appId is empty.
     void start();
 
-    // Queues a Rich Presence activity payload. Coalesced and throttled to
-    // stay under Discord's ~5 updates / 20s SET_ACTIVITY rate limit
-    // (ADR-010); the latest call wins if several land inside one window.
-    // Silently dropped if not yet connected -- applied once ready() fires.
     void setActivity(QJsonObject const& activity);
-
-    // Clears the activity (e.g. WoW closed). Same coalescing as setActivity.
     void clearActivity();
 
-    bool isReady() const
-    {
-        return m_ready;
-    }
+    bool isReady() const;
 
   Q_SIGNALS:
     void ready();

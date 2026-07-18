@@ -17,11 +17,11 @@ constexpr qint32 kOpClose = 2;
 constexpr qint32 kOpPing = 3;
 constexpr qint32 kOpPong = 4;
 
-constexpr int kReconnectIntervalMs = 5000;
-// Conservative single-slot throttle: one SET_ACTIVITY per window, well
-// under Discord's ~5/20s limit (ADR-010). Coalesces bursts to the latest
-// payload rather than dropping the trailing edge.
-constexpr int kThrottleIntervalMs = 5000;
+// Discord recommends 1 update per 15s
+// https://github.com/discord/discord-api-docs/issues/668
+constexpr int kThrottleIntervalMs = 15'000;
+
+constexpr int kReconnectIntervalMs = 5'000;
 
 }  // namespace
 
@@ -47,7 +47,13 @@ void DiscordIpcClient::start()
         qDebug() << "DiscordIpcClient: no app ID configured, presence disabled";
         return;
     }
+
     attemptConnect();
+}
+
+bool DiscordIpcClient::isReady() const
+{
+    return m_ready;
 }
 
 void DiscordIpcClient::setActivity(QJsonObject const& activity)
@@ -64,14 +70,15 @@ void DiscordIpcClient::clearActivity()
 
 void DiscordIpcClient::sendPending()
 {
+    // nothing to send
     if (!m_ready || !m_pendingActivity.has_value())
         return;
+
+    // a send is already in-flight for this window
     if (m_throttleTimer.isActive())
-    {
-        // A send is already scheduled/in-flight this window; flushThrottle()
-        // will pick up the latest m_pendingActivity when it fires.
         return;
-    }
+
+    // we gucci
 
     QJsonObject args;
     args["pid"] = QCoreApplication::applicationPid();
@@ -89,8 +96,6 @@ void DiscordIpcClient::sendPending()
 
 void DiscordIpcClient::flushThrottle()
 {
-    // Re-run sendPending(): if another setActivity()/clearActivity() call
-    // coalesced during the throttle window, this sends the latest one.
     sendPending();
 }
 
@@ -98,6 +103,7 @@ void DiscordIpcClient::attemptConnect()
 {
     if (m_appId.isEmpty() || m_socket.state() != QLocalSocket::UnconnectedState)
         return;
+
     m_socket.connectToServer(socketPath(m_socketIndex));
 }
 
@@ -197,9 +203,9 @@ void DiscordIpcClient::sendFrame(qint32 opcode, QJsonObject const& payload)
 QString DiscordIpcClient::socketPath(int index)
 {
     QString base = qEnvironmentVariable("XDG_RUNTIME_DIR");
+
     if (base.isEmpty())
-        base = qEnvironmentVariable("TMPDIR");
-    if (base.isEmpty())
-        base = u"/tmp"_s;
+        base = qEnvironmentVariable("TMPDIR");  // arbiter save you
+
     return base + u"/discord-ipc-%1"_s.arg(index);
 }

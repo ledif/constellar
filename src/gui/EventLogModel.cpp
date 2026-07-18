@@ -6,6 +6,7 @@ int EventLogModel::rowCount(QModelIndex const& parent) const
 {
     if (parent.isValid())
         return 0;
+
     return static_cast<int>(m_entries.size());
 }
 

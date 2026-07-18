@@ -18,10 +18,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         CACHE STRING "Build type" FORCE)
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test Widgets Quick QuickControls2)
 find_package(ECM 6.0.0 REQUIRED NO_MODULE)
 list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 include(KDEInstallDirs)
+
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test Widgets Quick QuickControls2)
 include(ECMFindQmlModule)
 include(ECMQmlModule)
 find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons QQC2DesktopStyle IconThemes)
