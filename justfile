@@ -35,6 +35,10 @@ build:
 test:
     {{podman_run}} ctest --test-dir {{build_dir}} --output-on-failure
 
+# Static-analyze the QML sources (property overrides, unqualified access, type errors).
+qmllint:
+    {{podman_run}} cmake --build {{build_dir}} --target all_qmllint
+
 # Run the daemon against the host session bus and a WoW Logs dir
 run-daemon path discord_app_id="1527462779290652672":
     exec podman run --rm -it \
@@ -78,13 +82,14 @@ smoke:
 run-gui:
     exec podman run --rm -it \
         --security-opt label=disable \
-        -v {{justfile_directory()}}:/src -w /src \
+        -v {{justfile_directory()}}:/src:Z -w /src \
         -v /run/user/$(id -u):/run/user/$(id -u) \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -e DBUS_SESSION_BUS_ADDRESS \
         -e DISPLAY \
         -e WAYLAND_DISPLAY \
         -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
+        -e QT_QUICK_CONTROLS_STYLE=org.kde.desktop \
         --userns=keep-id \
         --net=host \
         {{image}} ./{{build_dir}}/src/gui/constellar

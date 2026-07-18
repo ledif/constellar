@@ -16,6 +16,7 @@ All builds run in a podman container. Assume host has no build tools.
 - `just smoke` — daemon + `constellarctl status` round trip on a private DBus bus.
 - `just format` / `just check-format` — clang-format (C++) and cmake-format (CMakeLists.txt/*.cmake).
 - `just cmake-lint` — cmake-lint style/anti-pattern checks.
+- `just qmllint` — static analysis of `src/gui/qml/*.qml`
 
 ## Conventions
 
@@ -28,4 +29,5 @@ All builds run in a podman container. Assume host has no build tools.
 
 ## Before declaring done
 
-Run `just build && just test && just smoke` (and `just format`).
+Run `just build && just test && just smoke` (and `just format`). If GUI/QML files changed, also
+run `just qmllint`.
