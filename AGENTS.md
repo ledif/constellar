@@ -20,7 +20,7 @@ All builds run in a podman container. Assume host has no build tools.
 
 ## Conventions
 
-- C++20 and Qt6.
+- C++26 and Qt6.
 - DBus interface XML in `data/` is the source of truth (`io.github.ledif.constellar.Observer`). Client proxy is generated (`qdbusxml2cpp`); server adaptor is hand-written. Keep them in sync manually when the XML changes.
 
 ### Qt Conventions
