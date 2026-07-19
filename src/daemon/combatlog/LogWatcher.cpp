@@ -55,8 +55,7 @@ void LogWatcher::scanExistingFiles()
     {
         if (!isCombatLogName(name))
             continue;
-        // Tail from the current end: a daemon (re)start should not replay a
-        // combat log that's already megabytes long.
+
         WatchedFile file;
         file.offset = QFileInfo(dir.filePath(name)).size();
         m_files.insert(name, file);
@@ -67,9 +66,9 @@ void LogWatcher::handleCreateOrMove(QString const& fileName)
 {
     if (!isCombatLogName(fileName))
         return;
-    // Drop any prior state so the next write is read from the start — this
-    // is what makes a file recreated with the same name (log rotation) read
-    // from byte 0 instead of an offset from before it existed.
+
+    // clear stale files so we read the new one
+
     m_files.remove(fileName);
 }
 
@@ -77,6 +76,7 @@ void LogWatcher::handleDelete(QString const& fileName)
 {
     if (!isCombatLogName(fileName))
         return;
+
     m_files.remove(fileName);
 }
 
@@ -84,6 +84,7 @@ void LogWatcher::handleModify(QString const& fileName)
 {
     if (!isCombatLogName(fileName))
         return;
+
     WatchedFile& file = m_files[fileName];
     readNewData(fileName, file);
     resetIdleTimer();
@@ -98,11 +99,11 @@ void LogWatcher::readNewData(QString const& fileName, WatchedFile& file)
     qint64 const size = f.size();
     if (size < file.offset)
     {
-        // File was truncated (or replaced without a create/delete event
-        // reaching us) — restart from the beginning.
+        // file was truncated
         file.offset = 0;
         file.pendingPartial.clear();
     }
+
     if (size == file.offset)
         return;
 
@@ -118,6 +119,7 @@ void LogWatcher::readNewData(QString const& fileName, WatchedFile& file)
     {
         if (part.isEmpty())
             continue;
+
         LogLine line(QString::fromUtf8(part));
         if (line.isValid())
             Q_EMIT lineReceived(line);
