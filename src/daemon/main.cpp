@@ -18,74 +18,70 @@
 
 using namespace Qt::StringLiterals;
 
+namespace
+{
+
+constexpr QStringView kDefaultDiscordAppId = u"1527462779290652672";
+
+}  // namespace
+
 int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"constellard"_s);
 
     QCommandLineParser parser;
-    parser.setApplicationDescription(
-        u"constellard - WoW combat log watcher and recording daemon"_s
-    );
+    parser.setApplicationDescription(u"Word of Warcraft combat log watcher and recording daemon"_s);
+
     parser.addHelpOption();
     QCommandLineOption const logDirOption(
         QStringList{u"log-dir"_s},
-        u"Path to the WoW Logs directory to watch (falls back to "
-        "CONSTELLAR_LOG_DIR if unset)."_s,
-        u"path"_s
+        u"Path to the WoW Logs directory (override: CONSTELLAR_LOG_DIR)"_s
     );
+
     parser.addOption(logDirOption);
-    QCommandLineOption const discordAppIdOption(
-        QStringList{u"discord-app-id"_s},
-        u"Discord Application ID to publish Rich Presence as (falls back to "
-        "CONSTELLAR_DISCORD_APP_ID if unset). Presence is off unless this is set "
-        "(RFC-002) -- no app has been registered yet."_s,
-        u"id"_s
-    );
-    parser.addOption(discordAppIdOption);
     parser.process(app);
 
     QString logDirectory = parser.value(logDirOption);
     if (logDirectory.isEmpty())
         logDirectory = QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_LOG_DIR"_s);
+
     if (logDirectory.isEmpty())
     {
-        QTextStream(stderr) << "constellard: no log directory given. Pass --log-dir <path> or set "
-                               "CONSTELLAR_LOG_DIR.\n";
+        QTextStream(stderr) << "constellard: no log directory given\n";
         return 1;
     }
 
     auto* service = new ObserverService(std::filesystem::path(logDirectory.toStdString()), &app);
     new ObserverDBusAdaptor(service);
 
-    QString discordAppId = parser.value(discordAppIdOption);
-    if (discordAppId.isEmpty())
-    {
-        discordAppId =
-            QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
-    }
-    // Off by default, config-gated (RFC-002): the publisher and IPC client
-    // no-op harmlessly with an empty app ID, but skip constructing them
-    // entirely when presence isn't configured.
-    if (!discordAppId.isEmpty())
-    {
-        auto* discordClient = new DiscordIpcClient(discordAppId, &app);
-        auto* presence = new PresencePublisher(*discordClient, service->gameState(), &app);
-        QObject::connect(
-            &service->gameState(), &GameState::activityChanged, presence,
-            &PresencePublisher::onActivityChanged
-        );
-        QObject::connect(
-            &service->gameState(), &GameState::zoneChanged, presence,
-            &PresencePublisher::onZoneChanged
-        );
-        QObject::connect(
-            &app, &QCoreApplication::aboutToQuit, presence,
-            [discordClient]() { discordClient->clearActivity(); }
-        );
-        discordClient->start();
-    }
+    QString discordAppId =
+        QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
 
+    if (discordAppId.isEmpty())
+        discordAppId = kDefaultDiscordAppId.toString();
+
+    auto* discordClient = new DiscordIpcClient(discordAppId, &app);
+    auto* presence = new PresencePublisher(*discordClient, service->gameState(), &app);
+
+    // send game state changes to Discord
+    QObject::connect(
+        &service->gameState(), &GameState::activityChanged, presence,
+        &PresencePublisher::onActivityChanged
+    );
+
+    QObject::connect(
+        &service->gameState(), &GameState::zoneChanged, presence, &PresencePublisher::onZoneChanged
+    );
+
+    QObject::connect(
+        &app, &QCoreApplication::aboutToQuit, presence,
+        [discordClient]() { discordClient->clearActivity(); }
+    );
+
+    discordClient->start();
+
+    // register our daemon with D-Bus
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (!bus.registerObject(constellar::dbus::kObjectPath, service))
     {
@@ -93,6 +89,7 @@ int main(int argc, char* argv[])
                     << bus.lastError().message();
         return 1;
     }
+
     if (!bus.registerService(constellar::dbus::kServiceName))
     {
         qCritical() << "Failed to acquire DBus service name" << constellar::dbus::kServiceName
