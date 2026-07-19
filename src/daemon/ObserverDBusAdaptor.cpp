@@ -14,14 +14,17 @@ ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service)
 {
     setAutoRelaySignals(true);
     GameState const& gameState = m_service->gameState();
+
     connect(
         &gameState, &GameState::activityChanged, this,
         [this](QVariantMap const& activity) { emitPropertiesChanged(u"Activity"_s, activity); }
     );
+
     connect(
         &gameState, &GameState::zoneChanged, this,
         [this](QVariantMap const& zone) { emitPropertiesChanged(u"Zone"_s, zone); }
     );
+
     connect(&gameState, &GameState::activityEnded, this, &ObserverDBusAdaptor::ActivityEnded);
 }
 
@@ -40,8 +43,10 @@ void ObserverDBusAdaptor::emitPropertiesChanged(QString const& name, QVariant co
     QDBusMessage signal = QDBusMessage::createSignal(
         constellar::dbus::kObjectPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s
     );
-    signal << u"io.github.ledif.constellar.Observer"_s << QVariantMap{{name, value}}
+
+    signal << QString::fromUtf8(constellar::dbus::kInterfaceName) << QVariantMap{{name, value}}
            << QStringList{};
+
     QDBusConnection::sessionBus().send(signal);
 }
 

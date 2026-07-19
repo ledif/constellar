@@ -9,12 +9,14 @@
 #include <QVariant>
 #include <QVariantMap>
 
+#include "DBusConstants.h"
+
 class ObserverService;
 
 class ObserverDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.github.ledif.constellar.Observer")
+    Q_CLASSINFO("D-Bus Interface", CONSTELLAR_DBUS_INTERFACE_NAME)
 
     Q_PROPERTY(QVariantMap Activity READ activity)
     Q_PROPERTY(QVariantMap Zone READ zone)
