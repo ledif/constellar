@@ -52,6 +52,22 @@ run-daemon path discord_app_id="1527462779290652672":
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
+replay slug="midnight-season1-alt-raid" speed="20":
+  #!/bin/bash
+  set -euo pipefail
+  d=$(mktemp -d)
+  daemon_log=$(mktemp)
+  trap 'just kill-daemon; rm -rf "$d" "$daemon_log"' EXIT
+
+  just run-daemon "$d" > "$daemon_log" 2>&1 &
+
+  echo "Waiting for constellard to start watching $d..."
+  until grep -q "running, watching" "$daemon_log" 2>/dev/null; do
+    sleep 0.2
+  done
+
+  ./scripts/replay-log.sh "$d" {{speed}} "scripts/fixtures/{{slug}}.tsv"
+
 [private]
 kill-daemon:
     podman ps --filter ancestor={{image}} --no-trunc | grep constellard | awk '{print $1}' | xargs -r podman kill
