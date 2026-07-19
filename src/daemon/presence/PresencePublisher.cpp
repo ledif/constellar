@@ -13,10 +13,6 @@ namespace keys = constellar::keys;
 namespace
 {
 
-// Developer Portal Rich Presence asset key (RFC-002 appendix flagged this as
-// a later pass; a single generic image is uploaded now). Per-state art
-// (raid/dungeon/difficulty badges) can replace this with a lookup once more
-// keys exist -- one key is enough to stop showing the blank placeholder.
 QString const kLargeImageKey = u"homestone"_s;
 
 void addDefaultAssets(QJsonObject& activity)
@@ -76,11 +72,11 @@ QJsonObject PresencePublisher::dungeonActivity(QVariantMap const& activity)
 QJsonObject PresencePublisher::idleActivity(QString const& zoneName)
 {
     QJsonObject activity;
-    // realm/character still require the addon-channel hybrid (ADR-011);
-    // zoneName comes for free from Zone (ActivityTracker's MAP_CHANGE).
     activity["details"] = u"In World of Warcraft"_s;
+
     if (!zoneName.isEmpty())
         activity["state"] = zoneName;
+
     addDefaultAssets(activity);
     return activity;
 }
@@ -92,10 +88,13 @@ QJsonObject PresencePublisher::activityFor(QVariantMap const& activity, QVariant
         return idleActivity(zoneName);
 
     QString const type = activity.value(QString::fromLatin1(keys::kType)).toString();
+
     if (type == QString::fromLatin1(keys::kTypeEncounter))
         return encounterActivity(activity, zoneName);
+
     if (type == QString::fromLatin1(keys::kTypeDungeon))
         return dungeonActivity(activity);
+
     return idleActivity(zoneName);
 }
 
