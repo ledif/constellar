@@ -12,6 +12,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
         qt6-qtdeclarative-devel \
         extra-cmake-modules \
         kf6-kirigami-devel \
+        kf6-kirigami-addons-devel \
         kf6-ki18n-devel \
         kf6-kcoreaddons-devel \
         kf6-qqc2-desktop-style \

@@ -1,7 +1,12 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.delegates as Delegates
+
+import io.github.ledif.constellar
 
 Kirigami.Page {
     id: root
@@ -9,6 +14,26 @@ Kirigami.Page {
     required property var observer
 
     title: qsTr("Status")
+
+    footer: Controls.ToolBar {
+        visible: root.observer.zoneText.length > 0
+        height: visible ? implicitHeight : 0
+
+        contentItem: RowLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            Kirigami.Icon {
+                source: "mark-location-symbolic"
+                implicitWidth: Kirigami.Units.iconSizes.small
+                implicitHeight: Kirigami.Units.iconSizes.small
+            }
+
+            Controls.Label {
+                text: root.observer.zoneText
+                Layout.fillWidth: true
+            }
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -21,48 +46,75 @@ Kirigami.Page {
             text: qsTr("constellard not reachable")
         }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-
-            Kirigami.Heading {
-                level: 3
-                text: qsTr("Activity: %1").arg(root.observer.activityText)
-            }
-
-            Kirigami.Heading {
-                level: 3
-                text: qsTr("Zone: %1").arg(root.observer.zoneText)
-            }
-        }
-
-        Kirigami.CardsListView {
-            id: eventView
-
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            model: root.observer.eventLog
+            ListView {
+                id: eventView
 
-            delegate: Kirigami.AbstractCard {
-                id: card
+                anchors.fill: parent
+                clip: true
+                spacing: 0
 
-                required property string message
-                required property bool success
+                Controls.ScrollBar.vertical: Controls.ScrollBar {}
 
-                contentItem: RowLayout {
-                    Kirigami.Icon {
-                        source: card.success ? "emblem-checked" : "emblem-error"
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                    }
+                model: root.observer.eventLog
 
-                    Controls.Label {
-                        Layout.fillWidth: true
-                        text: card.message
-                        elide: Text.ElideRight
+                delegate: Delegates.RoundedItemDelegate {
+                    id: row
+
+                    width: ListView.view.width
+
+                    required property string title
+                    required property int activityState
+                    required property double startTime
+                    required property double stopTime
+                    required property double durationMs
+
+                    readonly property bool inProgress: activityState === ActivityModel.InProgress
+
+                    text: row.title
+
+                    icon.width: Kirigami.Units.iconSizes.smallMedium
+                    icon.height: Kirigami.Units.iconSizes.smallMedium
+                    icon.name: row.inProgress ? "media-playback-start-symbolic"
+                             : row.activityState === ActivityModel.Success ? "checkmark-symbolic"
+                             : "dialog-error-symbolic"
+                    icon.color: row.inProgress ? Kirigami.Theme.highlightColor
+                              : row.activityState === ActivityModel.Success ? Kirigami.Theme.positiveTextColor
+                              : Kirigami.Theme.negativeTextColor
+
+                    contentItem: RowLayout {
+                        spacing: Kirigami.Units.largeSpacing
+
+                        Delegates.SubtitleContentItem {
+                            itemDelegate: row
+                            subtitle: row.inProgress ? ""
+                                    : (row.activityState === ActivityModel.Success
+                                            ? qsTr("cleared in %1") : qsTr("wiped after %1"))
+                                          .arg(root.observer.durationText(row.durationMs))
+                            Layout.fillWidth: true
+                        }
+
+                        Controls.Label {
+                            text: {
+                                root.observer.now;
+                                return row.inProgress ? root.observer.elapsed(row.startTime)
+                                                       : root.observer.relativeTime(row.stopTime)
+                            }
+                            opacity: 0.7
+                            color: row.inProgress ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        }
                     }
                 }
+            }
+
+            Kirigami.PlaceholderMessage {
+                anchors.centerIn: parent
+                visible: eventView.count === 0
+                icon.name: "applications-games"
+                text: qsTr("No activities yet")
             }
         }
     }

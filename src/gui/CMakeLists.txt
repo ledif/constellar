@@ -10,8 +10,8 @@ ecm_add_qml_module(constellar-qml
   SOURCES
     ObserverController.cpp
     ObserverController.h
-    EventLogModel.cpp
-    EventLogModel.h
+    ActivityModel.cpp
+    ActivityModel.h
   QML_FILES
     qml/Main.qml
     qml/StatusPage.qml
@@ -21,6 +21,7 @@ target_link_libraries(constellar-qml
   PUBLIC
     Qt6::Core
     Qt6::Quick
+    KF6::CoreAddons
     constellar::client
     constellar::common
 )
