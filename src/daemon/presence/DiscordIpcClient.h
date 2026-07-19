@@ -48,7 +48,6 @@ class DiscordIpcClient : public QObject
     QLocalSocket m_socket;
     QByteArray m_readBuffer;
     bool m_ready = false;
-    int m_socketIndex = 0;
     QTimer m_reconnectTimer;
     QTimer m_throttleTimer;
     std::optional<QJsonValue> m_pendingActivity;

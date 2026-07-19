@@ -23,6 +23,10 @@ constexpr int kThrottleIntervalMs = 15'000;
 
 constexpr int kReconnectIntervalMs = 5'000;
 
+constexpr int kSocketPathCount = 10;
+
+constexpr int kConnectTimeoutMs = 200;
+
 }  // namespace
 
 DiscordIpcClient::DiscordIpcClient(QString appId, QObject* parent)
@@ -101,14 +105,24 @@ void DiscordIpcClient::flushThrottle()
 
 void DiscordIpcClient::attemptConnect()
 {
-    if (m_appId.isEmpty() || m_socket.state() != QLocalSocket::UnconnectedState)
+    if (m_appId.isEmpty())
         return;
 
-    m_socket.connectToServer(socketPath(m_socketIndex));
+    for (int index = 0; index < kSocketPathCount; ++index)
+    {
+        if (m_socket.state() != QLocalSocket::UnconnectedState)
+            m_socket.abort();
+
+        m_socket.connectToServer(socketPath(index));
+        if (m_socket.waitForConnected(kConnectTimeoutMs))
+            return;
+    }
 }
 
 void DiscordIpcClient::onConnected()
 {
+    m_reconnectTimer.stop();
+
     QJsonObject handshake;
     handshake["v"] = 1;
     handshake["client_id"] = m_appId;
@@ -174,9 +188,6 @@ void DiscordIpcClient::onSocketError()
 {
     m_ready = false;
     m_readBuffer.clear();
-    // Discord not running (or not on this socket index) is the normal
-    // case -- cycle through discord-ipc-0..9 rather than giving up.
-    m_socketIndex = (m_socketIndex + 1) % 10;
     scheduleReconnect();
 }
 
