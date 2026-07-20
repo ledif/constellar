@@ -21,13 +21,13 @@ void ActivityModelTest::roleNamesExposeAllRoles()
 void ActivityModelTest::beginActivityInsertsInProgressRow()
 {
     ActivityModel model;
-    model.beginActivity(QStringLiteral("Mythic Ulgrax the Devourer"), 1000);
+    model.beginActivity(QStringLiteral("Mythic Midnight Falls"), 1000);
 
     QCOMPARE(model.rowCount(), 1);
     QModelIndex const idx = model.index(0);
     QCOMPARE(
         model.data(idx, ActivityModel::TitleRole).toString(),
-        QStringLiteral("Mythic Ulgrax the Devourer")
+        QStringLiteral("Mythic Midnight Falls")
     );
     QCOMPARE(model.data(idx, ActivityModel::StateRole).toInt(), int(ActivityModel::InProgress));
 }
@@ -35,10 +35,10 @@ void ActivityModelTest::beginActivityInsertsInProgressRow()
 void ActivityModelTest::endActivityUpdatesMatchingInProgressRow()
 {
     ActivityModel model;
-    model.beginActivity(QStringLiteral("Mythic Ulgrax the Devourer"), 1000);
+    model.beginActivity(QStringLiteral("Mythic Midnight Falls"), 1000);
     QSignalSpy dataChangedSpy(&model, &QAbstractItemModel::dataChanged);
 
-    model.endActivity(QStringLiteral("Mythic Ulgrax the Devourer"), 1000, true, 2000, 1000);
+    model.endActivity(QStringLiteral("Mythic Midnight Falls"), 1000, true, 2000, 1000);
 
     QCOMPARE(model.rowCount(), 1);
     QModelIndex const idx = model.index(0);
@@ -51,8 +51,8 @@ void ActivityModelTest::endActivityUpdatesMatchingInProgressRow()
 void ActivityModelTest::beginActivityDeduplicatesByStartTime()
 {
     ActivityModel model;
-    model.beginActivity(QStringLiteral("Mythic Ulgrax the Devourer"), 1000);
-    model.beginActivity(QStringLiteral("Mythic Ulgrax the Devourer"), 1000);
+    model.beginActivity(QStringLiteral("Mythic Midnight Falls"), 1000);
+    model.beginActivity(QStringLiteral("Mythic Midnight Falls"), 1000);
 
     QCOMPARE(model.rowCount(), 1);
 }

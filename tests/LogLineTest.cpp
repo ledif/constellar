@@ -68,8 +68,8 @@ void LogLineTest::quotedStringWithComma()
     QStringList const lines = loadFixtureLines();
     LogLine const encounterStart = findByType(lines, QStringLiteral("ENCOUNTER_START"));
     QVERIFY(encounterStart.isValid());
-    // The comma and apostrophes inside the quoted encounter name must
-    // survive as a single arg, not split the line into extra args.
+
+    // comma and apostrophes galore
     QCOMPARE(encounterStart.argCount(), 6);
     QCOMPARE(encounterStart.argString(2), QStringLiteral("Belo'ren, Child of Al'ar"));
 }

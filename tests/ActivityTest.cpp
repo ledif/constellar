@@ -20,15 +20,15 @@ void ActivityTest::encounterMapsDifficultyAndName()
     QVariantMap const map{
         {keys::kType, QString::fromLatin1(keys::kTypeEncounter)},
         {keys::kDifficulty, QStringLiteral("Mythic")},
-        {keys::kEncounterName, QStringLiteral("Ulgrax the Devourer")},
+        {keys::kEncounterName, QStringLiteral("Midnight Falls")},
     };
 
     Activity const activity = Activity::fromVariantMap(map);
 
     QCOMPARE(activity.type(), ActivityType::Encounter);
     QCOMPARE(activity.difficulty(), QStringLiteral("Mythic"));
-    QCOMPARE(activity.encounterName(), QStringLiteral("Ulgrax the Devourer"));
-    QCOMPARE(activity.toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
+    QCOMPARE(activity.encounterName(), QStringLiteral("Midnight Falls"));
+    QCOMPARE(activity.toString(), QStringLiteral("Mythic Midnight Falls"));
 }
 
 void ActivityTest::dungeonMapsKeystoneLevel()

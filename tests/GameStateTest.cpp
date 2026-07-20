@@ -35,7 +35,7 @@ void GameStateTest::setZoneEmitsOnChange()
     GameState state;
     QSignalSpy spy(&state, &GameState::zoneChanged);
 
-    QVariantMap const zone{{"zoneName", "Dornogal"}};
+    QVariantMap const zone{{"zoneName", "Silvermoon City"}};
     state.setZone(zone);
 
     QCOMPARE(spy.count(), 1);
@@ -45,7 +45,7 @@ void GameStateTest::setZoneEmitsOnChange()
 void GameStateTest::setZoneSkipsOnIdenticalBag()
 {
     GameState state;
-    QVariantMap const zone{{"zoneName", "Dornogal"}};
+    QVariantMap const zone{{"zoneName", "Silvermoon City"}};
     state.setZone(zone);
 
     QSignalSpy spy(&state, &GameState::zoneChanged);

@@ -51,10 +51,10 @@ void PresencePublisherTest::encounterActivityMapsDifficultyAndName()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
     QJsonObject const activity = PresencePublisher::encounterActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start)
+        encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start)
     );
 
-    QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
+    QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic Midnight Falls"));
     QCOMPARE(activity.value("state").toString(), QStringLiteral("Raid Encounter"));
     QCOMPARE(
         activity.value("timestamps").toObject().value("start").toInteger(),
@@ -68,11 +68,11 @@ void PresencePublisherTest::encounterActivityUsesZoneNameAsState()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
     QJsonObject const activity = PresencePublisher::encounterActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start),
-        QStringLiteral("Nerub-ar Palace")
+        encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start),
+        QStringLiteral("March on Quel'Danas")
     );
 
-    QCOMPARE(activity.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
+    QCOMPARE(activity.value("state").toString(), QStringLiteral("March on Quel'Danas"));
 }
 
 void PresencePublisherTest::dungeonActivityMapsKeystoneLevel()
@@ -113,7 +113,7 @@ void PresencePublisherTest::activitiesIncludeLargeImageAsset()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
 
     QJsonObject const encounter = PresencePublisher::encounterActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start)
+        encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start)
     );
     QJsonObject const dungeon = PresencePublisher::dungeonActivity(dungeonBag(18, start));
     QJsonObject const idle = PresencePublisher::idleActivity();
@@ -127,23 +127,18 @@ void PresencePublisherTest::activitiesIncludeLargeImageAsset()
     }
 }
 
-// Regression test for the live bug ADR-012/TASK-001 fixed by construction:
-// onZoneChanged used to call m_client.setActivity(idleActivity(...))
-// unconditionally, so a MAP_CHANGE mid-pull clobbered encounter presence
-// with idle. activityFor() recomputes from both every time and only
-// falls back to idle when Activity is empty, so this can't happen anymore.
 void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange()
 {
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     QVariantMap const activity =
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start);
-    QVariantMap const zone = zoneBag(QStringLiteral("Nerub-ar Palace"));
+        encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start);
+    QVariantMap const zone = zoneBag(QStringLiteral("March on Quel'Danas"));
 
     QJsonObject const result = PresencePublisher::activityFor(activity, zone);
 
-    QCOMPARE(result.value("details").toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
-    QCOMPARE(result.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
+    QCOMPARE(result.value("details").toString(), QStringLiteral("Mythic Midnight Falls"));
+    QCOMPARE(result.value("state").toString(), QStringLiteral("March on Quel'Danas"));
 }
 
 void PresencePublisherTest::activityForFallsBackToIdleWhenActivityEmpty()
@@ -195,24 +190,24 @@ void PresencePublisherTest::zoneChangeMidEncounterKeepsEncounterPresence()
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     gameState.setActivity(
-        encounterBag(QStringLiteral("Ulgrax the Devourer"), QStringLiteral("Mythic"), start)
+        encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start)
     );
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     QVERIFY(decodeFrame(*peer, opcode, payload));
     QCOMPARE(
         payload.value("args").toObject().value("activity").toObject().value("details").toString(),
-        QStringLiteral("Mythic Ulgrax the Devourer")
+        QStringLiteral("Mythic Midnight Falls")
     );
 
     // This update lands inside the throttle window, so it's coalesced away.
-    gameState.setZone(zoneBag(QStringLiteral("Nerub-ar Palace")));
+    gameState.setZone(zoneBag(QStringLiteral("March on Quel'Danas")));
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     QVERIFY(decodeFrame(*peer, opcode, payload));
     QJsonObject const activity = payload.value("args").toObject().value("activity").toObject();
-    QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic Ulgrax the Devourer"));
-    QCOMPARE(activity.value("state").toString(), QStringLiteral("Nerub-ar Palace"));
+    QCOMPARE(activity.value("details").toString(), QStringLiteral("Mythic Midnight Falls"));
+    QCOMPARE(activity.value("state").toString(), QStringLiteral("March on Quel'Danas"));
 }
 
 QTEST_MAIN(PresencePublisherTest)
