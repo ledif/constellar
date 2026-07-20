@@ -20,16 +20,13 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
     // update our state when the tracker detects we started/ended a key
     connect(
         &m_tracker, &ActivityTracker::dungeonStarted, this,
-        [this](ActivityTracker::DungeonRun const& dungeon, QDateTime const& /*preRollFrom*/)
+        [this](DungeonRun const& dungeon, QDateTime const& /*preRollFrom*/)
         { m_gameState.setActivity(ActivityMetadata::fromDungeon(dungeon)); }
     );
 
     connect(
         &m_tracker, &ActivityTracker::dungeonStopped, this,
-        [this](
-            ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
-            QDateTime const& stopTime
-        )
+        [this](DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime)
         {
             m_gameState.endActivity(
                 ActivityMetadata::fromDungeonEnded(dungeon, success, durationMs, stopTime)
@@ -41,15 +38,13 @@ ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObj
     connect(
         &m_tracker, &ActivityTracker::encounterStarted, this,
         [this](
-            ActivityTracker::RaidEncounter const& encounter, QDateTime const& /*preRollFrom*/
+            RaidEncounter const& encounter, QDateTime const& /*preRollFrom*/
         ) { m_gameState.setActivity(ActivityMetadata::fromEncounter(encounter)); }
     );
 
     connect(
         &m_tracker, &ActivityTracker::encounterStopped, this,
-        [this](
-            ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
-        )
+        [this](RaidEncounter const& encounter, bool success, QDateTime const& stopTime)
         {
             m_gameState.endActivity(
                 ActivityMetadata::fromEncounterEnded(encounter, success, stopTime)

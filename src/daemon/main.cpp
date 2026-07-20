@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     parser.addHelpOption();
     QCommandLineOption const logDirOption(
         QStringList{u"log-dir"_s},
-        u"Path to the WoW Logs directory (override: CONSTELLAR_LOG_DIR)"_s
+        u"Path to the WoW Logs directory (override: CONSTELLAR_LOG_DIR)"_s, u"path"_s
     );
 
     parser.addOption(logDirOption);

@@ -3,22 +3,22 @@
 #include <QDateTime>
 #include <QVariantMap>
 
-#include "ActivityTracker.h"
+#include "DungeonRun.h"
+#include "RaidEncounter.h"
 
 class ActivityMetadata : public QVariantMap
 {
   public:
     using QVariantMap::QVariantMap;
 
-    static ActivityMetadata fromEncounter(ActivityTracker::RaidEncounter const& encounter);
+    static ActivityMetadata fromEncounter(RaidEncounter const& encounter);
     static ActivityMetadata fromEncounterEnded(
-        ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
+        RaidEncounter const& encounter, bool success, QDateTime const& stopTime
     );
 
-    static ActivityMetadata fromDungeon(ActivityTracker::DungeonRun const& dungeon);
+    static ActivityMetadata fromDungeon(DungeonRun const& dungeon);
     static ActivityMetadata fromDungeonEnded(
-        ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
-        QDateTime const& stopTime
+        DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
     );
 
     static ActivityMetadata fromZone(int mapId, QString const& zoneName);

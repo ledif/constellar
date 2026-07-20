@@ -11,21 +11,20 @@ namespace
 
 QString raidDifficultyDisplayName(int difficultyId)
 {
-    std::optional<ActivityTracker::RaidDifficulty> const difficulty =
-        ActivityTracker::raidDifficultyFromId(difficultyId);
+    std::optional<RaidDifficulty> const difficulty = raidDifficultyFromId(difficultyId);
 
     if (!difficulty)
         return u"Unknown"_s;
 
     switch (*difficulty)
     {
-        case ActivityTracker::RaidDifficulty::LFR:
+        case RaidDifficulty::LFR:
             return u"LFR"_s;
-        case ActivityTracker::RaidDifficulty::Normal:
+        case RaidDifficulty::Normal:
             return u"Normal"_s;
-        case ActivityTracker::RaidDifficulty::Heroic:
+        case RaidDifficulty::Heroic:
             return u"Heroic"_s;
-        case ActivityTracker::RaidDifficulty::Mythic:
+        case RaidDifficulty::Mythic:
             return u"Mythic"_s;
     }
     return u"Unknown"_s;
@@ -33,7 +32,7 @@ QString raidDifficultyDisplayName(int difficultyId)
 
 }  // namespace
 
-ActivityMetadata ActivityMetadata::fromEncounter(ActivityTracker::RaidEncounter const& encounter)
+ActivityMetadata ActivityMetadata::fromEncounter(RaidEncounter const& encounter)
 {
     ActivityMetadata metadata;
     metadata[keys::kType] = QString::fromLatin1(keys::kTypeEncounter);
@@ -46,7 +45,7 @@ ActivityMetadata ActivityMetadata::fromEncounter(ActivityTracker::RaidEncounter 
 }
 
 ActivityMetadata ActivityMetadata::fromEncounterEnded(
-    ActivityTracker::RaidEncounter const& encounter, bool success, QDateTime const& stopTime
+    RaidEncounter const& encounter, bool success, QDateTime const& stopTime
 )
 {
     ActivityMetadata metadata = fromEncounter(encounter);
@@ -55,7 +54,7 @@ ActivityMetadata ActivityMetadata::fromEncounterEnded(
     return metadata;
 }
 
-ActivityMetadata ActivityMetadata::fromDungeon(ActivityTracker::DungeonRun const& dungeon)
+ActivityMetadata ActivityMetadata::fromDungeon(DungeonRun const& dungeon)
 {
     ActivityMetadata metadata;
     metadata[keys::kType] = QString::fromLatin1(keys::kTypeDungeon);
@@ -67,8 +66,7 @@ ActivityMetadata ActivityMetadata::fromDungeon(ActivityTracker::DungeonRun const
 }
 
 ActivityMetadata ActivityMetadata::fromDungeonEnded(
-    ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
-    QDateTime const& stopTime
+    DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
 )
 {
     ActivityMetadata metadata = fromDungeon(dungeon);

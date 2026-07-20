@@ -67,26 +67,26 @@ QString challengeModeEndLine(QString const& hms, int mapId, bool success, int le
 
 struct Started
 {
-    ActivityTracker::RaidEncounter encounter;
+    RaidEncounter encounter;
     QDateTime preRollFrom;
 };
 
 struct Stopped
 {
-    ActivityTracker::RaidEncounter encounter;
+    RaidEncounter encounter;
     bool success;
     QDateTime stopTime;
 };
 
 struct DungeonStarted
 {
-    ActivityTracker::DungeonRun dungeon;
+    DungeonRun dungeon;
     QDateTime preRollFrom;
 };
 
 struct DungeonStopped
 {
-    ActivityTracker::DungeonRun dungeon;
+    DungeonRun dungeon;
     bool success;
     int durationMs;
     QDateTime stopTime;
@@ -107,26 +107,23 @@ struct Collector
     {
         QObject::connect(
             &tracker, &ActivityTracker::encounterStarted,
-            [this](ActivityTracker::RaidEncounter const& encounter, QDateTime const& preRollFrom)
+            [this](RaidEncounter const& encounter, QDateTime const& preRollFrom)
             { started.append({encounter, preRollFrom}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::encounterStopped,
-            [this](
-                ActivityTracker::RaidEncounter const& encounter, bool success,
-                QDateTime const& stopTime
-            ) { stopped.append({encounter, success, stopTime}); }
+            [this](RaidEncounter const& encounter, bool success, QDateTime const& stopTime)
+            { stopped.append({encounter, success, stopTime}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::dungeonStarted,
-            [this](ActivityTracker::DungeonRun const& dungeon, QDateTime const& preRollFrom)
+            [this](DungeonRun const& dungeon, QDateTime const& preRollFrom)
             { dungeonStarted.append({dungeon, preRollFrom}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::dungeonStopped,
             [this](
-                ActivityTracker::DungeonRun const& dungeon, bool success, int durationMs,
-                QDateTime const& stopTime
+                DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
             ) { dungeonStopped.append({dungeon, success, durationMs, stopTime}); }
         );
         QObject::connect(

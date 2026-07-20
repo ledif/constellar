@@ -11,7 +11,7 @@ void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
 {
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
-    ActivityTracker::RaidEncounter const encounter{
+    RaidEncounter const encounter{
         .encounterId = 2902,
         .encounterName = QStringLiteral("Ulgrax the Devourer"),
         .difficultyId = 16,  // Mythic
@@ -32,7 +32,7 @@ void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
 
 void ActivityMetadataTest::encounterMetadataUnknownDifficultyIdIsUnknown()
 {
-    ActivityTracker::RaidEncounter const encounter{
+    RaidEncounter const encounter{
         .encounterId = 1,
         .encounterName = QStringLiteral("Test"),
         .difficultyId = 999,
@@ -47,7 +47,7 @@ void ActivityMetadataTest::encounterEndedMetadataAddsSuccessAndStopTime()
 {
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
-    ActivityTracker::RaidEncounter const encounter{
+    RaidEncounter const encounter{
         .encounterId = 1,
         .encounterName = QStringLiteral("Test"),
         .difficultyId = 14,  // Normal
@@ -66,7 +66,7 @@ void ActivityMetadataTest::dungeonMetadataMapsKeystoneLevel()
 {
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
-    ActivityTracker::DungeonRun const dungeon{
+    DungeonRun const dungeon{
         .zoneId = 501,
         .mapId = 2255,
         .keystoneLevel = 18,
@@ -86,7 +86,7 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
 {
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
-    ActivityTracker::DungeonRun const dungeon{
+    DungeonRun const dungeon{
         .zoneId = 501,
         .mapId = 2255,
         .keystoneLevel = 18,

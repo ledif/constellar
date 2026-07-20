@@ -13,25 +13,6 @@ ActivityTracker::ActivityTracker(Config config, QObject* parent)
     );
 }
 
-std::optional<ActivityTracker::RaidDifficulty> ActivityTracker::raidDifficultyFromId(
-    int difficultyId
-)
-{
-    switch (difficultyId)
-    {
-        case 17:
-            return RaidDifficulty::LFR;
-        case 14:
-            return RaidDifficulty::Normal;
-        case 15:
-            return RaidDifficulty::Heroic;
-        case 16:
-            return RaidDifficulty::Mythic;
-        default:
-            return std::nullopt;
-    }
-}
-
 void ActivityTracker::onLineReceived(LogLine const& line)
 {
     if (!line.isValid())

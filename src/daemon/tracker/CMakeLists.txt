@@ -6,8 +6,11 @@ target_sources(constellar-tracker
     FILE_SET HEADERS
     FILES
       ActivityTracker.h
+      DungeonRun.h
+      RaidEncounter.h
   PRIVATE
     ActivityTracker.cpp
+    RaidEncounter.cpp
 )
 
 target_link_libraries(constellar-tracker
