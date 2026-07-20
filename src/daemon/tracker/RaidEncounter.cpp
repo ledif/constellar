@@ -1,16 +1,26 @@
 #include "RaidEncounter.h"
 
+namespace
+{
+
+constexpr int kDifficultyIdLFR = 17;
+constexpr int kDifficultyIdNormal = 14;
+constexpr int kDifficultyIdHeroic = 15;
+constexpr int kDifficultyIdMythic = 16;
+
+}  // namespace
+
 std::optional<RaidDifficulty> raidDifficultyFromId(int difficultyId)
 {
     switch (difficultyId)
     {
-        case 17:
+        case kDifficultyIdLFR:
             return RaidDifficulty::LFR;
-        case 14:
+        case kDifficultyIdNormal:
             return RaidDifficulty::Normal;
-        case 15:
+        case kDifficultyIdHeroic:
             return RaidDifficulty::Heroic;
-        case 16:
+        case kDifficultyIdMythic:
             return RaidDifficulty::Mythic;
         default:
             return std::nullopt;

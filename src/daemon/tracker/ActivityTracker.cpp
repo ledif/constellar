@@ -21,8 +21,6 @@ void ActivityTracker::onLineReceived(LogLine const& line)
     QString const type = line.type();
     if (type == u"ENCOUNTER_START"_s)
     {
-        // Inside an active M+ key, boss pulls are sub-segment chapters of
-        // the dungeon recording, not separate recordings (PLAN.md §3.4).
         if (!m_dungeonActive)
             handleEncounterStart(line);
     }
@@ -41,8 +39,7 @@ void ActivityTracker::onLineReceived(LogLine const& line)
     }
     else if (type == u"MAP_CHANGE"_s)
     {
-        // MAP_CHANGE args: uiMapID, zoneName, x, y, z, w (confirmed against
-        // real logs; not in the original RFC-001 grammar).
+        // MAP_CHANGE args: mapID, zoneName, x, y, z, ?
         if (line.argCount() >= 3)
             Q_EMIT zoneChanged(line.argString(1).toInt(), line.argString(2));
     }
@@ -50,19 +47,14 @@ void ActivityTracker::onLineReceived(LogLine const& line)
 
 void ActivityTracker::handleEncounterStart(LogLine const& line)
 {
-    // ENCOUNTER_START args: encounterID, encounterName, difficultyID,
-    // groupSize, instanceID (PLAN.md §6).
+    // ENCOUNTER_START args: encounterID, encounterName, difficultyID, groupSize, instanceID
     if (line.argCount() < 5)
         return;
 
     if (m_active)
     {
-        // A new pull always follows an ENCOUNTER_END for the previous one,
-        // so if we're still "active" it means the previous encounter's
-        // overrun tail hasn't finished yet (a quick re-pull). Cut it short
-        // now rather than making the new pull wait — the underlying replay
-        // buffer never stops, this only affects where we call the previous
-        // segment finished.
+        // if we're still "active" it means the previous encounter's overrun
+        // tail hasn't finished yet
         if (m_overrunTimer.isActive())
         {
             m_overrunTimer.stop();
@@ -82,6 +74,7 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
         difficultyId,
         line.dateTime(),
     };
+
     m_active = true;
 
     QDateTime const preRollFrom = m_current.startTime.addSecs(-m_config.preRollSeconds);
@@ -91,15 +84,15 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
 void ActivityTracker::handleEncounterEnd(LogLine const& line)
 {
     // ENCOUNTER_END args: encounterID, encounterName, difficultyID,
-    // groupSize, success(0/1) (PLAN.md §6).
+    // groupSize, success(0/1)
     if (!m_active || line.argCount() < 5)
         return;
 
     int const encounterId = line.argString(1).toInt();
     if (encounterId != m_current.encounterId)
     {
-        // Stray END that doesn't match the encounter we're tracking; ignore
-        // rather than risk stopping the wrong recording.
+        // stray END that doesn't match the encounter we're tracking
+        // could this happen?
         return;
     }
 
@@ -121,8 +114,7 @@ void ActivityTracker::finishPendingStop()
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)
 {
-    // CHALLENGE_MODE_START args: zoneName, zoneID, mapID, keystoneLevel,
-    // affixes[] (PLAN.md §6; confirmed against real logs).
+    // CHALLENGE_MODE_START args: zoneName, zoneID, mapID, keystoneLevel, affixes[]
     if (line.argCount() < 5)
         return;
 
@@ -130,18 +122,13 @@ void ActivityTracker::handleChallengeModeStart(LogLine const& line)
     {
         if (m_dungeonOverrunTimer.isActive())
         {
-            // A CHALLENGE_MODE_END always precedes a genuinely new key,
-            // so a start while the previous key's overrun tail is still
-            // pending means that key ended and a new one began quickly.
-            // Cut the tail short rather than making the new key wait.
+            // how can this even happen?
             m_dungeonOverrunTimer.stop();
             finishPendingDungeonStop();
             m_dungeonActive = false;
         }
         else
         {
-            // No pending END: this is zoning in/out of the same still-active
-            // key re-firing the start event. Ignore.
             return;
         }
     }
@@ -156,6 +143,7 @@ void ActivityTracker::handleChallengeModeStart(LogLine const& line)
         level,
         line.dateTime(),
     };
+
     m_dungeonActive = true;
 
     QDateTime const preRollFrom = m_currentDungeon.startTime.addSecs(-m_config.preRollSeconds);
@@ -164,9 +152,7 @@ void ActivityTracker::handleChallengeModeStart(LogLine const& line)
 
 void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
 {
-    // CHALLENGE_MODE_END args: mapID, success(0/1), keystoneLevel,
-    // durationMs, plus trailing fields PLAN.md §6 doesn't mention (confirmed
-    // against real logs; unused here — see HANDOFF.md).
+    // CHALLENGE_MODE_END args: mapID, success(0/1), keystoneLevel, durationMs
     if (!m_dungeonActive || line.argCount() < 5)
         return;
 
