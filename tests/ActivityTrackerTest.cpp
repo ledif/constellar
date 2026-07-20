@@ -148,12 +148,15 @@ void ActivityTrackerTest::startsRecordingAboveThreshold()
 
     // Heroic (15) clears the default minDifficulty of Normal.
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
 
     QCOMPARE(collector.started.size(), 1);
-    QCOMPARE(collector.started.at(0).encounter.encounterId, 2820);
-    QCOMPARE(collector.started.at(0).encounter.encounterName, QStringLiteral("Fyrakk the Blazing"));
+    QCOMPARE(collector.started.at(0).encounter.encounterId, 3306);
+    QCOMPARE(
+        collector.started.at(0).encounter.encounterName,
+        QStringLiteral("Chimaerus the Undreamt God")
+    );
     QCOMPARE(collector.started.at(0).encounter.difficultyId, 15);
     QCOMPARE(
         collector.started.at(0).preRollFrom,
@@ -169,7 +172,7 @@ void ActivityTrackerTest::skipsBelowThreshold()
     // LFR (17) ranks below the default minDifficulty of Normal, despite
     // having a numerically larger difficultyID.
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 17
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 17
     )));
 
     QCOMPARE(collector.started.size(), 0);
@@ -182,7 +185,7 @@ void ActivityTrackerTest::skipsUnknownDifficulty()
 
     // 8 isn't one of the four raid difficulty IDs (e.g. a M+ dungeon ID).
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 8
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 8
     )));
 
     QCOMPARE(collector.started.size(), 0);
@@ -196,10 +199,11 @@ void ActivityTrackerTest::stopsAfterOverrunDelay()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
     tracker.onLineReceived(LogLine(encounterEndLine(
-        QStringLiteral("21:52:31.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, true
+        QStringLiteral("21:52:31.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
+        true
     )));
 
     QCOMPARE(collector.stopped.size(), 0);  // overrun hasn't elapsed yet
@@ -219,15 +223,16 @@ void ActivityTrackerTest::repullDuringOverrunEndsPreviousImmediately()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:00.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
+        QStringLiteral("21:40:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
     tracker.onLineReceived(LogLine(encounterEndLine(
-        QStringLiteral("21:41:00.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, false
+        QStringLiteral("21:41:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
+        false
     )));
 
     // Re-pull the same boss before the 5s overrun tail would have elapsed.
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:41:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
+        QStringLiteral("21:41:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
 
     // The wipe's stop is emitted immediately (pre-empted), not after 5s.
@@ -257,7 +262,8 @@ void ActivityTrackerTest::ignoresStrayEncounterEndWithoutStart()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(encounterEndLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15, true
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
+        true
     )));
 
     QCOMPARE(collector.stopped.size(), 0);
@@ -269,7 +275,7 @@ void ActivityTrackerTest::ignoresMismatchedEncounterEnd()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:05.0000"), 2820, QStringLiteral("Fyrakk the Blazing"), 15
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
     // A END for a different encounterID shouldn't stop the one we're tracking.
     tracker.onLineReceived(LogLine(encounterEndLine(
@@ -286,12 +292,12 @@ void ActivityTrackerTest::dungeonStartsAboveKeystoneThreshold()
 
     // Level 10 clears the default minKeystoneLevel of 2.
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
-    QCOMPARE(collector.dungeonStarted.at(0).dungeon.zoneId, 2652);
-    QCOMPARE(collector.dungeonStarted.at(0).dungeon.mapId, 501);
+    QCOMPARE(collector.dungeonStarted.at(0).dungeon.zoneId, 2811);
+    QCOMPARE(collector.dungeonStarted.at(0).dungeon.mapId, 558);
     QCOMPARE(collector.dungeonStarted.at(0).dungeon.keystoneLevel, 10);
     QCOMPARE(
         collector.dungeonStarted.at(0).preRollFrom,
@@ -306,7 +312,7 @@ void ActivityTrackerTest::dungeonSkipsBelowKeystoneThreshold()
 
     // Level 1 falls below the default minKeystoneLevel of 2.
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 1
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 1
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 0);
@@ -320,10 +326,10 @@ void ActivityTrackerTest::dungeonStopsAfterOverrunDelay()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
     tracker.onLineReceived(
-        LogLine(challengeModeEndLine(QStringLiteral("22:10:00.0000"), 501, true, 10, 1800000))
+        LogLine(challengeModeEndLine(QStringLiteral("22:10:00.0000"), 558, true, 10, 1800000))
     );
 
     QCOMPARE(collector.dungeonStopped.size(), 0);  // overrun hasn't elapsed yet
@@ -344,15 +350,15 @@ void ActivityTrackerTest::dungeonRepullDuringOverrunEndsPreviousImmediately()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
     tracker.onLineReceived(
-        LogLine(challengeModeEndLine(QStringLiteral("21:41:00.0000"), 501, false, 10, 60000))
+        LogLine(challengeModeEndLine(QStringLiteral("21:41:00.0000"), 558, false, 10, 60000))
     );
 
     // A new key starts before the 5s overrun tail would have elapsed.
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:41:05.0000"), QStringLiteral("The Stonevault"), 2652, 501, 12
+        QStringLiteral("21:41:05.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 12
     )));
 
     // The depleted key's stop is emitted immediately (pre-empted), not after 5s.
@@ -368,14 +374,14 @@ void ActivityTrackerTest::dungeonSuppressesNestedEncounterSignals()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
     // A boss pull inside the key is a sub-segment, not a separate recording.
     tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:42:00.0000"), 2661, QStringLiteral("Skarmorak"), 8, 501
+        QStringLiteral("21:42:00.0000"), 3071, QStringLiteral("Arcanotron Custos"), 8, 2811
     )));
     tracker.onLineReceived(LogLine(encounterEndLine(
-        QStringLiteral("21:45:00.0000"), 2661, QStringLiteral("Skarmorak"), 8, true
+        QStringLiteral("21:45:00.0000"), 3071, QStringLiteral("Arcanotron Custos"), 8, true
     )));
 
     QCOMPARE(collector.started.size(), 0);
@@ -389,12 +395,12 @@ void ActivityTrackerTest::dungeonIgnoresReStartWhileStillActive()
     Collector collector(tracker);
 
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:40:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
     // Zoning out and back into the same still-active key re-fires START
     // without an intervening END.
     tracker.onLineReceived(LogLine(challengeModeStartLine(
-        QStringLiteral("21:41:00.0000"), QStringLiteral("The Stonevault"), 2652, 501, 10
+        QStringLiteral("21:41:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
@@ -405,13 +411,13 @@ void ActivityTrackerTest::mapChangeEmitsZoneChanged()
     ActivityTracker tracker({});
     Collector collector(tracker);
 
-    tracker.onLineReceived(LogLine(
-        mapChangeLine(QStringLiteral("18:57:18.8690"), 2533, QStringLiteral("March on Quel'Danas"))
-    ));
+    tracker.onLineReceived(
+        LogLine(mapChangeLine(QStringLiteral("18:57:18.8690"), 2537, QStringLiteral("Quel'Thalas")))
+    );
 
     QCOMPARE(collector.zoneChanges.size(), 1);
-    QCOMPARE(collector.zoneChanges.at(0).mapId, 2533);
-    QCOMPARE(collector.zoneChanges.at(0).zoneName, QStringLiteral("March on Quel'Danas"));
+    QCOMPARE(collector.zoneChanges.at(0).mapId, 2537);
+    QCOMPARE(collector.zoneChanges.at(0).zoneName, QStringLiteral("Quel'Thalas"));
 }
 
 QTEST_MAIN(ActivityTrackerTest)

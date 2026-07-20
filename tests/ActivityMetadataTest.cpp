@@ -12,8 +12,8 @@ void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     RaidEncounter const encounter{
-        .encounterId = 2902,
-        .encounterName = QStringLiteral("Ulgrax the Devourer"),
+        .encounterId = 3306,
+        .encounterName = QStringLiteral("Chimaerus the Undreamt God"),
         .difficultyId = 16,  // Mythic
         .startTime = start,
     };
@@ -21,9 +21,10 @@ void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
     ActivityMetadata const metadata = ActivityMetadata::fromEncounter(encounter);
 
     QCOMPARE(metadata.value(keys::kType).toString(), QString::fromLatin1(keys::kTypeEncounter));
-    QCOMPARE(metadata.value(keys::kEncounterId).toUInt(), 2902u);
+    QCOMPARE(metadata.value(keys::kEncounterId).toUInt(), 3306u);
     QCOMPARE(
-        metadata.value(keys::kEncounterName).toString(), QStringLiteral("Ulgrax the Devourer")
+        metadata.value(keys::kEncounterName).toString(),
+        QStringLiteral("Chimaerus the Undreamt God")
     );
     QCOMPARE(metadata.value(keys::kDifficulty).toString(), QStringLiteral("Mythic"));
     QCOMPARE(metadata.value(keys::kDifficultyId).toUInt(), 16u);
@@ -33,8 +34,8 @@ void ActivityMetadataTest::encounterMetadataMapsDifficultyAndName()
 void ActivityMetadataTest::encounterMetadataUnknownDifficultyIdIsUnknown()
 {
     RaidEncounter const encounter{
-        .encounterId = 1,
-        .encounterName = QStringLiteral("Test"),
+        .encounterId = 3177,
+        .encounterName = QStringLiteral("Vorasius"),
         .difficultyId = 999,
     };
 
@@ -48,8 +49,8 @@ void ActivityMetadataTest::encounterEndedMetadataAddsSuccessAndStopTime()
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
     RaidEncounter const encounter{
-        .encounterId = 1,
-        .encounterName = QStringLiteral("Test"),
+        .encounterId = 3177,
+        .encounterName = QStringLiteral("Vorasius"),
         .difficultyId = 14,  // Normal
     };
 
@@ -67,18 +68,18 @@ void ActivityMetadataTest::dungeonMetadataMapsKeystoneLevel()
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     DungeonRun const dungeon{
-        .zoneId = 501,
-        .mapId = 2255,
-        .keystoneLevel = 18,
+        .zoneId = 2811,
+        .mapId = 558,
+        .keystoneLevel = 10,
         .startTime = start,
     };
 
     ActivityMetadata const metadata = ActivityMetadata::fromDungeon(dungeon);
 
     QCOMPARE(metadata.value(keys::kType).toString(), QString::fromLatin1(keys::kTypeDungeon));
-    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2255u);
-    QCOMPARE(metadata.value(keys::kZoneId).toUInt(), 501u);
-    QCOMPARE(metadata.value(keys::kKeystoneLevel).toUInt(), 18u);
+    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 558u);
+    QCOMPARE(metadata.value(keys::kZoneId).toUInt(), 2811u);
+    QCOMPARE(metadata.value(keys::kKeystoneLevel).toUInt(), 10u);
     QCOMPARE(metadata.value(keys::kStartTime).toLongLong(), start.toMSecsSinceEpoch());
 }
 
@@ -87,9 +88,9 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
     QDateTime const stopTime =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
     DungeonRun const dungeon{
-        .zoneId = 501,
-        .mapId = 2255,
-        .keystoneLevel = 18,
+        .zoneId = 2811,
+        .mapId = 558,
+        .keystoneLevel = 10,
     };
 
     ActivityMetadata const metadata =
@@ -103,10 +104,10 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
 void ActivityMetadataTest::zoneMetadataMapsMapIdAndZoneName()
 {
     ActivityMetadata const metadata =
-        ActivityMetadata::fromZone(2214, QStringLiteral("March on Quel'Danas"));
+        ActivityMetadata::fromZone(2529, QStringLiteral("The Voidspire"));
 
-    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2214u);
-    QCOMPARE(metadata.value(keys::kZoneName).toString(), QStringLiteral("March on Quel'Danas"));
+    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2529u);
+    QCOMPARE(metadata.value(keys::kZoneName).toString(), QStringLiteral("The Voidspire"));
 }
 
 QTEST_MAIN(ActivityMetadataTest)
