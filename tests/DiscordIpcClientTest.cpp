@@ -25,8 +25,6 @@ QByteArray encodeFrame(qint32 opcode, QJsonObject const& payload)
     return frame;
 }
 
-// Reads exactly one frame off a socket that's already known to have one
-// buffered (caller QTRY_VERIFYs bytesAvailable() first).
 bool decodeFrame(QLocalSocket& socket, qint32& opcode, QJsonObject& payload)
 {
     if (socket.bytesAvailable() < 8)

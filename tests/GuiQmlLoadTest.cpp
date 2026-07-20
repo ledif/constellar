@@ -11,9 +11,7 @@ void GuiQmlLoadTest::loadsWithoutErrors()
 
     engine.loadFromModule("io.github.ledif.constellar", "Main");
 
-    QVERIFY2(
-        !engine.rootObjects().isEmpty(), "Main.qml failed to instantiate; see stderr for QML errors"
-    );
+    QVERIFY2(!engine.rootObjects().isEmpty(), "Main.qml failed to instantiate");
     QVERIFY2(warnings.isEmpty(), "QML engine emitted warnings while loading Main.qml");
 }
 

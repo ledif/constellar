@@ -98,9 +98,6 @@ struct ZoneChanged
     QString zoneName;
 };
 
-// Collects signal emissions via plain lambdas rather than QSignalSpy, same
-// reasoning as LogWatcherTest: the signal parameters (RaidEncounter,
-// DungeonRun) aren't registered QMetaTypes.
 struct Collector
 {
     explicit Collector(ActivityTracker& tracker)

@@ -11,9 +11,6 @@
 namespace
 {
 
-// LogSignalSpy avoids registering LogLine with the QMetaType system (which
-// QSignalSpy would otherwise need for a non-trivial parameter type) by just
-// collecting the interesting bits via a plain lambda connection.
 class ReceivedLines
 {
   public:
