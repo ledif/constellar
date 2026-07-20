@@ -36,9 +36,8 @@ until grep -q "running, watching" "$daemon_log" 2>/dev/null; do
   sleep 0.2
 done
 
-# Above-threshold (Normal) encounter with no END: the activity stays
-# populated, so there's no overrun wait to poll for.
 printf '%s\n' \
+  '7/16/2026 18:57:18.869-5  MAP_CHANGE,2533,"March on Quel'"'"'Danas",10956.250000,10152.083008,-4002.083984,-5208.333984' \
   '7/15/2026 18:42:33.566-5  ENCOUNTER_START,3182,"Belo'"'"'ren, Child of Al'"'"'ar",14,11,2913' \
   >"$log_dir/WoWCombatLog.txt"
 
@@ -65,6 +64,16 @@ fi
 
 if ! echo "$status_json" | grep -q '"difficulty":"Normal"'; then
   echo "FAIL: expected difficulty \"Normal\", got: $status_json" >&2
+  exit 1
+fi
+
+if ! echo "$status_json" | grep -q '"zoneName":"March on Quel'"'"'Danas"'; then
+  echo "FAIL: expected zoneName \"March on Quel'Danas\", got: $status_json" >&2
+  exit 1
+fi
+
+if ! echo "$status_json" | grep -q '"mapId":2533'; then
+  echo "FAIL: expected mapId 2533, got: $status_json" >&2
   exit 1
 fi
 

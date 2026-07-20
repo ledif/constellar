@@ -82,17 +82,9 @@ run-cli *args:
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/cli/constellarctl {{args}}
 
-# Run daemon+CLI smoke test on a private bus inside the container
+# Run the daemon+CLI integration test on a private bus inside the container
 smoke:
-    {{podman_run}} dbus-run-session -- bash -c ' \
-        ./{{build_dir}}/src/daemon/constellard --log-dir /tmp & \
-        pid=$!; \
-        sleep 1; \
-        ./{{build_dir}}/src/cli/constellarctl status; \
-        status=$?; \
-        kill $pid; \
-        exit $status \
-    '
+    {{podman_run}} ctest --test-dir {{build_dir}} -L integration -V
 
 # Launch the GUI
 run-gui:
