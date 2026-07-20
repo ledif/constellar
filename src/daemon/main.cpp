@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <filesystem>
 
 #include <QCommandLineOption>
@@ -27,6 +28,10 @@ constexpr QStringView kDefaultDiscordAppId = u"1527462779290652672";
 
 int main(int argc, char* argv[])
 {
+    // if we're not running with journald, force stderr to be flushed
+    if (!qEnvironmentVariableIsSet("JOURNAL_STREAM"))
+        qputenv("QT_FORCE_STDERR_LOGGING", "1");
+
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"constellard"_s);
 
@@ -52,7 +57,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    auto* service = new ObserverService(std::filesystem::path(logDirectory.toStdString()), &app);
+    auto* service =
+        new ObserverService(std::filesystem::path(logDirectory.toStdString()), /*config*/ {}, &app);
     new ObserverDBusAdaptor(service);
 
     QString discordAppId =

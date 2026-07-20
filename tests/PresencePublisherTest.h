@@ -15,4 +15,5 @@ class PresencePublisherTest : public QObject
     void activitiesIncludeLargeImageAsset();
     void activityForKeepsEncounterAcrossZoneChange();
     void activityForFallsBackToIdleWhenActivityEmpty();
+    void zoneChangeMidEncounterKeepsEncounterPresence();
 };

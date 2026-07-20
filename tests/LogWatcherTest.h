@@ -12,4 +12,5 @@ class LogWatcherTest : public QObject
     void resetsOffsetOnFileRecreation();
     void ignoresNonCombatLogFiles();
     void emitsIdleTimeoutAfterInactivity();
+    void tailsMultipleCombatLogFiles();
 };

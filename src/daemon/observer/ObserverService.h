@@ -14,7 +14,10 @@ class ObserverService : public QObject
     Q_OBJECT
 
   public:
-    explicit ObserverService(std::filesystem::path const& logDirectory, QObject* parent = nullptr);
+    explicit ObserverService(
+        std::filesystem::path const& logDirectory, ActivityTracker::Config config = {},
+        QObject* parent = nullptr
+    );
 
     bool start();
 

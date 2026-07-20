@@ -16,7 +16,16 @@ class DiscordIpcClient : public QObject
     Q_OBJECT
 
   public:
+    struct Config
+    {
+        int throttleIntervalMs = 15'000;
+        int reconnectIntervalMs = 5'000;
+        int connectTimeoutMs = 200;
+    };
+
     explicit DiscordIpcClient(QString appId, QObject* parent = nullptr);
+    DiscordIpcClient(QString appId, Config config, QObject* parent = nullptr);
+    ~DiscordIpcClient() override;
 
     void start();
 
@@ -45,6 +54,7 @@ class DiscordIpcClient : public QObject
     static QString socketPath(int index);
 
     QString m_appId;
+    Config m_config;
     QLocalSocket m_socket;
     QByteArray m_readBuffer;
     bool m_ready = false;

@@ -2,11 +2,13 @@
 
 #include "ActivityMetadata.h"
 
-ObserverService::ObserverService(std::filesystem::path const& logDirectory, QObject* parent)
+ObserverService::ObserverService(
+    std::filesystem::path const& logDirectory, ActivityTracker::Config config, QObject* parent
+)
     : QObject(parent),
       m_logDirectory(logDirectory),
       m_watcher(logDirectory),
-      m_tracker(ActivityTracker::Config{})
+      m_tracker(std::move(config))
 {
     // send lines to the activity tracker
     connect(&m_watcher, &LogWatcher::lineReceived, &m_tracker, &ActivityTracker::onLineReceived);

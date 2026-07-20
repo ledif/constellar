@@ -17,6 +17,8 @@ ecm_add_qml_module(constellar-qml
     qml/StatusPage.qml
 )
 
+target_include_directories(constellar-qml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_link_libraries(constellar-qml
   PUBLIC
     Qt6::Core

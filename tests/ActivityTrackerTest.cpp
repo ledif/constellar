@@ -56,10 +56,13 @@ QString mapChangeLine(QString const& hms, int mapId, QString const& zoneName)
                .arg(zoneName);
 }
 
-QString challengeModeEndLine(QString const& hms, int mapId, bool success, int level, int durationMs)
+QString challengeModeEndLine(
+    QString const& hms, int leadingId, bool success, int level, int durationMs
+)
 {
+    // leadingId: real logs put the zoneID here, not the mapID.
     return timestamp(hms) + QStringLiteral("  CHALLENGE_MODE_END,%1,%2,%3,%4,0.000000,0.000000")
-                                .arg(mapId)
+                                .arg(leadingId)
                                 .arg(success ? 1 : 0)
                                 .arg(level)
                                 .arg(durationMs);
@@ -238,6 +241,44 @@ void ActivityTrackerTest::repullDuringOverrunEndsPreviousImmediately()
     QCOMPARE(collector.started.size(), 2);
 }
 
+void ActivityTrackerTest::encounterOverlapWithoutEndWipesPrevious()
+{
+    ActivityTracker tracker({});
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:40:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+    // A fresh START for a new pull, with no ENCOUNTER_END in between.
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:41:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+
+    QCOMPARE(collector.stopped.size(), 1);
+    QCOMPARE(collector.stopped.at(0).success, false);
+    QCOMPARE(collector.stopped.at(0).stopTime, collector.started.at(1).encounter.startTime);
+    QCOMPARE(collector.started.size(), 2);
+}
+
+void ActivityTrackerTest::encounterEndSuccessFalseIsRecorded()
+{
+    ActivityTracker::Config config;
+    config.raidOverrunSeconds = 1;
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+    tracker.onLineReceived(LogLine(encounterEndLine(
+        QStringLiteral("21:52:31.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
+        false
+    )));
+
+    QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
+    QCOMPARE(collector.stopped.at(0).success, false);
+}
+
 void ActivityTrackerTest::ignoresUnhandledLines()
 {
     ActivityTracker tracker({});
@@ -401,6 +442,25 @@ void ActivityTrackerTest::dungeonIgnoresReStartWhileStillActive()
     )));
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
+}
+
+void ActivityTrackerTest::dungeonEndEndsActiveKeyRegardlessOfArgs()
+{
+    ActivityTracker::Config config;
+    config.dungeonOverrunSeconds = 1;
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(challengeModeStartLine(
+        QStringLiteral("21:40:00.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 10
+    )));
+    // The END's leading id (9999) doesn't match the active key's zoneId (2811)
+    // or mapId (558) — you can only be in one key at a time, so it still ends it.
+    tracker.onLineReceived(
+        LogLine(challengeModeEndLine(QStringLiteral("21:41:00.0000"), 9999, true, 10, 60000))
+    );
+
+    QTRY_COMPARE_WITH_TIMEOUT(collector.dungeonStopped.size(), 1, 2500);
 }
 
 void ActivityTrackerTest::mapChangeEmitsZoneChanged()

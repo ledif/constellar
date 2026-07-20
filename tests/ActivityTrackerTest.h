@@ -12,6 +12,8 @@ class ActivityTrackerTest : public QObject
     void skipsUnknownDifficulty();
     void stopsAfterOverrunDelay();
     void repullDuringOverrunEndsPreviousImmediately();
+    void encounterOverlapWithoutEndWipesPrevious();
+    void encounterEndSuccessFalseIsRecorded();
     void ignoresUnhandledLines();
     void ignoresStrayEncounterEndWithoutStart();
     void ignoresMismatchedEncounterEnd();
@@ -22,6 +24,7 @@ class ActivityTrackerTest : public QObject
     void dungeonRepullDuringOverrunEndsPreviousImmediately();
     void dungeonSuppressesNestedEncounterSignals();
     void dungeonIgnoresReStartWhileStillActive();
+    void dungeonEndEndsActiveKeyRegardlessOfArgs();
 
     void mapChangeEmitsZoneChanged();
 };

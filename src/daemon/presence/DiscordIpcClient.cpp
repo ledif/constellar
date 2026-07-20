@@ -17,20 +17,17 @@ constexpr qint32 kOpClose = 2;
 constexpr qint32 kOpPing = 3;
 constexpr qint32 kOpPong = 4;
 
-// Discord recommends 1 update per 15s
-// https://github.com/discord/discord-api-docs/issues/668
-constexpr int kThrottleIntervalMs = 15'000;
-
-constexpr int kReconnectIntervalMs = 5'000;
-
 constexpr int kSocketPathCount = 10;
-
-constexpr int kConnectTimeoutMs = 200;
 
 }  // namespace
 
 DiscordIpcClient::DiscordIpcClient(QString appId, QObject* parent)
-    : QObject(parent), m_appId(std::move(appId))
+    : DiscordIpcClient(std::move(appId), Config{}, parent)
+{
+}
+
+DiscordIpcClient::DiscordIpcClient(QString appId, Config config, QObject* parent)
+    : QObject(parent), m_appId(std::move(appId)), m_config(config)
 {
     m_reconnectTimer.setSingleShot(true);
     connect(&m_reconnectTimer, &QTimer::timeout, this, &DiscordIpcClient::attemptConnect);
@@ -42,6 +39,15 @@ DiscordIpcClient::DiscordIpcClient(QString appId, QObject* parent)
     connect(&m_socket, &QLocalSocket::readyRead, this, &DiscordIpcClient::onReadyRead);
     connect(&m_socket, &QLocalSocket::disconnected, this, &DiscordIpcClient::onDisconnected);
     connect(&m_socket, &QLocalSocket::errorOccurred, this, &DiscordIpcClient::onSocketError);
+}
+
+DiscordIpcClient::~DiscordIpcClient()
+{
+    // Sever the socket's signals before members tear down. ~QLocalSocket calls
+    // abort(), which emits disconnected/errorOccurred; left connected, those
+    // slots would fire during destruction and touch m_reconnectTimer /
+    // m_throttleTimer, which are declared after m_socket and so already gone.
+    m_socket.disconnect(this);
 }
 
 void DiscordIpcClient::start()
@@ -95,7 +101,7 @@ void DiscordIpcClient::sendPending()
 
     sendFrame(kOpFrame, command);
     m_pendingActivity.reset();
-    m_throttleTimer.start(kThrottleIntervalMs);
+    m_throttleTimer.start(m_config.throttleIntervalMs);
 }
 
 void DiscordIpcClient::flushThrottle()
@@ -114,7 +120,7 @@ void DiscordIpcClient::attemptConnect()
             m_socket.abort();
 
         m_socket.connectToServer(socketPath(index));
-        if (m_socket.waitForConnected(kConnectTimeoutMs))
+        if (m_socket.waitForConnected(m_config.connectTimeoutMs))
             return;
     }
 }
@@ -195,7 +201,7 @@ void DiscordIpcClient::scheduleReconnect()
 {
     if (m_socket.state() != QLocalSocket::UnconnectedState)
         m_socket.abort();
-    m_reconnectTimer.start(kReconnectIntervalMs);
+    m_reconnectTimer.start(m_config.reconnectIntervalMs);
 }
 
 void DiscordIpcClient::sendFrame(qint32 opcode, QJsonObject const& payload)

@@ -150,4 +150,28 @@ void LogWatcherTest::emitsIdleTimeoutAfterInactivity()
     QVERIFY(idleSpy.wait(2000));
 }
 
+void LogWatcherTest::tailsMultipleCombatLogFiles()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    LogWatcher watcher(dir.path().toStdString());
+    ReceivedLines received(watcher);
+    QVERIFY(watcher.start());
+
+    QFile file1(dir.filePath(QStringLiteral("WoWCombatLog.txt")));
+    QVERIFY(file1.open(QIODevice::WriteOnly));
+    file1.write((timestampPrefix() + QStringLiteral("ZONE_CHANGE,1,\"A\",1\n")).toUtf8());
+    file1.close();
+
+    QFile file2(dir.filePath(QStringLiteral("WoWCombatLog-2.txt")));
+    QVERIFY(file2.open(QIODevice::WriteOnly));
+    file2.write((timestampPrefix() + QStringLiteral("ZONE_CHANGE,2,\"B\",2\n")).toUtf8());
+    file2.close();
+
+    QTRY_COMPARE_WITH_TIMEOUT(received.lines().size(), 2, 2000);
+    QVERIFY(received.lines().at(0).contains(QStringLiteral("\"A\"")));
+    QVERIFY(received.lines().at(1).contains(QStringLiteral("\"B\"")));
+}
+
 QTEST_MAIN(LogWatcherTest)

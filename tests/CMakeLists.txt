@@ -33,8 +33,8 @@ constellar_add_test(activitytracker_test
 )
 
 constellar_add_test(presencepublisher_test
-    SOURCES PresencePublisherTest.h PresencePublisherTest.cpp
-    LIBS constellar::presence
+    SOURCES PresencePublisherTest.h PresencePublisherTest.cpp DiscordFrame.h
+    LIBS Qt6::Network constellar::presence
 )
 
 constellar_add_test(gamestate_test
@@ -43,7 +43,7 @@ constellar_add_test(gamestate_test
 )
 
 constellar_add_test(discordipcclient_test
-    SOURCES DiscordIpcClientTest.h DiscordIpcClientTest.cpp
+    SOURCES DiscordIpcClientTest.h DiscordIpcClientTest.cpp DiscordFrame.h
     LIBS Qt6::Network constellar::presence
 )
 
@@ -62,8 +62,24 @@ constellar_add_test(activitymetadata_test
     LIBS constellar::activitymetadata
 )
 
+constellar_add_test(observerservice_test
+    SOURCES ObserverServiceTest.h ObserverServiceTest.cpp
+    LIBS constellar::observer
+)
+
 constellar_add_test(gui_qml_load_test
     SOURCES GuiQmlLoadTest.h GuiQmlLoadTest.cpp
     LIBS Qt6::Gui Qt6::Qml Qt6::Quick constellar-qml
 )
 set_tests_properties(gui_qml_load_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+constellar_add_test(activitymodel_test
+    SOURCES ActivityModelTest.h ActivityModelTest.cpp
+    LIBS Qt6::Gui Qt6::Qml Qt6::Quick constellar-qml
+)
+set_tests_properties(activitymodel_test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_test(NAME integration_status
+    COMMAND dbus-run-session -- bash ${CMAKE_CURRENT_SOURCE_DIR}/integration/smoke.sh
+            $<TARGET_FILE:constellard> $<TARGET_FILE:constellarctl>)
+set_tests_properties(integration_status PROPERTIES LABELS integration TIMEOUT 30)

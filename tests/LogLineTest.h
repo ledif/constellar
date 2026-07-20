@@ -13,6 +13,8 @@ class LogLineTest : public QObject
     void nestedList();
     void timestampParsing();
     void timestampWithTimezoneOffset();
+    void timestampWithPositiveOffset();
+    void timestampWithHourMinuteOffset();
     void invalidTimestampSeparator();
     void unbalancedBracketIsInvalid();
     void emptyFieldsBetweenCommas();

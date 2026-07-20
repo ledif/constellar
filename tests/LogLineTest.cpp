@@ -111,6 +111,24 @@ void LogLineTest::timestampWithTimezoneOffset()
     QCOMPARE(dt.offsetFromUtc(), -5 * 3600);
 }
 
+void LogLineTest::timestampWithPositiveOffset()
+{
+    LogLine line(QStringLiteral("7/11/2026 05:20:02.169+2  COMBAT_LOG_VERSION,22"));
+    QVERIFY(line.isValid());
+    QDateTime const dt = line.dateTime();
+    QVERIFY(dt.isValid());
+    QCOMPARE(dt.offsetFromUtc(), 2 * 3600);
+}
+
+void LogLineTest::timestampWithHourMinuteOffset()
+{
+    LogLine line(QStringLiteral("7/11/2026 05:20:02.169+5:30  COMBAT_LOG_VERSION,22"));
+    QVERIFY(line.isValid());
+    QDateTime const dt = line.dateTime();
+    QVERIFY(dt.isValid());
+    QCOMPARE(dt.offsetFromUtc(), 5 * 3600 + 30 * 60);
+}
+
 void LogLineTest::invalidTimestampSeparator()
 {
     // Missing the two-space separator between timestamp and payload.

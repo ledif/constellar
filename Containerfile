@@ -22,6 +22,10 @@ RUN dnf install -y --setopt=install_weak_deps=False \
         dbus-devel \
         dbus-daemon \
         dbus-tools \
+        gdb \
+        valgrind \
+        libasan \
+        libubsan \
         python3.12 \
     && dnf clean all
 
