@@ -43,10 +43,7 @@ DiscordIpcClient::DiscordIpcClient(QString appId, Config config, QObject* parent
 
 DiscordIpcClient::~DiscordIpcClient()
 {
-    // Sever the socket's signals before members tear down. ~QLocalSocket calls
-    // abort(), which emits disconnected/errorOccurred; left connected, those
-    // slots would fire during destruction and touch m_reconnectTimer /
-    // m_throttleTimer, which are declared after m_socket and so already gone.
+    // found that we need this through some painful debugging
     m_socket.disconnect(this);
 }
 

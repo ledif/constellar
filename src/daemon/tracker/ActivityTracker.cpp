@@ -81,13 +81,13 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
     {
         if (m_overrunTimer.isActive())
         {
-            // previous pull's overrun tail hadn't elapsed — flush its real END result
+            // previous pull's overrun tail hasn't elapsed, so let's manually end it
             m_overrunTimer.stop();
             finishPendingStop();
         }
         else
         {
-            // fresh START with no END in between: the previous pull was a wipe
+            // fresh START with no END for previous (player messing with /combatlog?)
             m_pendingSuccess = false;
             m_pendingStopTime = line.dateTime();
             finishPendingStop();
@@ -184,9 +184,7 @@ void ActivityTracker::handleChallengeModeStart(LogLine const& line)
 
 void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
 {
-    // CHALLENGE_MODE_END args: zoneID, success(0/1), keystoneLevel, durationMs.
-    // We don't match arg1 against the active key: you can only be in one key
-    // at a time, so any END while a key is active ends it.
+    // CHALLENGE_MODE_END args: zoneID, success(0/1), keystoneLevel, durationMs
     if (!m_dungeonActive || line.argCount() < 5)
         return;
 
