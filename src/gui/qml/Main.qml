@@ -1,7 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 
-import io.github.ledif.constellar
+import dev.ulduar.Constellar
 
 Kirigami.ApplicationWindow {
     id: root

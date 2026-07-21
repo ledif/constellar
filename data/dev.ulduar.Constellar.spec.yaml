@@ -1,4 +1,4 @@
-# Sidecar spec for io.github.ledif.constellar.xml.
+# Sidecar spec for dev.ulduar.Constellar.xml.
 #
 #  Source of truth for the Observer `a{sv}` key vocabulary
 
@@ -9,7 +9,7 @@ about: >
   downstream clients (a Discord presence client, a future video-recording client).
 
 interfaces:
-  io.github.ledif.constellar.Observer:
+  dev.ulduar.Constellar.Observer:
     description: >
       Exposes World of Warcraft's current in-game activity and location.
 

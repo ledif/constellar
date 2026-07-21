@@ -6,7 +6,7 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.delegates as Delegates
 
-import io.github.ledif.constellar
+import dev.ulduar.Constellar
 
 Kirigami.Page {
     id: root

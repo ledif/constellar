@@ -18,8 +18,8 @@ All builds run in a podman container. Assume host has no build tools besides uv.
 ## Conventions
 
 - C++26 and Qt6.
-- DBus interface XML in `data/` is the source of truth for the wire shape (`io.github.ledif.constellar.Observer`). Client proxy is generated (`qdbusxml2cpp`); server adaptor is hand-written. Keep them in sync manually when the XML changes.
-- The `a{sv}` key vocabulary's source of truth is `data/io.github.ledif.constellar.spec.yaml` and `src/common/ActivityKeys.h` is generated from it (`just spec-gen`, checked by `just check-spec`).
+- DBus interface XML in `data/` is the source of truth for the wire shape (`dev.ulduar.Constellar.Observer`). Client proxy is generated (`qdbusxml2cpp`); server adaptor is hand-written. Keep them in sync manually when the XML changes.
+- The `a{sv}` key vocabulary's source of truth is `data/dev.ulduar.Constellar.spec.yaml` and `src/common/ActivityKeys.h` is generated from it (`just spec-gen`, checked by `just check-spec`).
 - CMake is hand-formatted, cmake-format is for reference
 
 ### Qt Conventions

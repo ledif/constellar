@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from .spec import Spec
 
-_MARKER = "// GENERATED from data/io.github.ledif.constellar.spec.yaml"
+_MARKER = "// GENERATED from data/dev.ulduar.Constellar.spec.yaml"
 
 # ActivityKeys.h is generated from the Observer interface's bags specifically,
 # regardless of how many other interfaces the spec grows.
-_OBSERVER = "io.github.ledif.constellar.Observer"
+_OBSERVER = "dev.ulduar.Constellar.Observer"
 
 
 def _const_line(key: dict) -> str:

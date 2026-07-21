@@ -39,7 +39,7 @@ test:
 qmllint:
     {{podman_run}} cmake --build {{build_dir}} --target all_qmllint
 
-# Regenerate ActivityKeys.h from data/io.github.ledif.constellar.spec.yaml
+# Regenerate ActivityKeys.h from data/dev.ulduar.Constellar.spec.yaml
 spec-gen:
     {{podman_run}} cmake --build {{build_dir}} --target spec-gen
 

@@ -5,5 +5,5 @@ pre-commit:
       run: just format {staged_files}
       stage_fixed: true
     check-spec:
-      glob: "data/io.github.ledif.constellar.{xml,spec.yaml}"
+      glob: "data/dev.ulduar.Constellar.{xml,spec.yaml}"
       run: just check-spec

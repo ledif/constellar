@@ -1,4 +1,4 @@
-"""Parsing of the D-Bus XML wire shape (io.github.ledif.constellar.xml).
+"""Parsing of the D-Bus XML wire shape (dev.ulduar.Constellar.xml).
 
 The sidecar (spec.py) owns prose and the a{sv} key vocabulary; this module
 owns interface/method/signal/property *shapes* only, read straight from the
