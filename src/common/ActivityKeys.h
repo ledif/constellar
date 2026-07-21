@@ -23,12 +23,9 @@ inline constexpr auto kDurationMs = "durationMs";
 inline constexpr auto kStopTime = "stopTime";
 
 // Location stuff
-inline constexpr auto kUiMapId = "uiMapId";
-inline constexpr auto kUiMapName = "uiMapName";
-inline constexpr auto kUiMapBounds = "uiMapBounds";
-inline constexpr auto kZoneInstanceId = "zoneInstanceId";
 inline constexpr auto kZoneName = "zoneName";
-inline constexpr auto kZoneDifficultyId = "zoneDifficultyId";
+inline constexpr auto kZoneCategory = "zoneCategory";
+inline constexpr auto kUiMapId = "uiMapId";
 
 // kType ("type") values
 inline constexpr auto kTypeEncounter = "encounter";

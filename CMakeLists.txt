@@ -19,7 +19,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 find_package(ECM 6.0.0 REQUIRED NO_MODULE)
-list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 include(KDEInstallDirs)
 
 find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test Widgets Quick QuickControls2)
@@ -30,6 +30,8 @@ find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons QQC2DesktopStyle I
 add_compile_definitions(QT_NO_KEYWORDS)
 
 enable_testing()
+
+include(SpecDoc)
 
 add_subdirectory(src/common)
 add_subdirectory(src/client)

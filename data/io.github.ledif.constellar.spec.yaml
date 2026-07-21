@@ -1,197 +1,210 @@
 # Sidecar spec for io.github.ledif.constellar.xml.
 #
-# This file is the single source of truth for the `a{sv}` key vocabulary.
-# ActivityEnded, Location) and all documentation prose for the Observer interface. The
-# XML stays canonical for the wire shape (interfaces/methods/args/signals/properties);
-# this file never touches qdbusxml2cpp.
-#
+#  Source of truth for the Observer `a{sv}` key vocabulary
 
 spec-version: "0.2"
+about: >
+  Constellar is a D-Bus daemon and set of clients for World of Warcraft. The daemon
+  publishes live game state (e.g., the player's current dungeon / raid or in-game location) for
+  downstream clients (a Discord presence client, a future video-recording client).
 
-interface:
-  name: io.github.ledif.constellar.Observer
-  description: >
-    Exposes World of Warcraft's current in-game activity and location.
-
-bags:
-  Activity:
-    description: The player's current instanced activity. Empty dict when idle.
-    keys:
-      - const: kType
-        key: type
-        type: s
-        applies-to: [encounter, dungeon]
-        required: true
-        stability: stable
-        description: '"encounter" | "dungeon".'
-        enum: [encounter, dungeon]
-      - const: kEncounterId
-        key: encounterId
-        type: u
-        applies-to: [encounter]
-        required: true
-        stability: stable
-        description: Encounter ID (encounter only).
-      - const: kEncounterName
-        key: encounterName
-        type: s
-        applies-to: [encounter]
-        required: true
-        stability: stable
-        description: Encounter name (encounter only).
-      - const: kDifficulty
-        key: difficulty
-        type: s
-        applies-to: [encounter]
-        required: true
-        stability: stable
-        description: 'LFR|Normal|Heroic|Mythic|Unknown (encounter only).'
-      - const: kDifficultyId
-        key: difficultyId
-        type: u
-        applies-to: [encounter]
-        required: true
-        stability: stable
-        description: Raw WoW difficultyID (encounter only).
-      - const: kZoneId
-        key: zoneId
-        type: u
-        applies-to: [dungeon]
-        required: true
-        stability: stable
-        description: Dungeon instance zone ID (dungeon only).
-      - const: kKeystoneLevel
-        key: keystoneLevel
-        type: u
-        applies-to: [dungeon]
-        required: true
-        stability: stable
-        description: Mythic+ keystone level (dungeon only).
-      - const: kStartTime
-        key: startTime
-        type: x
-        applies-to: [encounter, dungeon]
-        required: true
-        stability: stable
-        description: Unix epoch milliseconds.
-      - const: kChallengeMapId
-        key: challengeMapId
-        type: u
-        applies-to: [dungeon]
-        required: true
-        stability: stable
-        description: Mythic+ challenge-mode map ID (dungeon only).
-    ended-additions:
-      - const: kSuccess
-        key: success
-        type: b
-        applies-to: [encounter, dungeon]
-        required: true
-        stability: stable
-        description: Whether the activity ended in success.
-      - const: kDurationMs
-        key: durationMs
-        type: x
-        applies-to: [dungeon]
-        required: true
-        stability: stable
-        description: Run duration in milliseconds (dungeon only).
-      - const: kStopTime
-        key: stopTime
-        type: x
-        applies-to: [encounter, dungeon]
-        required: true
-        stability: stable
-        description: Unix epoch milliseconds.
-  Location:
-    description: Where the player is in the world. Two independently-updated halves.
-    keys:
-      - const: kUiMapId
-        key: uiMapId
-        type: u
-        required: true
-        stability: stable
-        description: MAP_CHANGE; the cartographic map (M-key).
-      - const: kUiMapName
-        key: uiMapName
-        type: s
-        required: true
-        stability: stable
-        description: MAP_CHANGE.
-      - const: kUiMapBounds
-        key: uiMapBounds
-        type: ad
-        required: false
-        stability: stable
-        description: 'MAP_CHANGE; [x0,x1,y0,y1] world bounds, omitted when invalid.'
-      - const: kZoneInstanceId
-        key: zoneInstanceId
-        type: u
-        required: true
-        stability: stable
-        description: 'ZONE_CHANGE; Map id, 0 in open world.'
-      - const: kZoneName
-        key: zoneName
-        type: s
-        required: true
-        stability: stable
-        description: ZONE_CHANGE; real zone text.
-      - const: kZoneDifficultyId
-        key: zoneDifficultyId
-        type: u
-        required: true
-        stability: stable
-        description: 'ZONE_CHANGE; 0 when not instanced.'
-
-methods:
-  Pause:
-    description: Pause activity detection and recording.
-    stability: stable
-  Resume:
-    description: Resume activity detection and recording.
-    stability: stable
-  StartManualRecording:
-    description: Start a manual recording outside activity detection.
-    stability: stable
-  StopManualRecording:
-    description: Stop a manual recording started with StartManualRecording.
-    stability: stable
-  ReloadConfig:
-    description: Reload the on-disk configuration.
-    stability: stable
-  ListRecordings:
-    description: List recordings, optionally filtered.
-    stability: experimental
-  DeleteRecording:
-    description: Delete a recording by id.
-    stability: experimental
-  GetConfig:
-    description: Fetch the current configuration as an a{sv} bag.
-    stability: experimental
-  SetConfig:
-    description: Replace the current configuration from an a{sv} bag.
-    stability: experimental
-
-signals:
-  ActivityEnded:
+interfaces:
+  io.github.ledif.constellar.Observer:
     description: >
-      The one genuine edge: fires when an Activity concludes, carrying the Activity bag
-      plus its ended-additions (success, durationMs, stopTime).
-    stability: stable
-  Error:
-    description: >
-      Reports a daemon-side error condition. Declared but not yet emitted by any code
-      path; the code vocabulary below is a forward-looking contract.
-    stability: experimental
+      Exposes World of Warcraft's current in-game activity and location.
 
-# Error signal `code` vocabulary. Experimental: documented ahead of any emit site.
-errors:
-  - code: daemon-error
-    stability: experimental
-    description: Generic, unclassified daemon-side failure.
-  - code: config-invalid
-    stability: experimental
-    description: SetConfig was called with an invalid configuration bag.
-  - code: recording-failed
-    stability: experimental
-    description: A recording operation (start/stop/delete) failed.
+    bags:
+      Activity:
+        description: The player's current instanced activity. Empty when idle.
+        keys:
+          - const: kType
+            key: type
+            type: s
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: '"encounter" | "dungeon".'
+            enum: [encounter, dungeon]
+
+          - const: kEncounterId
+            key: encounterId
+            type: u
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Encounter ID (encounter only).
+
+          - const: kEncounterName
+            key: encounterName
+            type: s
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Encounter name (encounter only).
+
+          - const: kDifficulty
+            key: difficulty
+            type: s
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: 'LFR|Normal|Heroic|Mythic|Unknown (encounter only).'
+
+          - const: kDifficultyId
+            key: difficultyId
+            type: u
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Raw WoW difficultyID (encounter only).
+
+          - const: kZoneId
+            key: zoneId
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Dungeon instance zone ID (dungeon only).
+
+          - const: kKeystoneLevel
+            key: keystoneLevel
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Mythic+ keystone level (dungeon only).
+
+          - const: kStartTime
+            key: startTime
+            type: x
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: Unix epoch milliseconds.
+
+          - const: kChallengeMapId
+            key: challengeMapId
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Mythic+ challenge-mode map ID (dungeon only).
+
+        ended-additions:
+          - const: kSuccess
+            key: success
+            type: b
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: Whether the activity ended in success.
+
+          - const: kDurationMs
+            key: durationMs
+            type: x
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Run duration in milliseconds (dungeon only).
+
+          - const: kStopTime
+            key: stopTime
+            type: x
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: Unix epoch milliseconds.
+
+      Location:
+        description: >
+          Where the player is in the world. Reconciled daemon-side from ZONE_CHANGE
+          and MAP_CHANGE combat-log events into a single coherent snapshot. Coarse by
+          design: the combat log buffers solo/open-world content, so Location can lag
+          real-time by minutes and only promises slowly-changing, broad position.
+        keys:
+          - const: kZoneName
+            key: zoneName
+            type: s
+            required: true
+            stability: stable
+            description: Resolved zone or instance name (e.g., Silvermoon City, Freehold).
+
+          - const: kZoneCategory
+            key: zoneCategory
+            type: s
+            required: true
+            stability: stable
+            description: >
+              Coarse location kind, derived daemon-side from the ZONE_CHANGE
+              difficultyID so clients need no knowledge of WoW's internal numbering.
+            enum: [open-world, dungeon, raid, delve, unknown]
+
+          - const: kUiMapId
+            key: uiMapId
+            type: u
+            required: true
+            stability: stable
+            description: >
+              WoW uiMapID for the player's current map. Locale- and patch-stable
+              handle for asset lookups (e.g. presence icons); 0 when unknown.
+
+
+    methods:
+      Pause:
+        description: Pause activity detection and recording.
+        stability: stable
+
+      Resume:
+        description: Resume activity detection and recording.
+        stability: stable
+
+      StartManualRecording:
+        description: Start a manual recording outside activity detection.
+        stability: stable
+
+      StopManualRecording:
+        description: Stop a manual recording started with StartManualRecording.
+        stability: stable
+
+      ReloadConfig:
+        description: Reload the on-disk configuration.
+        stability: stable
+
+      ListRecordings:
+        description: List recordings, optionally filtered.
+        stability: experimental
+
+      DeleteRecording:
+        description: Delete a recording by id.
+        stability: experimental
+
+      GetConfig:
+        description: Fetch the current configuration as an a{sv} bag.
+        stability: experimental
+
+      SetConfig:
+        description: Replace the current configuration from an a{sv} bag.
+        stability: experimental
+
+    signals:
+      ActivityEnded:
+        description: >
+          Fires when an Activity concludes
+        stability: stable
+
+      Error:
+        description: >
+          Reports a daemon-side error condition.
+        stability: experimental
+
+    # Error signal `code` vocabulary. Experimental: documented ahead of any emit site.
+    errors:
+      - code: daemon-error
+        stability: experimental
+        description: Generic, unclassified daemon-side failure.
+      - code: config-invalid
+        stability: experimental
+        description: SetConfig was called with an invalid configuration bag.
+      - code: recording-failed
+        stability: experimental
+        description: A recording operation (start/stop/delete) failed.

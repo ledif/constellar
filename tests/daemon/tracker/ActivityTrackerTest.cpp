@@ -490,24 +490,22 @@ void ActivityTrackerTest::mapChangeEmitsUiMapChanged()
     QCOMPARE(collector.uiMapChanges.size(), 1);
     QCOMPARE(collector.uiMapChanges.at(0).id, 2537u);
     QCOMPARE(collector.uiMapChanges.at(0).name, QStringLiteral("Quel'Thalas"));
-    QVERIFY(!collector.uiMapChanges.at(0).bounds.isValid());
 }
 
-void ActivityTrackerTest::mapChangeWithBoundsEmitsBounds()
+void ActivityTrackerTest::mapChangeIgnoresBoundsColumns()
 {
     ActivityTracker tracker({});
     Collector collector(tracker);
 
+    // A MAP_CHANGE carrying the trailing world-bounds columns still parses id/name;
+    // the bounds are intentionally ignored rather than emitted.
     tracker.onLineReceived(
         LogLine(mapChangeLine(QStringLiteral("18:57:18.8690"), 2537, QStringLiteral("Quel'Thalas")))
     );
 
     QCOMPARE(collector.uiMapChanges.size(), 1);
-    QVERIFY(collector.uiMapChanges.at(0).bounds.isValid());
-    QCOMPARE(collector.uiMapChanges.at(0).bounds.x0, 10956.25);
-    QCOMPARE(collector.uiMapChanges.at(0).bounds.x1, 10152.08);
-    QCOMPARE(collector.uiMapChanges.at(0).bounds.y0, -4002.08);
-    QCOMPARE(collector.uiMapChanges.at(0).bounds.y1, -5208.33);
+    QCOMPARE(collector.uiMapChanges.at(0).id, 2537u);
+    QCOMPARE(collector.uiMapChanges.at(0).name, QStringLiteral("Quel'Thalas"));
 }
 
 void ActivityTrackerTest::zoneChangeEmitsZoneChanged()
@@ -520,7 +518,6 @@ void ActivityTrackerTest::zoneChangeEmitsZoneChanged()
     ));
 
     QCOMPARE(collector.zoneChanges.size(), 1);
-    QCOMPARE(collector.zoneChanges.at(0).instanceId, 2694u);
     QCOMPARE(collector.zoneChanges.at(0).name, QStringLiteral("Harandar"));
     QCOMPARE(collector.zoneChanges.at(0).difficultyId, 1u);
 }

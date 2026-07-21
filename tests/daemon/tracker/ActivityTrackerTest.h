@@ -27,7 +27,7 @@ class ActivityTrackerTest : public QObject
     void dungeonEndEndsActiveKeyRegardlessOfArgs();
 
     void mapChangeEmitsUiMapChanged();
-    void mapChangeWithBoundsEmitsBounds();
+    void mapChangeIgnoresBoundsColumns();
     void zoneChangeEmitsZoneChanged();
     void zoneChangeWithoutMapChangeDoesNotEmitUiMapChanged();
 };

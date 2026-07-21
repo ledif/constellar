@@ -1,13 +1,10 @@
-# AGENTS.md
+# Constellar
 
-Design docs and the agent knowledge-base lives in `agents/`, a separate git-ignored directory.
-Read top-level Markdown files in this directory first when looking for information.
-Everything that lands in `main` needs to be self-contained so don't reference document
-material (IDs, RFCs, etc) in code.
+A D-Bus daemon and set of clients for World of Warcraft. The `constallard` daemon publishes game state for downstream clients to consume. A Discord presence client (implemented) and a libobs-based video recording client (future) are in scope.
 
 ## Build
 
-All builds run in a podman container. Assume host has no build tools.
+All builds run in a podman container. Assume host has no build tools besides uv.
 
 - `just build-image`: (re)build the toolchain image, after Containerfile changes.
 - `just configure`: configure CMake (wipes `build/`).
@@ -29,6 +26,9 @@ All builds run in a podman container. Assume host has no build tools.
 
 - String literals: use `u"..."_s` (`Qt::StringLiterals`) not `QStringLiteral`.
 
-## Before declaring done
-
-Run `just build && just test` (and `just format`).
+## Agent Conventions 
+- Design docs and the agent knowledge-base lives in `agents/`, a separate git-ignored directory.
+- Read top-level Markdown files in this directory first when looking for information.
+- Everything that lands in `main` needs to be self-contained so don't reference document
+material (IDs, RFCs, etc) in code.
+- Before declaring done, run `just build && just test` (and `just format`).

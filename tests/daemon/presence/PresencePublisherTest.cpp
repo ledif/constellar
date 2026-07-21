@@ -42,14 +42,14 @@ QVariantMap dungeonBag(uint keystoneLevel, QDateTime const& start)
 QVariantMap uiMapOnlyLocationBag(QString const& uiMapName)
 {
     Location location;
-    location.setUiMap(UiMap{0, uiMapName, {}});
+    location.setUiMap(UiMap{0, uiMapName});
     return location.toVariantMap();
 }
 
 QVariantMap zoneOnlyLocationBag(QString const& zoneName)
 {
     Location location;
-    location.setZone(Zone{0, zoneName, 0});
+    location.setZone(Zone{zoneName, 0});
     return location.toVariantMap();
 }
 
@@ -224,7 +224,7 @@ void PresencePublisherTest::zoneChangeMidEncounterKeepsEncounterPresence()
     );
 
     // This update lands inside the throttle window, so it's coalesced away.
-    gameState.setUiMap(UiMap{0, QStringLiteral("March on Quel'Danas"), {}});
+    gameState.setUiMap(UiMap{0, QStringLiteral("March on Quel'Danas")});
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     QVERIFY(decodeFrame(*peer, opcode, payload));

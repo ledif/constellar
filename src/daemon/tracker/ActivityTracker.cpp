@@ -40,20 +40,13 @@ void ActivityTracker::onLineReceived(LogLine const& line)
     else if (type == u"MAP_CHANGE"_s)
     {
         // MAP_CHANGE args: uiMapID, uiMapName, x0, x1, y0, y1
+        // World bounds (x0..y1) are intentionally dropped: no downstream consumer,
+        // and positional data is stale by the time the buffered log flushes.
         if (line.argCount() >= 3)
         {
             UiMap uiMap;
             uiMap.id = line.argString(1).toUInt();
             uiMap.name = line.argString(2);
-            if (line.argCount() >= 7)
-            {
-                uiMap.bounds = MapBounds{
-                    line.argString(3).toDouble(),
-                    line.argString(4).toDouble(),
-                    line.argString(5).toDouble(),
-                    line.argString(6).toDouble(),
-                };
-            }
             Q_EMIT uiMapChanged(uiMap);
         }
     }
@@ -63,7 +56,6 @@ void ActivityTracker::onLineReceived(LogLine const& line)
         if (line.argCount() >= 3)
         {
             Zone zone;
-            zone.instanceId = line.argString(1).toUInt();
             zone.name = line.argString(2);
             zone.difficultyId = line.argString(3).toUInt();
             Q_EMIT zoneChanged(zone);

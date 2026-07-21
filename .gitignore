@@ -8,5 +8,7 @@ tmp
 tools/specdoc/.venv/
 __pycache__/
 
+/doc/spec/
+
 # tracked in its own independent jj repo
 agents/

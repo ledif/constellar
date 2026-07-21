@@ -6,14 +6,19 @@ from .spec import Spec
 
 _MARKER = "// GENERATED from data/io.github.ledif.constellar.spec.yaml"
 
+# ActivityKeys.h is generated from the Observer interface's bags specifically,
+# regardless of how many other interfaces the spec grows.
+_OBSERVER = "io.github.ledif.constellar.Observer"
+
 
 def _const_line(key: dict) -> str:
     return f'inline constexpr auto {key["const"]} = "{key["key"]}";'
 
 
 def render_keys_header(spec: Spec) -> str:
-    activity = spec.bags["Activity"]
-    location = spec.bags["Location"]
+    bags = spec.bags(_OBSERVER)
+    activity = bags["Activity"]
+    location = bags["Location"]
 
     lines = []
     lines.append("#pragma once")

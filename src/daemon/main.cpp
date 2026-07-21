@@ -59,7 +59,11 @@ int main(int argc, char* argv[])
 
     auto* service =
         new ObserverService(std::filesystem::path(logDirectory.toStdString()), /*config*/ {}, &app);
-    new ObserverDBusAdaptor(service);
+
+    // The adaptor emits PropertiesChanged on this same connection, so it must be the
+    // one the object is registered on below — not an implicit sessionBus() reference.
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    new ObserverDBusAdaptor(service, bus);
 
     QString discordAppId =
         QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
@@ -89,7 +93,6 @@ int main(int argc, char* argv[])
     discordClient->start();
 
     // register our daemon with D-Bus
-    QDBusConnection bus = QDBusConnection::sessionBus();
     if (!bus.registerObject(constellar::dbus::kObjectPath, service))
     {
         qCritical() << "Failed to register DBus object at" << constellar::dbus::kObjectPath << ":"

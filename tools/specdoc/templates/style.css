@@ -1,0 +1,252 @@
+/* An old-school, boxed specification style: hard borders, flat colour-coded
+ * section boxes, no rounded corners or shadows, sized in ex/em. Colours are
+ * from the Tango palette. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "DejaVu Sans", Verdana, sans-serif;
+  font-size: 12pt;
+  color: black;
+  background: white;
+  line-height: 1.4;
+}
+
+h1, h2 {
+  margin: 0;
+}
+
+h3, h4 {
+  margin: 0.5ex 0;
+}
+
+code {
+  font-family: "DejaVu Sans Mono", monospace;
+}
+
+a {
+  color: #204a87;
+}
+
+/* Fixed banner across the top, with the in-page navigation */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: white;
+  border-bottom: 1px solid black;
+  padding: 0.5ex 1ex;
+  z-index: 1;
+}
+
+.topbar h1 {
+  font-size: 14pt;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar nav {
+  font-size: 11pt;
+}
+
+.topbar nav a {
+  margin-right: 0.5ex;
+}
+
+.content {
+  margin: 5em 1ex 3em;
+}
+
+/* Anchors clear the fixed banner when jumped to */
+.content [id] {
+  scroll-margin-top: 5em;
+}
+
+.spec-version {
+  font-weight: bold;
+  margin: 0 0 1ex;
+}
+
+.iface-title {
+  font-size: 21pt;
+  margin: 0 0 0.5ex;
+}
+
+.iface-title abbr {
+  border: none;
+  text-decoration: none;
+}
+
+.doc {
+  margin: 1ex 0;
+}
+
+.doc p {
+  margin: 0.5em 0;
+}
+
+.doc p:first-child {
+  margin-top: 0;
+}
+
+/* Summary box and legal box: the neutral inset look */
+.overview,
+.legal {
+  background: #eeeeec;
+  border: 1px solid #d3d7cf;
+  padding: 0.5ex 1ex;
+  margin: 1ex 0;
+}
+
+.overview h2 {
+  font-size: 13pt;
+  margin: 1ex 0 0.5ex;
+}
+
+.overview-table {
+  font-size: 11pt;
+  border-collapse: collapse;
+  margin: 0.5ex 0 1ex;
+}
+
+.overview-table td {
+  padding: 0 1ex 0 0;
+  vertical-align: top;
+}
+
+.overview-table tr.unstable a {
+  color: gray;
+}
+
+.arrow {
+  color: #555753;
+}
+
+/* A colour-coded group box (outset) wrapping the member cards */
+.member-group {
+  padding: 1ex;
+  margin: 1ex 0;
+}
+
+.member-group > h2 {
+  font-size: 16pt;
+}
+
+.member-group--method   { background: #fcaf3e; }
+.member-group--signal   { background: #729fcf; }
+.member-group--property { background: #ad7fa8; }
+.member-group--type     { background: #e9b96e; }
+
+/* A single member card (inset) sitting on the coloured group box */
+.member {
+  position: relative;
+  background: white;
+  border: 1px solid #888a85;
+  padding: 0.5ex 1ex;
+  margin: 1ex 0;
+}
+
+.member-group--method   .member { border-color: #f57900; }
+.member-group--signal   .member { border-color: #3465a4; }
+.member-group--property .member { border-color: #75507b; }
+.member-group--type     .member { border-color: #c17d11; }
+
+.member h3 {
+  font-size: 13pt;
+  font-family: "DejaVu Sans Mono", monospace;
+}
+
+.member .anchor {
+  position: absolute;
+  top: 0.5ex;
+  right: 1ex;
+  font-size: 10pt;
+}
+
+.member .anchor a {
+  color: #888a85;
+  text-decoration: none;
+}
+
+.sig-block {
+  margin: 1ex 0 1ex 1em;
+}
+
+.sig-block h4 {
+  font-size: 11pt;
+  font-weight: bold;
+}
+
+.arg-list {
+  margin: 0.5ex 0;
+  padding-left: 1.5em;
+}
+
+.access-tag {
+  font-weight: bold;
+  margin-left: 1ex;
+}
+
+.badge {
+  color: #a40000;
+  font-weight: bold;
+  font-size: 11pt;
+  margin-left: 0.5ex;
+}
+
+/* Key / enum / error tables inside a type card */
+.data-table {
+  border-collapse: collapse;
+  border: 1px solid #d3d7cf;
+  margin: 1ex 0;
+  font-size: 11pt;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  border: 1px solid #d3d7cf;
+  padding: 0.25ex 0.75ex;
+  vertical-align: top;
+}
+
+.data-table th {
+  background: #eeeeec;
+}
+
+.enum-list {
+  margin: 0.5ex 0;
+  padding-left: 1.5em;
+}
+
+/* Landing page */
+.section-heading {
+  font-size: 16pt;
+  margin: 1.5ex 0 0.5ex;
+}
+
+.legal pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 10pt;
+}
+
+.iface-list {
+  margin: 1ex 0;
+  padding-left: 1.5em;
+}
+
+.iface-list li {
+  margin: 0.5ex 0;
+}
+
+.iface-list .iface-name {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-weight: bold;
+}
