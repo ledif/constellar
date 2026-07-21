@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.3)
 project(
     constellar
-    VERSION 0.1.4
+    VERSION 0.2.0
     LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 26)

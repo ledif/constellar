@@ -10,7 +10,7 @@ The D-Bus interface aspires to be something like [MPRIS](https://wiki.archlinux.
 
 Other components:
 - A small Qt GUI that drives the directory picker and Wayland capture portals
-- A simple `constellar` CLI to interact with the daemon
+- A simple `constellarctl` CLI to interact with the daemon
 - A Discord presence client
 
 ## Development and Contributing
