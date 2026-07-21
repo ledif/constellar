@@ -1,6 +1,7 @@
 #include "Location.h"
 
 #include <QDBusArgument>
+#include <QJsonArray>
 #include <QList>
 
 #include "ActivityKeys.h"
@@ -12,9 +13,6 @@ namespace keys = constellar::keys;
 namespace
 {
 
-// In-process, the wire map holds a QList<double> directly. After a round trip through
-// D-Bus, the a{sv} value arrives client-side as an undemarshalled QDBusArgument — decode
-// both shapes.
 QList<double> boundsFromVariant(QVariant const& value)
 {
     if (value.canConvert<QDBusArgument>())
@@ -28,14 +26,6 @@ QList<double> boundsFromVariant(QVariant const& value)
 }
 
 }  // namespace
-
-QPointF MapBounds::normalize(double worldX, double worldY) const
-{
-    if (!isValid())
-        return {};
-
-    return QPointF((worldX - x0) / (x1 - x0), (worldY - y0) / (y1 - y0));
-}
 
 Location Location::fromVariantMap(QVariantMap const& map)
 {
@@ -94,6 +84,33 @@ QVariantMap Location::toVariantMap() const
     }
 
     return map;
+}
+
+QJsonObject Location::toJsonObject() const
+{
+    QJsonObject json;
+
+    if (m_uiMap)
+    {
+        json[QString::fromLatin1(keys::kUiMapId)] = static_cast<qint64>(m_uiMap->id);
+        json[QString::fromLatin1(keys::kUiMapName)] = m_uiMap->name;
+        if (m_uiMap->bounds.isValid())
+        {
+            json[QString::fromLatin1(keys::kUiMapBounds)] = QJsonArray{
+                m_uiMap->bounds.x0, m_uiMap->bounds.x1, m_uiMap->bounds.y0, m_uiMap->bounds.y1
+            };
+        }
+    }
+
+    if (m_zone)
+    {
+        json[QString::fromLatin1(keys::kZoneInstanceId)] = static_cast<qint64>(m_zone->instanceId);
+        json[QString::fromLatin1(keys::kZoneName)] = m_zone->name;
+        json[QString::fromLatin1(keys::kZoneDifficultyId)] =
+            static_cast<qint64>(m_zone->difficultyId);
+    }
+
+    return json;
 }
 
 QString Location::displayName() const
