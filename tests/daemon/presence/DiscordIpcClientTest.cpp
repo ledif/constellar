@@ -104,7 +104,7 @@ void DiscordIpcClientTest::sendsSetActivityAfterReady()
     QTRY_VERIFY(client.isReady());
 
     QJsonObject activity;
-    activity["details"] = QStringLiteral("Mythic Ulgrax the Devourer");
+    activity["details"] = QStringLiteral("Mythic Midnight Falls");
     client.setActivity(activity);
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
@@ -115,7 +115,7 @@ void DiscordIpcClientTest::sendsSetActivityAfterReady()
     QJsonObject const args = payload.value("args").toObject();
     QCOMPARE(
         args.value("activity").toObject().value("details").toString(),
-        QStringLiteral("Mythic Ulgrax the Devourer")
+        QStringLiteral("Mythic Midnight Falls")
     );
 }
 
