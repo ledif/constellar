@@ -4,3 +4,6 @@ pre-commit:
       glob: "*.{cpp,h}"
       run: just format {staged_files}
       stage_fixed: true
+    check-spec:
+      glob: "data/io.github.ledif.constellar.{xml,spec.yaml}"
+      run: just check-spec

@@ -5,5 +5,8 @@
 tmp
 *.bak
 
+tools/specdoc/.venv/
+__pycache__/
+
 # tracked in its own independent jj repo
 agents/

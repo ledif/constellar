@@ -1,5 +1,7 @@
 #pragma once
 
+// GENERATED from data/io.github.ledif.constellar.spec.yaml
+
 // Key vocabulary for the Activity/Zone a{sv} metadata
 namespace constellar::keys
 {

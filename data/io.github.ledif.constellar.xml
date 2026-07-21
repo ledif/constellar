@@ -3,32 +3,11 @@
  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="io.github.ledif.constellar.Observer">
-    <!-- Activity: the player's current instanced activity
-         Keys:
-           type          s   "encounter" | "dungeon"
-           encounterId   u   encounter only
-           encounterName s   encounter only
-           difficulty    s   encounter only; LFR|Normal|Heroic|Mythic|Unknown
-           difficultyId  u   encounter only; raw WoW difficultyID
-           challengeMapId u  dungeon only
-           zoneId        u   dungeon only
-           keystoneLevel u   dungeon only
-           startTime     x   unix epoch milliseconds
-         ActivityEnded additionally carries:
-           success       b
-           durationMs    x   dungeon only
-           stopTime      x   unix epoch milliseconds -->
+    <!-- a{sv} key vocabulary: data/io.github.ledif.constellar.spec.yaml -->
     <property name="Activity" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>
 
-    <!-- Location: where the player is in the world
-           uiMapId          u    MAP_CHANGE; the cartographic map (M-key)
-           uiMapName        s    MAP_CHANGE
-           uiMapBounds      ad   MAP_CHANGE; [x0,x1,y0,y1] world bounds, omitted when invalid
-           zoneInstanceId   u    ZONE_CHANGE; Map id, 0 in open world
-           zoneName         s    ZONE_CHANGE; real zone text
-           zoneDifficultyId u    ZONE_CHANGE; 0 when not instanced -->
     <property name="Location" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>

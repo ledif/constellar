@@ -39,6 +39,14 @@ test:
 qmllint:
     {{podman_run}} cmake --build {{build_dir}} --target all_qmllint
 
+# Regenerate ActivityKeys.h from data/io.github.ledif.constellar.spec.yaml
+spec-gen:
+    {{podman_run}} uv run --project tools/specdoc specdoc --emit keys
+
+# Fail if ActivityKeys.h drifts from the spec sidecar
+check-spec:
+    {{podman_run}} uv run --project tools/specdoc specdoc --emit keys --check
+
 # Run the daemon against the host session bus and a WoW Logs dir
 run-daemon path discord_app_id="1527462779290652672":
     exec podman run --rm -it \
