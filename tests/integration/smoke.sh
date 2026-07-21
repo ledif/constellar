@@ -67,13 +67,20 @@ if ! echo "$status_json" | grep -q '"difficulty":"Normal"'; then
   exit 1
 fi
 
-if ! echo "$status_json" | grep -q '"zoneName":"March on Quel'"'"'Danas"'; then
-  echo "FAIL: expected zoneName \"March on Quel'Danas\", got: $status_json" >&2
+if ! echo "$status_json" | grep -q '"uiMapName":"March on Quel'"'"'Danas"'; then
+  echo "FAIL: expected uiMapName \"March on Quel'Danas\", got: $status_json" >&2
   exit 1
 fi
 
-if ! echo "$status_json" | grep -q '"mapId":2533'; then
-  echo "FAIL: expected mapId 2533, got: $status_json" >&2
+if ! echo "$status_json" | grep -q '"uiMapId":2533'; then
+  echo "FAIL: expected uiMapId 2533, got: $status_json" >&2
+  exit 1
+fi
+
+# uiMapBounds must decode to a real JSON array across the D-Bus round trip, not null
+# (client-side it arrives as an undemarshalled QDBusArgument, not a QList<double>).
+if ! echo "$status_json" | grep -Eq '"uiMapBounds":\[[0-9.,-]+\]'; then
+  echo "FAIL: expected uiMapBounds as a JSON array, got: $status_json" >&2
   exit 1
 fi
 

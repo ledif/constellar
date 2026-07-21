@@ -39,9 +39,35 @@ void ActivityTracker::onLineReceived(LogLine const& line)
     }
     else if (type == u"MAP_CHANGE"_s)
     {
-        // MAP_CHANGE args: mapID, zoneName, x, y, z, ?
+        // MAP_CHANGE args: uiMapID, uiMapName, x0, x1, y0, y1
         if (line.argCount() >= 3)
-            Q_EMIT zoneChanged(line.argString(1).toInt(), line.argString(2));
+        {
+            UiMap uiMap;
+            uiMap.id = line.argString(1).toUInt();
+            uiMap.name = line.argString(2);
+            if (line.argCount() >= 7)
+            {
+                uiMap.bounds = MapBounds{
+                    line.argString(3).toDouble(),
+                    line.argString(4).toDouble(),
+                    line.argString(5).toDouble(),
+                    line.argString(6).toDouble(),
+                };
+            }
+            Q_EMIT uiMapChanged(uiMap);
+        }
+    }
+    else if (type == u"ZONE_CHANGE"_s)
+    {
+        // ZONE_CHANGE args: instanceID, zoneText, difficultyID
+        if (line.argCount() >= 3)
+        {
+            Zone zone;
+            zone.instanceId = line.argString(1).toUInt();
+            zone.name = line.argString(2);
+            zone.difficultyId = line.argString(3).toUInt();
+            Q_EMIT zoneChanged(zone);
+        }
     }
 }
 
@@ -120,7 +146,7 @@ void ActivityTracker::finishPendingStop()
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)
 {
-    // CHALLENGE_MODE_START args: zoneName, zoneID, mapID, keystoneLevel, affixes[]
+    // CHALLENGE_MODE_START args: zoneName, zoneID, challengeMapID, keystoneLevel, affixes[]
     if (line.argCount() < 5)
         return;
 

@@ -10,18 +10,23 @@ inline constexpr auto kEncounterId = "encounterId";
 inline constexpr auto kEncounterName = "encounterName";
 inline constexpr auto kDifficulty = "difficulty";
 inline constexpr auto kDifficultyId = "difficultyId";
-inline constexpr auto kMapId = "mapId";
 inline constexpr auto kZoneId = "zoneId";
 inline constexpr auto kKeystoneLevel = "keystoneLevel";
 inline constexpr auto kStartTime = "startTime";
+inline constexpr auto kChallengeMapId = "challengeMapId";
 
 // ActivityEnded-only additions
 inline constexpr auto kSuccess = "success";
 inline constexpr auto kDurationMs = "durationMs";
 inline constexpr auto kStopTime = "stopTime";
 
-// Zone stuff
+// Location stuff
+inline constexpr auto kUiMapId = "uiMapId";
+inline constexpr auto kUiMapName = "uiMapName";
+inline constexpr auto kUiMapBounds = "uiMapBounds";
+inline constexpr auto kZoneInstanceId = "zoneInstanceId";
 inline constexpr auto kZoneName = "zoneName";
+inline constexpr auto kZoneDifficultyId = "zoneDifficultyId";
 
 // kType ("type") values
 inline constexpr auto kTypeEncounter = "encounter";

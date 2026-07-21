@@ -12,5 +12,4 @@ class ActivityMetadataTest : public QObject
     void encounterEndedMetadataAddsSuccessAndStopTime();
     void dungeonMetadataMapsKeystoneLevel();
     void dungeonEndedMetadataAddsSuccessDurationAndStopTime();
-    void zoneMetadataMapsMapIdAndZoneName();
 };

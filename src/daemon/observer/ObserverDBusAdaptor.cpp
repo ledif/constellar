@@ -21,8 +21,8 @@ ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service)
     );
 
     connect(
-        &gameState, &GameState::zoneChanged, this,
-        [this](QVariantMap const& zone) { emitPropertiesChanged(u"Zone"_s, zone); }
+        &gameState, &GameState::locationChanged, this,
+        [this](QVariantMap const& location) { emitPropertiesChanged(u"Location"_s, location); }
     );
 
     connect(&gameState, &GameState::activityEnded, this, &ObserverDBusAdaptor::ActivityEnded);
@@ -33,9 +33,9 @@ QVariantMap ObserverDBusAdaptor::activity() const
     return m_service->gameState().activity();
 }
 
-QVariantMap ObserverDBusAdaptor::zone() const
+QVariantMap ObserverDBusAdaptor::location() const
 {
-    return m_service->gameState().zone();
+    return m_service->gameState().location();
 }
 
 void ObserverDBusAdaptor::emitPropertiesChanged(QString const& name, QVariant const& value)

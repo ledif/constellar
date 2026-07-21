@@ -19,13 +19,13 @@ class ObserverDBusAdaptor : public QDBusAbstractAdaptor
     Q_CLASSINFO("D-Bus Interface", CONSTELLAR_DBUS_INTERFACE_NAME)
 
     Q_PROPERTY(QVariantMap Activity READ activity)
-    Q_PROPERTY(QVariantMap Zone READ zone)
+    Q_PROPERTY(QVariantMap Location READ location)
 
   public:
     explicit ObserverDBusAdaptor(ObserverService* service);
 
     QVariantMap activity() const;
-    QVariantMap zone() const;
+    QVariantMap location() const;
 
   public Q_SLOTS:
     void Pause();

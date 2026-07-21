@@ -52,7 +52,7 @@ void ObserverServiceTest::encounterStartPopulatesActivity()
     QCOMPARE(activity.value(QString::fromLatin1(keys::kDifficultyId)).toInt(), 15);
 }
 
-void ObserverServiceTest::mapChangePopulatesZone()
+void ObserverServiceTest::mapChangePopulatesLocation()
 {
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
@@ -66,12 +66,35 @@ void ObserverServiceTest::mapChangePopulatesZone()
             QStringLiteral("MAP_CHANGE,2537,\"Quel'Thalas\",10956.25,10152.08,-4002.08,-5208.33")
     );
 
-    QTRY_VERIFY(!service.gameState().zone().isEmpty());
-    QVariantMap const zone = service.gameState().zone();
-    QCOMPARE(zone.value(QString::fromLatin1(keys::kMapId)).toInt(), 2537);
+    QTRY_VERIFY(!service.gameState().location().isEmpty());
+    QVariantMap const location = service.gameState().location();
+    QCOMPARE(location.value(QString::fromLatin1(keys::kUiMapId)).toInt(), 2537);
     QCOMPARE(
-        zone.value(QString::fromLatin1(keys::kZoneName)).toString(), QStringLiteral("Quel'Thalas")
+        location.value(QString::fromLatin1(keys::kUiMapName)).toString(),
+        QStringLiteral("Quel'Thalas")
     );
+}
+
+void ObserverServiceTest::zoneChangePopulatesLocation()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    ObserverService service(dir.path().toStdString());
+    QVERIFY(service.start());
+
+    appendLine(
+        dir.filePath(QStringLiteral("WoWCombatLog.txt")),
+        timestampPrefix() + QStringLiteral("ZONE_CHANGE,0,\"Sanctum of Light\",0")
+    );
+
+    QTRY_VERIFY(!service.gameState().location().isEmpty());
+    QVariantMap const location = service.gameState().location();
+    QCOMPARE(
+        location.value(QString::fromLatin1(keys::kZoneName)).toString(),
+        QStringLiteral("Sanctum of Light")
+    );
+    QVERIFY(!location.contains(QString::fromLatin1(keys::kUiMapId)));
 }
 
 void ObserverServiceTest::encounterEndClearsActivity()

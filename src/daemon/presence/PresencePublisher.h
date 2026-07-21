@@ -22,11 +22,11 @@ class PresencePublisher : public QObject
     static QJsonObject dungeonActivity(QVariantMap const& activity);
     static QJsonObject idleActivity(QString const& zoneName = {});
 
-    static QJsonObject activityFor(QVariantMap const& activity, QVariantMap const& zone);
+    static QJsonObject activityFor(QVariantMap const& activity, QVariantMap const& location);
 
   public Q_SLOTS:
     void onActivityChanged(QVariantMap const& activity);
-    void onZoneChanged(QVariantMap const& zone);
+    void onLocationChanged(QVariantMap const& location);
 
   private:
     void updatePresence();

@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "DungeonRun.h"
+#include "Location.h"
 #include "LogLine.h"
 #include "RaidEncounter.h"
 
@@ -37,7 +38,8 @@ class ActivityTracker : public QObject
         DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
     );
 
-    void zoneChanged(int mapId, QString const& zoneName);
+    void uiMapChanged(UiMap const& uiMap);
+    void zoneChanged(Zone const& zone);
 
   private Q_SLOTS:
     void onOverrunElapsed();

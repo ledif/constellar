@@ -10,6 +10,7 @@
 #include "DiscordFrame.h"
 #include "DiscordIpcClient.h"
 #include "GameState.h"
+#include "Location.h"
 #include "PresencePublisher.h"
 
 namespace keys = constellar::keys;
@@ -38,9 +39,18 @@ QVariantMap dungeonBag(uint keystoneLevel, QDateTime const& start)
     };
 }
 
-QVariantMap zoneBag(QString const& zoneName)
+QVariantMap uiMapOnlyLocationBag(QString const& uiMapName)
 {
-    return QVariantMap{{keys::kZoneName, zoneName}};
+    Location location;
+    location.setUiMap(UiMap{0, uiMapName, {}});
+    return location.toVariantMap();
+}
+
+QVariantMap zoneOnlyLocationBag(QString const& zoneName)
+{
+    Location location;
+    location.setZone(Zone{0, zoneName, 0});
+    return location.toVariantMap();
 }
 
 }  // namespace
@@ -133,9 +143,9 @@ void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     QVariantMap const activity =
         encounterBag(QStringLiteral("Midnight Falls"), QStringLiteral("Mythic"), start);
-    QVariantMap const zone = zoneBag(QStringLiteral("March on Quel'Danas"));
+    QVariantMap const location = uiMapOnlyLocationBag(QStringLiteral("March on Quel'Danas"));
 
-    QJsonObject const result = PresencePublisher::activityFor(activity, zone);
+    QJsonObject const result = PresencePublisher::activityFor(activity, location);
 
     QCOMPARE(result.value("details").toString(), QStringLiteral("Mythic Midnight Falls"));
     QCOMPARE(result.value("state").toString(), QStringLiteral("March on Quel'Danas"));
@@ -143,11 +153,22 @@ void PresencePublisherTest::activityForKeepsEncounterAcrossZoneChange()
 
 void PresencePublisherTest::activityForFallsBackToIdleWhenActivityEmpty()
 {
-    QVariantMap const zone = zoneBag(QStringLiteral("Dornogal"));
+    QVariantMap const location = uiMapOnlyLocationBag(QStringLiteral("Dornogal"));
 
-    QJsonObject const result = PresencePublisher::activityFor(QVariantMap{}, zone);
+    QJsonObject const result = PresencePublisher::activityFor(QVariantMap{}, location);
 
     QCOMPARE(result, PresencePublisher::idleActivity(QStringLiteral("Dornogal")));
+}
+
+void PresencePublisherTest::activityForUsesZoneOnlyLocationAsState()
+{
+    // The interior case: ZONE_CHANGE with no accompanying MAP_CHANGE, so only the
+    // zone half of Location is set.
+    QVariantMap const location = zoneOnlyLocationBag(QStringLiteral("Sanctum of Light"));
+
+    QJsonObject const result = PresencePublisher::activityFor(QVariantMap{}, location);
+
+    QCOMPARE(result.value("state").toString(), QStringLiteral("Sanctum of Light"));
 }
 
 void PresencePublisherTest::zoneChangeMidEncounterKeepsEncounterPresence()
@@ -185,7 +206,9 @@ void PresencePublisherTest::zoneChangeMidEncounterKeepsEncounterPresence()
     connect(
         &gameState, &GameState::activityChanged, &publisher, &PresencePublisher::onActivityChanged
     );
-    connect(&gameState, &GameState::zoneChanged, &publisher, &PresencePublisher::onZoneChanged);
+    connect(
+        &gameState, &GameState::locationChanged, &publisher, &PresencePublisher::onLocationChanged
+    );
 
     QDateTime const start =
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
@@ -201,7 +224,7 @@ void PresencePublisherTest::zoneChangeMidEncounterKeepsEncounterPresence()
     );
 
     // This update lands inside the throttle window, so it's coalesced away.
-    gameState.setZone(zoneBag(QStringLiteral("March on Quel'Danas")));
+    gameState.setUiMap(UiMap{0, QStringLiteral("March on Quel'Danas"), {}});
 
     QTRY_VERIFY(peer->bytesAvailable() >= 8);
     QVERIFY(decodeFrame(*peer, opcode, payload));

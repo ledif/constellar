@@ -11,4 +11,4 @@ target_sources(
       GameState.h
 )
 
-target_link_libraries(constellar-gamestate PUBLIC Qt6::Core)
+target_link_libraries(constellar-gamestate PUBLIC Qt6::Core constellar::common)

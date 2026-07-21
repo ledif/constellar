@@ -113,7 +113,7 @@ Kirigami.Page {
             Kirigami.PlaceholderMessage {
                 anchors.centerIn: parent
                 visible: eventView.count === 0
-                icon.name: "applications-games"
+                icon.name: "fcitx-fullwidth-inactive"
                 text: qsTr("No activities yet")
             }
         }

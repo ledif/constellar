@@ -69,7 +69,7 @@ void ActivityMetadataTest::dungeonMetadataMapsKeystoneLevel()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:40:05Z"), Qt::ISODate);
     DungeonRun const dungeon{
         .zoneId = 2811,
-        .mapId = 558,
+        .challengeMapId = 558,
         .keystoneLevel = 10,
         .startTime = start,
     };
@@ -77,7 +77,7 @@ void ActivityMetadataTest::dungeonMetadataMapsKeystoneLevel()
     ActivityMetadata const metadata = ActivityMetadata::fromDungeon(dungeon);
 
     QCOMPARE(metadata.value(keys::kType).toString(), QString::fromLatin1(keys::kTypeDungeon));
-    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 558u);
+    QCOMPARE(metadata.value(keys::kChallengeMapId).toUInt(), 558u);
     QCOMPARE(metadata.value(keys::kZoneId).toUInt(), 2811u);
     QCOMPARE(metadata.value(keys::kKeystoneLevel).toUInt(), 10u);
     QCOMPARE(metadata.value(keys::kStartTime).toLongLong(), start.toMSecsSinceEpoch());
@@ -89,7 +89,7 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
         QDateTime::fromString(QStringLiteral("2026-07-16T21:45:00Z"), Qt::ISODate);
     DungeonRun const dungeon{
         .zoneId = 2811,
-        .mapId = 558,
+        .challengeMapId = 558,
         .keystoneLevel = 10,
     };
 
@@ -99,15 +99,6 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
     QCOMPARE(metadata.value(keys::kSuccess).toBool(), false);
     QCOMPARE(metadata.value(keys::kDurationMs).toLongLong(), 1'234'567);
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
-}
-
-void ActivityMetadataTest::zoneMetadataMapsMapIdAndZoneName()
-{
-    ActivityMetadata const metadata =
-        ActivityMetadata::fromZone(2529, QStringLiteral("The Voidspire"));
-
-    QCOMPARE(metadata.value(keys::kMapId).toUInt(), 2529u);
-    QCOMPARE(metadata.value(keys::kZoneName).toString(), QStringLiteral("The Voidspire"));
 }
 
 QTEST_MAIN(ActivityMetadataTest)

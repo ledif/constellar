@@ -8,7 +8,8 @@ class ObserverServiceTest : public QObject
 
   private Q_SLOTS:
     void encounterStartPopulatesActivity();
-    void mapChangePopulatesZone();
+    void mapChangePopulatesLocation();
+    void zoneChangePopulatesLocation();
     void encounterEndClearsActivity();
     void dungeonStartPopulatesActivity();
 };

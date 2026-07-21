@@ -77,7 +77,8 @@ int main(int argc, char* argv[])
     );
 
     QObject::connect(
-        &service->gameState(), &GameState::zoneChanged, presence, &PresencePublisher::onZoneChanged
+        &service->gameState(), &GameState::locationChanged, presence,
+        &PresencePublisher::onLocationChanged
     );
 
     QObject::connect(

@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QVariantMap>
 
+#include "Location.h"
+
 class GameState : public QObject
 {
     Q_OBJECT
@@ -11,18 +13,19 @@ class GameState : public QObject
     explicit GameState(QObject* parent = nullptr);
 
     QVariantMap activity() const;
-    QVariantMap zone() const;
+    QVariantMap location() const;
 
     void setActivity(QVariantMap const& activity);
     void endActivity(QVariantMap const& endedActivity);
-    void setZone(QVariantMap const& zone);
+    void setUiMap(UiMap const& uiMap);
+    void setZone(Zone const& zone);
 
   Q_SIGNALS:
     void activityChanged(QVariantMap const& activity);
     void activityEnded(QVariantMap const& endedActivity);
-    void zoneChanged(QVariantMap const& zone);
+    void locationChanged(QVariantMap const& location);
 
   private:
     QVariantMap m_activity;
-    QVariantMap m_zone;
+    Location m_location;
 };

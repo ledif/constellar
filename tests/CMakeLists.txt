@@ -52,8 +52,8 @@ constellar_add_test(activity_test
     LIBS constellar::common
 )
 
-constellar_add_test(zone_test
-    SOURCES ZoneTest.h ZoneTest.cpp
+constellar_add_test(location_test
+    SOURCES LocationTest.h LocationTest.cpp
     LIBS constellar::common
 )
 

@@ -4,7 +4,11 @@
 #include <QTest>
 #include <QVariantMap>
 
+#include "ActivityKeys.h"
 #include "GameState.h"
+#include "Location.h"
+
+namespace keys = constellar::keys;
 
 void GameStateTest::setActivityEmitsOnChange()
 {
@@ -30,28 +34,91 @@ void GameStateTest::setActivitySkipsOnIdenticalBag()
     QCOMPARE(spy.count(), 0);
 }
 
+void GameStateTest::setUiMapEmitsOnChange()
+{
+    GameState state;
+    QSignalSpy spy(&state, &GameState::locationChanged);
+
+    UiMap const uiMap{2393, QStringLiteral("Silvermoon City"), {}};
+    state.setUiMap(uiMap);
+
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(
+        state.location().value(QString::fromLatin1(keys::kUiMapName)).toString(),
+        QStringLiteral("Silvermoon City")
+    );
+}
+
+void GameStateTest::setUiMapSkipsOnIdenticalValue()
+{
+    GameState state;
+    UiMap const uiMap{2393, QStringLiteral("Silvermoon City"), {}};
+    state.setUiMap(uiMap);
+
+    QSignalSpy spy(&state, &GameState::locationChanged);
+    state.setUiMap(uiMap);
+
+    QCOMPARE(spy.count(), 0);
+}
+
 void GameStateTest::setZoneEmitsOnChange()
 {
     GameState state;
-    QSignalSpy spy(&state, &GameState::zoneChanged);
+    QSignalSpy spy(&state, &GameState::locationChanged);
 
-    QVariantMap const zone{{"zoneName", "Silvermoon City"}};
+    Zone const zone{0, QStringLiteral("Sanctum of Light"), 0};
     state.setZone(zone);
 
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(state.zone(), zone);
+    QCOMPARE(
+        state.location().value(QString::fromLatin1(keys::kZoneName)).toString(),
+        QStringLiteral("Sanctum of Light")
+    );
 }
 
-void GameStateTest::setZoneSkipsOnIdenticalBag()
+void GameStateTest::setZoneSkipsOnIdenticalValue()
 {
     GameState state;
-    QVariantMap const zone{{"zoneName", "Silvermoon City"}};
+    Zone const zone{0, QStringLiteral("Sanctum of Light"), 0};
     state.setZone(zone);
 
-    QSignalSpy spy(&state, &GameState::zoneChanged);
+    QSignalSpy spy(&state, &GameState::locationChanged);
     state.setZone(zone);
 
     QCOMPARE(spy.count(), 0);
+}
+
+void GameStateTest::setUiMapThenSetZoneMergesBothHalves()
+{
+    GameState state;
+    state.setUiMap(UiMap{2393, QStringLiteral("Silvermoon City"), {}});
+    state.setZone(Zone{0, QStringLiteral("Sanctum of Light"), 0});
+
+    QVariantMap const location = state.location();
+    QCOMPARE(
+        location.value(QString::fromLatin1(keys::kUiMapName)).toString(),
+        QStringLiteral("Silvermoon City")
+    );
+    QCOMPARE(
+        location.value(QString::fromLatin1(keys::kZoneName)).toString(),
+        QStringLiteral("Sanctum of Light")
+    );
+}
+
+void GameStateTest::oneHalfUpdateDoesNotClearTheOther()
+{
+    GameState state;
+    state.setUiMap(UiMap{2393, QStringLiteral("Silvermoon City"), {}});
+    state.setZone(Zone{0, QStringLiteral("Sanctum of Light"), 0});
+
+    // Zoning back out fires ZONE_CHANGE again without a MAP_CHANGE — the uiMap half
+    // must survive.
+    state.setZone(Zone{0, QStringLiteral("Silvermoon City"), 0});
+
+    QCOMPARE(
+        state.location().value(QString::fromLatin1(keys::kUiMapName)).toString(),
+        QStringLiteral("Silvermoon City")
+    );
 }
 
 void GameStateTest::endActivityEmitsThenClears()

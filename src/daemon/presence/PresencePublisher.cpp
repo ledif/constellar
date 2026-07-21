@@ -5,6 +5,7 @@
 #include "ActivityKeys.h"
 #include "DiscordIpcClient.h"
 #include "GameState.h"
+#include "Location.h"
 
 using namespace Qt::StringLiterals;
 
@@ -81,9 +82,9 @@ QJsonObject PresencePublisher::idleActivity(QString const& zoneName)
     return activity;
 }
 
-QJsonObject PresencePublisher::activityFor(QVariantMap const& activity, QVariantMap const& zone)
+QJsonObject PresencePublisher::activityFor(QVariantMap const& activity, QVariantMap const& location)
 {
-    QString const zoneName = zone.value(QString::fromLatin1(keys::kZoneName)).toString();
+    QString const zoneName = Location::fromVariantMap(location).displayName();
     if (activity.isEmpty())
         return idleActivity(zoneName);
 
@@ -103,12 +104,12 @@ void PresencePublisher::onActivityChanged(QVariantMap const& /*activity*/)
     updatePresence();
 }
 
-void PresencePublisher::onZoneChanged(QVariantMap const& /*zone*/)
+void PresencePublisher::onLocationChanged(QVariantMap const& /*location*/)
 {
     updatePresence();
 }
 
 void PresencePublisher::updatePresence()
 {
-    m_client.setActivity(activityFor(m_gameState.activity(), m_gameState.zone()));
+    m_client.setActivity(activityFor(m_gameState.activity(), m_gameState.location()));
 }

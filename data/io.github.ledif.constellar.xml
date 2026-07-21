@@ -10,7 +10,7 @@
            encounterName s   encounter only
            difficulty    s   encounter only; LFR|Normal|Heroic|Mythic|Unknown
            difficultyId  u   encounter only; raw WoW difficultyID
-           mapId         u   dungeon only
+           challengeMapId u  dungeon only
            zoneId        u   dungeon only
            keystoneLevel u   dungeon only
            startTime     x   unix epoch milliseconds
@@ -22,11 +22,17 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>
 
-    <!-- Zone: where the player is. Orthogonal to Activity — you are in a zone
-         whether or not you are pulling a boss. Empty dict before the first MAP_CHANGE.
-           mapId    u
-           zoneName s -->
-    <property name="Zone" type="a{sv}" access="read">
+    <!-- Location: where the player is. Orthogonal to Activity — you are in a location
+         whether or not you are pulling a boss. Two independently-updated halves;
+         either or both may be absent before their first event. Empty dict before
+         either has ever fired.
+           uiMapId          u    MAP_CHANGE; the cartographic map (M-key)
+           uiMapName        s    MAP_CHANGE
+           uiMapBounds      ad   MAP_CHANGE; [x0,x1,y0,y1] world bounds, omitted when invalid
+           zoneInstanceId   u    ZONE_CHANGE; Map.dbc id, 0 in open world
+           zoneName         s    ZONE_CHANGE; real zone text
+           zoneDifficultyId u    ZONE_CHANGE; 0 when not instanced -->
+    <property name="Location" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>
 

@@ -17,4 +17,5 @@ target_link_libraries(constellar-tracker
   PUBLIC
     Qt6::Core
     constellar::combatlog
+    constellar::common
 )

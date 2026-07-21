@@ -6,7 +6,7 @@
 #include "Activity.h"
 #include "ActivityKeys.h"
 #include "DBusConstants.h"
-#include "Zone.h"
+#include "Location.h"
 
 using namespace Qt::StringLiterals;
 
@@ -68,7 +68,7 @@ void ObserverController::refresh()
 
     QVariantMap const activityMap = m_manager.property("Activity").toMap();
     Activity const activity = Activity::fromVariantMap(activityMap);
-    Zone const zone = Zone::fromVariantMap(m_manager.property("Zone").toMap());
+    Location const location = Location::fromVariantMap(m_manager.property("Location").toMap());
 
     if (m_previousActivity.isEmpty() && !activityMap.isEmpty())
     {
@@ -78,7 +78,7 @@ void ObserverController::refresh()
     }
     m_previousActivity = activityMap;
 
-    m_zoneText = zone.name();
+    m_zoneText = location.displayName();
     Q_EMIT stateChanged();
 }
 

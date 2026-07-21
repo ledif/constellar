@@ -52,7 +52,7 @@ run-daemon path discord_app_id="1527462779290652672":
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
-replay slug="midnight-season1-alt-raid" speed="20":
+replay speed="100" slug="midnight-season1-alt-raid":
   #!/bin/bash
   set -euo pipefail
   d=$(mktemp -d)

@@ -9,7 +9,7 @@ Built for Wayland and packaged as a Flatpak.
 The D-Bus interface aspires to be something like [MPRIS](https://wiki.archlinux.org/title/MPRIS) for World of Warcraft. That is, any D-Bus client should be able to query the state of the player in the game world.
 
 Other components:
-- A small Qt GUI for configuration. Drives the directory picker and Wayland capture portals.
+- A small Qt GUI that drives the directory picker and Wayland capture portals
 - A simple `constellar` CLI to interact with the daemon
 - A Discord presence client
 
@@ -18,13 +18,13 @@ Other components:
 Everything builds inside a podman container
 
 ```sh
-just build-image   # once, and after Containerfile changes
+just build-image   # once (or after Containerfile changes)
 just setup         # configure CMake
 just build         # compile
 just test          # run the test suite
 ```
 
-All code / assets in the `main` branch must be written by a human or manually reviewed by a human. Agent-written code generally lives in `slop/` branches.
+All code and assets in the `main` branch must be written by a human or manually reviewed by a human. Agent-written code generally lives in `slop/` branches.
 
 ## Status
 

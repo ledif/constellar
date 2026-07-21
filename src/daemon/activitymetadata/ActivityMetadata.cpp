@@ -58,7 +58,7 @@ ActivityMetadata ActivityMetadata::fromDungeon(DungeonRun const& dungeon)
 {
     ActivityMetadata metadata;
     metadata[keys::kType] = QString::fromLatin1(keys::kTypeDungeon);
-    metadata[keys::kMapId] = static_cast<uint>(dungeon.mapId);
+    metadata[keys::kChallengeMapId] = static_cast<uint>(dungeon.challengeMapId);
     metadata[keys::kZoneId] = static_cast<uint>(dungeon.zoneId);
     metadata[keys::kKeystoneLevel] = static_cast<uint>(dungeon.keystoneLevel);
     metadata[keys::kStartTime] = static_cast<qint64>(dungeon.startTime.toMSecsSinceEpoch());
@@ -74,9 +74,4 @@ ActivityMetadata ActivityMetadata::fromDungeonEnded(
     metadata[keys::kDurationMs] = static_cast<qint64>(durationMs);
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;
-}
-
-ActivityMetadata ActivityMetadata::fromZone(int mapId, QString const& zoneName)
-{
-    return ActivityMetadata{{keys::kMapId, static_cast<uint>(mapId)}, {keys::kZoneName, zoneName}};
 }

@@ -20,6 +20,4 @@ class ActivityMetadata : public QVariantMap
     static ActivityMetadata fromDungeonEnded(
         DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
     );
-
-    static ActivityMetadata fromZone(int mapId, QString const& zoneName);
 };

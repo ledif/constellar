@@ -9,7 +9,11 @@ class GameStateTest : public QObject
   private Q_SLOTS:
     void setActivityEmitsOnChange();
     void setActivitySkipsOnIdenticalBag();
+    void setUiMapEmitsOnChange();
+    void setUiMapSkipsOnIdenticalValue();
     void setZoneEmitsOnChange();
-    void setZoneSkipsOnIdenticalBag();
+    void setZoneSkipsOnIdenticalValue();
+    void setUiMapThenSetZoneMergesBothHalves();
+    void oneHalfUpdateDoesNotClearTheOther();
     void endActivityEmitsThenClears();
 };

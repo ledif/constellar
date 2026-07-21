@@ -13,10 +13,14 @@ ObserverService::ObserverService(
     // send lines to the activity tracker
     connect(&m_watcher, &LogWatcher::lineReceived, &m_tracker, &ActivityTracker::onLineReceived);
 
-    // update our state when the tracker detects we moved zones
+    // update our state when the tracker detects we changed maps or zones
     connect(
-        &m_tracker, &ActivityTracker::zoneChanged, this, [this](int mapId, QString const& zoneName)
-        { m_gameState.setZone(ActivityMetadata::fromZone(mapId, zoneName)); }
+        &m_tracker, &ActivityTracker::uiMapChanged, this,
+        [this](UiMap const& uiMap) { m_gameState.setUiMap(uiMap); }
+    );
+    connect(
+        &m_tracker, &ActivityTracker::zoneChanged, this,
+        [this](Zone const& zone) { m_gameState.setZone(zone); }
     );
 
     // update our state when the tracker detects we started/ended a key

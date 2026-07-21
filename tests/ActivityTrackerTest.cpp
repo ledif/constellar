@@ -4,6 +4,7 @@
 #include <QVector>
 
 #include "ActivityTracker.h"
+#include "Location.h"
 #include "LogLine.h"
 
 namespace
@@ -56,6 +57,21 @@ QString mapChangeLine(QString const& hms, int mapId, QString const& zoneName)
                .arg(zoneName);
 }
 
+QString mapChangeLineNoBounds(QString const& hms, int mapId, QString const& zoneName)
+{
+    return timestamp(hms) + QStringLiteral("  MAP_CHANGE,%1,\"%2\"").arg(mapId).arg(zoneName);
+}
+
+QString zoneChangeLine(
+    QString const& hms, int instanceId, QString const& zoneName, int difficultyId
+)
+{
+    return timestamp(hms) + QStringLiteral("  ZONE_CHANGE,%1,\"%2\",%3")
+                                .arg(instanceId)
+                                .arg(zoneName)
+                                .arg(difficultyId);
+}
+
 QString challengeModeEndLine(
     QString const& hms, int leadingId, bool success, int level, int durationMs
 )
@@ -95,12 +111,6 @@ struct DungeonStopped
     QDateTime stopTime;
 };
 
-struct ZoneChanged
-{
-    int mapId;
-    QString zoneName;
-};
-
 struct Collector
 {
     explicit Collector(ActivityTracker& tracker)
@@ -127,8 +137,12 @@ struct Collector
             ) { dungeonStopped.append({dungeon, success, durationMs, stopTime}); }
         );
         QObject::connect(
+            &tracker, &ActivityTracker::uiMapChanged,
+            [this](UiMap const& uiMap) { uiMapChanges.append(uiMap); }
+        );
+        QObject::connect(
             &tracker, &ActivityTracker::zoneChanged,
-            [this](int mapId, QString const& zoneName) { zoneChanges.append({mapId, zoneName}); }
+            [this](Zone const& zone) { zoneChanges.append(zone); }
         );
     }
 
@@ -136,7 +150,8 @@ struct Collector
     QVector<Stopped> stopped;
     QVector<DungeonStarted> dungeonStarted;
     QVector<DungeonStopped> dungeonStopped;
-    QVector<ZoneChanged> zoneChanges;
+    QVector<UiMap> uiMapChanges;
+    QVector<Zone> zoneChanges;
 };
 
 }  // namespace
@@ -335,7 +350,7 @@ void ActivityTrackerTest::dungeonStartsAboveKeystoneThreshold()
 
     QCOMPARE(collector.dungeonStarted.size(), 1);
     QCOMPARE(collector.dungeonStarted.at(0).dungeon.zoneId, 2811);
-    QCOMPARE(collector.dungeonStarted.at(0).dungeon.mapId, 558);
+    QCOMPARE(collector.dungeonStarted.at(0).dungeon.challengeMapId, 558);
     QCOMPARE(collector.dungeonStarted.at(0).dungeon.keystoneLevel, 10);
     QCOMPARE(
         collector.dungeonStarted.at(0).preRollFrom,
@@ -463,7 +478,22 @@ void ActivityTrackerTest::dungeonEndEndsActiveKeyRegardlessOfArgs()
     QTRY_COMPARE_WITH_TIMEOUT(collector.dungeonStopped.size(), 1, 2500);
 }
 
-void ActivityTrackerTest::mapChangeEmitsZoneChanged()
+void ActivityTrackerTest::mapChangeEmitsUiMapChanged()
+{
+    ActivityTracker tracker({});
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(
+        mapChangeLineNoBounds(QStringLiteral("18:57:18.8690"), 2537, QStringLiteral("Quel'Thalas"))
+    ));
+
+    QCOMPARE(collector.uiMapChanges.size(), 1);
+    QCOMPARE(collector.uiMapChanges.at(0).id, 2537u);
+    QCOMPARE(collector.uiMapChanges.at(0).name, QStringLiteral("Quel'Thalas"));
+    QVERIFY(!collector.uiMapChanges.at(0).bounds.isValid());
+}
+
+void ActivityTrackerTest::mapChangeWithBoundsEmitsBounds()
 {
     ActivityTracker tracker({});
     Collector collector(tracker);
@@ -472,9 +502,41 @@ void ActivityTrackerTest::mapChangeEmitsZoneChanged()
         LogLine(mapChangeLine(QStringLiteral("18:57:18.8690"), 2537, QStringLiteral("Quel'Thalas")))
     );
 
+    QCOMPARE(collector.uiMapChanges.size(), 1);
+    QVERIFY(collector.uiMapChanges.at(0).bounds.isValid());
+    QCOMPARE(collector.uiMapChanges.at(0).bounds.x0, 10956.25);
+    QCOMPARE(collector.uiMapChanges.at(0).bounds.x1, 10152.08);
+    QCOMPARE(collector.uiMapChanges.at(0).bounds.y0, -4002.08);
+    QCOMPARE(collector.uiMapChanges.at(0).bounds.y1, -5208.33);
+}
+
+void ActivityTrackerTest::zoneChangeEmitsZoneChanged()
+{
+    ActivityTracker tracker({});
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(
+        zoneChangeLine(QStringLiteral("18:57:18.8690"), 2694, QStringLiteral("Harandar"), 1)
+    ));
+
     QCOMPARE(collector.zoneChanges.size(), 1);
-    QCOMPARE(collector.zoneChanges.at(0).mapId, 2537);
-    QCOMPARE(collector.zoneChanges.at(0).zoneName, QStringLiteral("Quel'Thalas"));
+    QCOMPARE(collector.zoneChanges.at(0).instanceId, 2694u);
+    QCOMPARE(collector.zoneChanges.at(0).name, QStringLiteral("Harandar"));
+    QCOMPARE(collector.zoneChanges.at(0).difficultyId, 1u);
+}
+
+void ActivityTrackerTest::zoneChangeWithoutMapChangeDoesNotEmitUiMapChanged()
+{
+    ActivityTracker tracker({});
+    Collector collector(tracker);
+
+    // The "Sanctum of Light" pattern: an interior ZONE_CHANGE with no MAP_CHANGE.
+    tracker.onLineReceived(LogLine(
+        zoneChangeLine(QStringLiteral("18:57:18.8690"), 0, QStringLiteral("Sanctum of Light"), 0)
+    ));
+
+    QCOMPARE(collector.zoneChanges.size(), 1);
+    QCOMPARE(collector.uiMapChanges.size(), 0);
 }
 
 QTEST_MAIN(ActivityTrackerTest)
