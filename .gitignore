@@ -1,0 +1,9 @@
+/build/
+*.o
+.cache/
+
+tmp
+*.bak
+
+# tracked in its own independent jj repo
+agents/

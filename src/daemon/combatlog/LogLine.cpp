@@ -1,0 +1,156 @@
+#include "LogLine.h"
+
+#include <QRegularExpression>
+#include <QTimeZone>
+#include <QVector>
+
+using namespace Qt::StringLiterals;
+
+LogLine::LogLine(QString rawLine) : m_raw(std::move(rawLine))
+{
+    parse();
+}
+
+QDateTime LogLine::dateTime() const
+{
+    // I didn't write this cursed regex and just trust that it works by Elune's grace
+
+    // "7/11/2026 05:20:02.169-5" -> month, day, year, hour, min, sec, fraction + TZ
+    static QRegularExpression const pattern(
+        uR"(^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\.(\d+)([+-]\d{1,2}(?::\d{2})?)?$)"_s
+    );
+
+    QRegularExpressionMatch const match = pattern.match(m_timestamp);
+    if (!match.hasMatch())
+        return {};
+
+    int const month = match.captured(1).toInt();
+    int const day = match.captured(2).toInt();
+    int const year = match.captured(3).toInt();
+    int const hour = match.captured(4).toInt();
+    int const minute = match.captured(5).toInt();
+    int const second = match.captured(6).toInt();
+
+    QString fraction = match.captured(7).left(3);
+    while (fraction.size() < 3) fraction += u'0';
+    int const millisecond = fraction.toInt();
+
+    QDate const date(year, month, day);
+    QTime const time(hour, minute, second, millisecond);
+
+    if (!date.isValid() || !time.isValid())
+        return {};
+
+    QString const offsetStr = match.captured(8);
+    if (offsetStr.isEmpty())
+        return QDateTime(date, time);
+
+    bool const negative = offsetStr.startsWith(u'-');
+    QStringList const parts = offsetStr.mid(1).split(u':');
+    int const offsetHours = parts.value(0).toInt();
+    int const offsetMinutes = parts.value(1, u"0"_s).toInt();
+    int offsetSeconds = offsetHours * 3600 + offsetMinutes * 60;
+    if (negative)
+        offsetSeconds = -offsetSeconds;
+
+    return QDateTime(date, time, QTimeZone::fromSecondsAheadOfUtc(offsetSeconds));
+}
+
+QString LogLine::type() const
+{
+    return argString(0);
+}
+
+QVariant LogLine::arg(int index) const
+{
+    if (index < 0 || index >= m_args.size())
+        return {};
+
+    return m_args.at(index);
+}
+
+QString LogLine::argString(int index) const
+{
+    return arg(index).toString();
+}
+
+void LogLine::parse()
+{
+    int const sep = m_raw.indexOf(u"  "_s);
+    if (sep < 0)
+    {
+        m_valid = false;
+        return;
+    }
+
+    m_timestamp = m_raw.left(sep);
+
+    QVector<QVariantList> openLists;
+    bool inQuotedString = false;
+    QVariant value = QString();
+
+    auto commit = [&](QVariant const& committed)
+    {
+        if (!openLists.isEmpty())
+            openLists.last().append(committed);
+        else
+            m_args.append(committed);
+    };
+
+    auto isSet = [](QVariant const& value)
+    { return value.typeId() == QMetaType::QVariantList || !value.toString().isEmpty(); };
+
+    int const length = m_raw.length();
+    for (int pos = sep + 2; pos < length; ++pos)
+    {
+        QChar const c = m_raw.at(pos);
+        if (c == u'\n')
+            break;
+
+        if (inQuotedString)
+        {
+            if (c == u'"')
+                inQuotedString = false;
+            else
+                value = value.toString() + c;
+            continue;
+        }
+
+        if (c == u',')
+        {
+            commit(value);
+            value = QString();
+        }
+        else if (c == u'"')
+        {
+            inQuotedString = true;
+        }
+        else if (c == u'[' || c == u'(')
+        {
+            openLists.append(QVariantList());
+        }
+        else if (c == u']' || c == u')')
+        {
+            if (openLists.isEmpty())
+            {
+                // unbalanced closer
+                m_valid = false;
+                return;
+            }
+
+            if (isSet(value))
+                openLists.last().append(value);
+
+            value = openLists.takeLast();
+        }
+        else
+        {
+            value = value.toString() + c;
+        }
+    }
+
+    if (isSet(value))
+        commit(value);
+
+    m_valid = openLists.isEmpty() && !m_args.isEmpty();
+}

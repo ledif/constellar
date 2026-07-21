@@ -1,0 +1,6 @@
+add_subdirectory(combatlog)
+add_subdirectory(tracker)
+add_subdirectory(presence)
+add_subdirectory(gamestate)
+add_subdirectory(activitymetadata)
+add_subdirectory(observer)
