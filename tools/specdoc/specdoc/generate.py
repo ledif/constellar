@@ -19,8 +19,8 @@ from .keys import render_keys_header
 from .spec import cross_check, load_spec
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-_DEFAULT_SPEC = _REPO_ROOT / "data" / "dev.ulduar.Constellar.spec.yaml"
-_DEFAULT_XML = _REPO_ROOT / "data" / "dev.ulduar.Constellar.xml"
+_DEFAULT_SPEC = _REPO_ROOT / "data" / "dev.ulduar.Constellar1.spec.yaml"
+_DEFAULT_XML = _REPO_ROOT / "data" / "dev.ulduar.Constellar1.xml"
 _DEFAULT_KEYS_HEADER = _REPO_ROOT / "src" / "common" / "ActivityKeys.h"
 _DEFAULT_TEMPLATES = _REPO_ROOT / "tools" / "specdoc" / "templates"
 _DEFAULT_DOC_OUT = _REPO_ROOT / "doc" / "spec"

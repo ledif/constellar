@@ -1,6 +1,6 @@
 #pragma once
 
-// GENERATED from data/dev.ulduar.Constellar.spec.yaml
+// GENERATED from data/dev.ulduar.Constellar1.spec.yaml
 
 // Key vocabulary for the Activity/Zone a{sv} metadata
 namespace constellar::keys

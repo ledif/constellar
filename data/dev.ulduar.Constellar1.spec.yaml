@@ -1,4 +1,4 @@
-# Sidecar spec for dev.ulduar.Constellar.xml.
+# Sidecar spec for dev.ulduar.Constellar1.xml.
 #
 #  Source of truth for the Observer `a{sv}` key vocabulary
 
@@ -9,7 +9,7 @@ about: >
   downstream clients (a Discord presence client, a future video-recording client).
 
 interfaces:
-  dev.ulduar.Constellar.Observer:
+  dev.ulduar.Constellar1.Observer:
     description: >
       Exposes World of Warcraft's current in-game activity and location.
 

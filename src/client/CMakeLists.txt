@@ -6,7 +6,7 @@ find_program(QDBUSXML2CPP
   REQUIRED
 )
 
-set(OBSERVER_XML ${CMAKE_SOURCE_DIR}/data/dev.ulduar.Constellar.xml)
+set(OBSERVER_XML ${CMAKE_SOURCE_DIR}/data/dev.ulduar.Constellar1.xml)
 set(OBSERVER_PROXY_H ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.h)
 set(OBSERVER_PROXY_CPP ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.cpp)
 
