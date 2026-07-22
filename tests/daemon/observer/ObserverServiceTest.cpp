@@ -70,7 +70,7 @@ void ObserverServiceTest::mapChangePopulatesLocation()
     QVariantMap const location = service.gameState().location();
     QCOMPARE(location.value(QString::fromLatin1(keys::kUiMapId)).toInt(), 2537);
     QCOMPARE(
-        location.value(QString::fromLatin1(keys::kUiMapName)).toString(),
+        location.value(QString::fromLatin1(keys::kZoneName)).toString(),
         QStringLiteral("Quel'Thalas")
     );
 }
@@ -94,7 +94,12 @@ void ObserverServiceTest::zoneChangePopulatesLocation()
         location.value(QString::fromLatin1(keys::kZoneName)).toString(),
         QStringLiteral("Sanctum of Light")
     );
-    QVERIFY(!location.contains(QString::fromLatin1(keys::kUiMapId)));
+    QCOMPARE(
+        location.value(QString::fromLatin1(keys::kZoneCategory)).toString(),
+        QStringLiteral("open-world")
+    );
+    // No MAP_CHANGE yet, so the stable map id sentinel is 0.
+    QCOMPARE(location.value(QString::fromLatin1(keys::kUiMapId)).toUInt(), 0u);
 }
 
 void ObserverServiceTest::encounterEndClearsActivity()

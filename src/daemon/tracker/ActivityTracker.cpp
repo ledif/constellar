@@ -45,15 +45,6 @@ void ActivityTracker::onLineReceived(LogLine const& line)
             UiMap uiMap;
             uiMap.id = line.argString(1).toUInt();
             uiMap.name = line.argString(2);
-            if (line.argCount() >= 7)
-            {
-                uiMap.bounds = MapBounds{
-                    line.argString(3).toDouble(),
-                    line.argString(4).toDouble(),
-                    line.argString(5).toDouble(),
-                    line.argString(6).toDouble(),
-                };
-            }
             Q_EMIT uiMapChanged(uiMap);
         }
     }
@@ -63,7 +54,6 @@ void ActivityTracker::onLineReceived(LogLine const& line)
         if (line.argCount() >= 3)
         {
             Zone zone;
-            zone.instanceId = line.argString(1).toUInt();
             zone.name = line.argString(2);
             zone.difficultyId = line.argString(3).toUInt();
             Q_EMIT zoneChanged(zone);
@@ -88,7 +78,7 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
         else
         {
             // fresh START with no END for previous (player messing with /combatlog?)
-            m_pendingSuccess = false;
+            m_pendingOutcome = ActivityOutcome::Abandoned;
             m_pendingStopTime = line.dateTime();
             finishPendingStop();
         }
@@ -128,7 +118,8 @@ void ActivityTracker::handleEncounterEnd(LogLine const& line)
         return;
     }
 
-    m_pendingSuccess = line.argString(5) == u"1"_s;
+    m_pendingOutcome =
+        line.argString(5) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Failure;
     m_pendingStopTime = line.dateTime().addSecs(m_config.raidOverrunSeconds);
     m_overrunTimer.start(m_config.raidOverrunSeconds * 1000);
 }
@@ -141,7 +132,7 @@ void ActivityTracker::onOverrunElapsed()
 
 void ActivityTracker::finishPendingStop()
 {
-    Q_EMIT encounterStopped(m_current, m_pendingSuccess, m_pendingStopTime);
+    Q_EMIT encounterStopped(m_current, m_pendingOutcome, m_pendingStopTime);
 }
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)
@@ -188,7 +179,8 @@ void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
     if (!m_dungeonActive || line.argCount() < 5)
         return;
 
-    m_pendingDungeonSuccess = line.argString(2) == u"1"_s;
+    m_pendingDungeonOutcome =
+        line.argString(2) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Abandoned;
     m_pendingDungeonDurationMs = line.argString(4).toInt();
     m_pendingDungeonStopTime = line.dateTime().addSecs(m_config.dungeonOverrunSeconds);
     m_dungeonOverrunTimer.start(m_config.dungeonOverrunSeconds * 1000);
@@ -203,7 +195,7 @@ void ActivityTracker::onDungeonOverrunElapsed()
 void ActivityTracker::finishPendingDungeonStop()
 {
     Q_EMIT dungeonStopped(
-        m_currentDungeon, m_pendingDungeonSuccess, m_pendingDungeonDurationMs,
+        m_currentDungeon, m_pendingDungeonOutcome, m_pendingDungeonDurationMs,
         m_pendingDungeonStopTime
     );
 }

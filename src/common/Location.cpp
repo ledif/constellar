@@ -1,9 +1,5 @@
 #include "Location.h"
 
-#include <QDBusArgument>
-#include <QJsonArray>
-#include <QList>
-
 #include "ActivityKeys.h"
 
 using namespace Qt::StringLiterals;
@@ -13,16 +9,27 @@ namespace keys = constellar::keys;
 namespace
 {
 
-QList<double> boundsFromVariant(QVariant const& value)
+QString zoneCategory(quint32 difficultyId)
 {
-    if (value.canConvert<QDBusArgument>())
+    switch (difficultyId)
     {
-        QList<double> bounds;
-        value.value<QDBusArgument>() >> bounds;
-        return bounds;
+        case 0:
+            return u"open-world"_s;
+        case 1:   // Dungeon Normal
+        case 2:   // Dungeon Heroic
+        case 23:  // Dungeon Mythic
+        case 24:  // Timewalking
+            return u"dungeon"_s;
+        case 14:  // Raid Normal
+        case 15:  // Raid Heroic
+        case 16:  // Raid Mythic
+        case 17:  // Raid LFR
+            return u"raid"_s;
+        case 208:  // Delve (constant across every delve and every tier)
+            return u"delve"_s;
+        default:
+            return u"unknown"_s;
     }
-
-    return value.value<QList<double>>();
 }
 
 }  // namespace
@@ -35,23 +42,13 @@ Location Location::fromVariantMap(QVariantMap const& map)
     {
         UiMap uiMap;
         uiMap.id = map.value(QString::fromLatin1(keys::kUiMapId)).toUInt();
-        uiMap.name = map.value(QString::fromLatin1(keys::kUiMapName)).toString();
-
-        QList<double> const bounds =
-            boundsFromVariant(map.value(QString::fromLatin1(keys::kUiMapBounds)));
-        if (bounds.size() == 4)
-            uiMap.bounds = MapBounds{bounds[0], bounds[1], bounds[2], bounds[3]};
-
         location.m_uiMap = uiMap;
     }
 
-    if (map.contains(QString::fromLatin1(keys::kZoneInstanceId)))
+    if (map.contains(QString::fromLatin1(keys::kZoneName)))
     {
         Zone zone;
-        zone.instanceId = map.value(QString::fromLatin1(keys::kZoneInstanceId)).toUInt();
         zone.name = map.value(QString::fromLatin1(keys::kZoneName)).toString();
-        zone.difficultyId = map.value(QString::fromLatin1(keys::kZoneDifficultyId)).toUInt();
-
         location.m_zone = zone;
     }
 
@@ -62,55 +59,15 @@ QVariantMap Location::toVariantMap() const
 {
     QVariantMap map;
 
-    if (m_uiMap)
-    {
-        map[QString::fromLatin1(keys::kUiMapId)] = m_uiMap->id;
-        map[QString::fromLatin1(keys::kUiMapName)] = m_uiMap->name;
-        if (m_uiMap->bounds.isValid())
-        {
-            map[QString::fromLatin1(keys::kUiMapBounds)] = QVariant::fromValue(
-                QList<double>{
-                    m_uiMap->bounds.x0, m_uiMap->bounds.x1, m_uiMap->bounds.y0, m_uiMap->bounds.y1
-                }
-            );
-        }
-    }
+    if (isEmpty())
+        return map;
 
-    if (m_zone)
-    {
-        map[QString::fromLatin1(keys::kZoneInstanceId)] = m_zone->instanceId;
-        map[QString::fromLatin1(keys::kZoneName)] = m_zone->name;
-        map[QString::fromLatin1(keys::kZoneDifficultyId)] = m_zone->difficultyId;
-    }
+    map[QString::fromLatin1(keys::kZoneName)] = displayName();
+    map[QString::fromLatin1(keys::kZoneCategory)] =
+        m_zone ? zoneCategory(m_zone->difficultyId) : u"unknown"_s;
+    map[QString::fromLatin1(keys::kUiMapId)] = m_uiMap ? m_uiMap->id : 0u;
 
     return map;
-}
-
-QJsonObject Location::toJsonObject() const
-{
-    QJsonObject json;
-
-    if (m_uiMap)
-    {
-        json[QString::fromLatin1(keys::kUiMapId)] = static_cast<qint64>(m_uiMap->id);
-        json[QString::fromLatin1(keys::kUiMapName)] = m_uiMap->name;
-        if (m_uiMap->bounds.isValid())
-        {
-            json[QString::fromLatin1(keys::kUiMapBounds)] = QJsonArray{
-                m_uiMap->bounds.x0, m_uiMap->bounds.x1, m_uiMap->bounds.y0, m_uiMap->bounds.y1
-            };
-        }
-    }
-
-    if (m_zone)
-    {
-        json[QString::fromLatin1(keys::kZoneInstanceId)] = static_cast<qint64>(m_zone->instanceId);
-        json[QString::fromLatin1(keys::kZoneName)] = m_zone->name;
-        json[QString::fromLatin1(keys::kZoneDifficultyId)] =
-            static_cast<qint64>(m_zone->difficultyId);
-    }
-
-    return json;
 }
 
 QString Location::displayName() const

@@ -30,6 +30,22 @@ QString raidDifficultyDisplayName(int difficultyId)
     return u"Unknown"_s;
 }
 
+QString outcomeName(ActivityOutcome outcome)
+{
+    switch (outcome)
+    {
+        case ActivityOutcome::Success:
+            return QString::fromLatin1(keys::kOutcomeSuccess);
+        case ActivityOutcome::Failure:
+            return QString::fromLatin1(keys::kOutcomeFailure);
+        case ActivityOutcome::Abandoned:
+            return QString::fromLatin1(keys::kOutcomeAbandoned);
+        case ActivityOutcome::Unknown:
+            break;
+    }
+    return QString::fromLatin1(keys::kOutcomeUnknown);
+}
+
 }  // namespace
 
 ActivityMetadata ActivityMetadata::fromEncounter(RaidEncounter const& encounter)
@@ -45,11 +61,11 @@ ActivityMetadata ActivityMetadata::fromEncounter(RaidEncounter const& encounter)
 }
 
 ActivityMetadata ActivityMetadata::fromEncounterEnded(
-    RaidEncounter const& encounter, bool success, QDateTime const& stopTime
+    RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
 )
 {
     ActivityMetadata metadata = fromEncounter(encounter);
-    metadata[keys::kSuccess] = success;
+    metadata[keys::kOutcome] = outcomeName(outcome);
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;
 }
@@ -66,11 +82,11 @@ ActivityMetadata ActivityMetadata::fromDungeon(DungeonRun const& dungeon)
 }
 
 ActivityMetadata ActivityMetadata::fromDungeonEnded(
-    DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
+    DungeonRun const& dungeon, ActivityOutcome outcome, int durationMs, QDateTime const& stopTime
 )
 {
     ActivityMetadata metadata = fromDungeon(dungeon);
-    metadata[keys::kSuccess] = success;
+    metadata[keys::kOutcome] = outcomeName(outcome);
     metadata[keys::kDurationMs] = static_cast<qint64>(durationMs);
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;

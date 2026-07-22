@@ -9,7 +9,7 @@ void GuiQmlLoadTest::loadsWithoutErrors()
     QQmlApplicationEngine engine;
     QSignalSpy warnings(&engine, &QQmlApplicationEngine::warnings);
 
-    engine.loadFromModule("io.github.ledif.constellar", "Main");
+    engine.loadFromModule("dev.ulduar.Constellar", "Main");
 
     QVERIFY2(!engine.rootObjects().isEmpty(), "Main.qml failed to instantiate");
     QVERIFY2(warnings.isEmpty(), "QML engine emitted warnings while loading Main.qml");

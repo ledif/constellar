@@ -55,9 +55,9 @@ void ActivityMetadataTest::encounterEndedMetadataAddsSuccessAndStopTime()
     };
 
     ActivityMetadata const metadata =
-        ActivityMetadata::fromEncounterEnded(encounter, true, stopTime);
+        ActivityMetadata::fromEncounterEnded(encounter, ActivityOutcome::Success, stopTime);
 
-    QCOMPARE(metadata.value(keys::kSuccess).toBool(), true);
+    QCOMPARE(metadata.value(keys::kOutcome).toString(), QString::fromLatin1(keys::kOutcomeSuccess));
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
     // Still carries the base encounter fields.
     QCOMPARE(metadata.value(keys::kDifficulty).toString(), QStringLiteral("Normal"));
@@ -93,10 +93,13 @@ void ActivityMetadataTest::dungeonEndedMetadataAddsSuccessDurationAndStopTime()
         .keystoneLevel = 10,
     };
 
-    ActivityMetadata const metadata =
-        ActivityMetadata::fromDungeonEnded(dungeon, false, 1'234'567, stopTime);
+    ActivityMetadata const metadata = ActivityMetadata::fromDungeonEnded(
+        dungeon, ActivityOutcome::Abandoned, 1'234'567, stopTime
+    );
 
-    QCOMPARE(metadata.value(keys::kSuccess).toBool(), false);
+    QCOMPARE(
+        metadata.value(keys::kOutcome).toString(), QString::fromLatin1(keys::kOutcomeAbandoned)
+    );
     QCOMPARE(metadata.value(keys::kDurationMs).toLongLong(), 1'234'567);
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
 }

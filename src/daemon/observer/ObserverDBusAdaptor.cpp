@@ -1,5 +1,7 @@
 #include "ObserverDBusAdaptor.h"
 
+#include <utility>
+
 #include <QDBusConnection>
 #include <QDBusMessage>
 
@@ -9,8 +11,8 @@
 
 using namespace Qt::StringLiterals;
 
-ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service)
-    : QDBusAbstractAdaptor(service), m_service(service)
+ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service, QDBusConnection connection)
+    : QDBusAbstractAdaptor(service), m_service(service), m_connection(std::move(connection))
 {
     setAutoRelaySignals(true);
     GameState const& gameState = m_service->gameState();
@@ -47,7 +49,7 @@ void ObserverDBusAdaptor::emitPropertiesChanged(QString const& name, QVariant co
     signal << QString::fromUtf8(constellar::dbus::kInterfaceName) << QVariantMap{{name, value}}
            << QStringList{};
 
-    QDBusConnection::sessionBus().send(signal);
+    m_connection.send(signal);
 }
 
 void ObserverDBusAdaptor::Pause()

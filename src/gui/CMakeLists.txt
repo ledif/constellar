@@ -4,7 +4,7 @@ set(BUILD_SHARED_LIBS OFF)
 qt6_policy(SET QTP0004 NEW)
 
 ecm_add_qml_module(constellar-qml
-  URI "io.github.ledif.constellar"
+  URI "dev.ulduar.Constellar"
   VERSION 1.0
   GENERATE_PLUGIN_SOURCE
   SOURCES

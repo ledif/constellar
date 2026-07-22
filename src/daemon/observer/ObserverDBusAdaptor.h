@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDBusAbstractAdaptor>
+#include <QDBusConnection>
 #include <QDBusVariant>
 #include <QList>
 #include <QMap>
@@ -22,7 +23,9 @@ class ObserverDBusAdaptor : public QDBusAbstractAdaptor
     Q_PROPERTY(QVariantMap Location READ location)
 
   public:
-    explicit ObserverDBusAdaptor(ObserverService* service);
+    explicit ObserverDBusAdaptor(
+        ObserverService* service, QDBusConnection connection = QDBusConnection::sessionBus()
+    );
 
     QVariantMap activity() const;
     QVariantMap location() const;
@@ -46,4 +49,5 @@ class ObserverDBusAdaptor : public QDBusAbstractAdaptor
     void emitPropertiesChanged(QString const& name, QVariant const& value);
 
     ObserverService* m_service;
+    QDBusConnection m_connection;
 };

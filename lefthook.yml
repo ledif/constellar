@@ -4,3 +4,6 @@ pre-commit:
       glob: "*.{cpp,h}"
       run: just format {staged_files}
       stage_fixed: true
+    check-spec:
+      glob: "data/dev.ulduar.Constellar.{xml,spec.yaml}"
+      run: just check-spec

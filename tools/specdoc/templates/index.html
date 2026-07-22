@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Constellar D-Bus Interface Specification</title>
+ <link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body>
+ <header class="topbar">
+  <h1>Constellar D-Bus Interface Specification</h1>
+  <nav>
+   <a href="#about">About</a>
+   <a href="#interfaces">Interfaces</a>
+  </nav>
+ </header>
+
+ <main class="content">
+  {% if spec_version %}<p class="spec-version">Version {{ spec_version }}</p>{% endif %}
+
+  {% if about %}
+  <h2 id="about" class="section-heading">About</h2>
+  <div class="doc"><p>{{ about }}</p></div>
+  {% endif %}
+
+  <h2 id="interfaces" class="section-heading">Interfaces</h2>
+  <ul class="iface-list">
+   {% for interface in interfaces %}
+   <li>
+    <a class="iface-name" href="{{ interface.href }}">{{ interface.name }}</a>
+    {% if interface.description %}&mdash; {{ interface.description }}{% endif %}
+   </li>
+   {% endfor %}
+  </ul>
+
+  {% if license %}
+  <h2 class="section-heading">License</h2>
+  <div class="legal"><pre>{{ license }}</pre></div>
+  {% endif %}
+ </main>
+</body>
+</html>

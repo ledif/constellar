@@ -32,4 +32,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 RUN python3.12 -m ensurepip --upgrade \
     && python3.12 -m pip install --no-cache-dir cmakelang pyyaml
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
 WORKDIR /src

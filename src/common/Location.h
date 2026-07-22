@@ -1,34 +1,23 @@
 #pragma once
 
-#include <QJsonObject>
-#include <QPointF>
 #include <QString>
 #include <QVariantMap>
 #include <optional>
 
-// World-coordinates from MAP_CHANGE events
-struct MapBounds
-{
-    double x0 = 0, x1 = 0, y0 = 0, y1 = 0;
-    bool isValid() const
-    {
-        return x0 != x1 && y0 != y1;
-    }
-};
-
+// This is the name of the map you see when you press m
+//   (e.g., Silvermoon City)
 struct UiMap
 {
     quint32 id = 0;  // uiMapID
     QString name;
-    MapBounds bounds;
 };
 
-// named area/instance from ZONE_CHANGE events
+// This is the name of the zone within the map you're in
+//   (e.g., The Bazaar)
 struct Zone
 {
-    quint32 instanceId = 0;
     QString name;
-    quint32 difficultyId = 0;
+    quint32 difficultyId = 0;  // raw ZONE_CHANGE difficultyID
 };
 
 class Location
@@ -36,7 +25,6 @@ class Location
   public:
     static Location fromVariantMap(QVariantMap const& map);
     QVariantMap toVariantMap() const;
-    QJsonObject toJsonObject() const;
 
     std::optional<UiMap> const& uiMap() const
     {

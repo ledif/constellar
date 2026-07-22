@@ -57,9 +57,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    auto* service =
-        new ObserverService(std::filesystem::path(logDirectory.toStdString()), /*config*/ {}, &app);
-    new ObserverDBusAdaptor(service);
+    auto service = std::make_unique<ObserverService>(
+        std::filesystem::path(logDirectory.toStdString()), ActivityTracker::Config{}, &app
+    );
+
+    QDBusConnection bus = QDBusConnection::sessionBus();
+
+    auto _ = std::make_unique<ObserverDBusAdaptor>(service.get(), bus);
 
     QString discordAppId =
         QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
@@ -67,30 +71,29 @@ int main(int argc, char* argv[])
     if (discordAppId.isEmpty())
         discordAppId = kDefaultDiscordAppId.toString();
 
-    auto* discordClient = new DiscordIpcClient(discordAppId, &app);
-    auto* presence = new PresencePublisher(*discordClient, service->gameState(), &app);
+    auto discordClient = std::make_unique<DiscordIpcClient>(discordAppId, &app);
+    auto presence = std::make_unique<PresencePublisher>(*discordClient, service->gameState(), &app);
 
     // send game state changes to Discord
     QObject::connect(
-        &service->gameState(), &GameState::activityChanged, presence,
+        &service->gameState(), &GameState::activityChanged, presence.get(),
         &PresencePublisher::onActivityChanged
     );
 
     QObject::connect(
-        &service->gameState(), &GameState::locationChanged, presence,
+        &service->gameState(), &GameState::locationChanged, presence.get(),
         &PresencePublisher::onLocationChanged
     );
 
     QObject::connect(
-        &app, &QCoreApplication::aboutToQuit, presence,
-        [discordClient]() { discordClient->clearActivity(); }
+        &app, &QCoreApplication::aboutToQuit, presence.get(),
+        [discord = discordClient.get()]() { discord->clearActivity(); }
     );
 
     discordClient->start();
 
     // register our daemon with D-Bus
-    QDBusConnection bus = QDBusConnection::sessionBus();
-    if (!bus.registerObject(constellar::dbus::kObjectPath, service))
+    if (!bus.registerObject(constellar::dbus::kObjectPath, service.get()))
     {
         qCritical() << "Failed to register DBus object at" << constellar::dbus::kObjectPath << ":"
                     << bus.lastError().message();

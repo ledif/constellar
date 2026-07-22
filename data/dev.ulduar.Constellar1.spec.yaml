@@ -1,0 +1,224 @@
+# Sidecar spec for dev.ulduar.Constellar1.xml.
+#
+#  Source of truth for the Observer `a{sv}` key vocabulary
+
+spec-version: "0.2"
+about: >
+  Constellar is a D-Bus daemon and set of clients for World of Warcraft. The daemon
+  publishes live game state (e.g., the player's current dungeon / raid or in-game location) for
+  downstream clients (a Discord presence client, a future video-recording client).
+
+interfaces:
+  dev.ulduar.Constellar1.Observer:
+    description: >
+      Exposes World of Warcraft's current in-game activity and location.
+
+    bags:
+      Activity:
+        description: The player's current instanced activity. Empty when idle.
+        keys:
+          - const: kType
+            key: type
+            type: s
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: >
+              Activity kind. A value outside this list must be treated as "unknown".
+            enum: [encounter, dungeon, unknown]
+
+          - const: kEncounterId
+            key: encounterId
+            type: u
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Encounter ID (encounter only).
+
+          - const: kEncounterName
+            key: encounterName
+            type: s
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Encounter name (encounter only).
+
+          - const: kDifficulty
+            key: difficulty
+            type: s
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: >
+              Human-readable difficulty of the zone
+            enum: [LFR, Normal, Heroic, Mythic, Unknown]
+
+          - const: kDifficultyId
+            key: difficultyId
+            type: u
+            applies-to: [encounter]
+            required: true
+            stability: stable
+            description: Raw WoW difficultyID (encounter only).
+
+          - const: kZoneId
+            key: zoneId
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Dungeon instance zone ID (dungeon only).
+
+          - const: kKeystoneLevel
+            key: keystoneLevel
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Mythic+ keystone level (dungeon only).
+
+          - const: kStartTime
+            key: startTime
+            type: x
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: Unix epoch milliseconds.
+
+          - const: kChallengeMapId
+            key: challengeMapId
+            type: u
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Mythic+ challenge-mode map ID (dungeon only).
+
+        ended-additions:
+          - const: kOutcome
+            key: outcome
+            type: s
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: >
+              Terminal result of the activity. Encounters report "success",
+              "failure", or "abandoned". Dungeons report "success" or "abandoned".
+            enum: [unknown, success, failure, abandoned]
+
+          - const: kDurationMs
+            key: durationMs
+            type: x
+            applies-to: [dungeon]
+            required: true
+            stability: stable
+            description: Run duration in milliseconds (dungeon only).
+
+          - const: kStopTime
+            key: stopTime
+            type: x
+            applies-to: [encounter, dungeon]
+            required: true
+            stability: stable
+            description: Unix epoch milliseconds.
+
+      Location:
+        description: >
+          Where the player is in the world.
+        keys:
+          - const: kZoneName
+            key: zoneName
+            type: s
+            required: true
+            stability: stable
+            description: Resolved zone or instance name (e.g., Silvermoon City).
+
+          - const: kZoneCategory
+            key: zoneCategory
+            type: s
+            required: true
+            stability: stable
+            description: >
+              Coarse location kind
+            enum: [open-world, dungeon, raid, delve, unknown]
+
+          - const: kUiMapId
+            key: uiMapId
+            type: u
+            required: true
+            stability: stable
+            description: >
+              Stable ID for the player's current map
+
+
+    methods:
+      Pause:
+        description: Pause activity detection and recording.
+        stability: stable
+
+      Resume:
+        description: Resume activity detection and recording.
+        stability: stable
+
+      StartManualRecording:
+        description: Start a manual recording outside activity detection.
+        stability: stable
+
+      StopManualRecording:
+        description: Stop a manual recording started with StartManualRecording.
+        stability: stable
+
+      ReloadConfig:
+        description: Reload the on-disk configuration.
+        stability: stable
+
+      ListRecordings:
+        description: List recordings, optionally filtered.
+        stability: experimental
+
+      DeleteRecording:
+        description: Delete a recording by id.
+        stability: experimental
+
+      GetConfig:
+        description: Fetch the current configuration as an a{sv} bag.
+        stability: experimental
+
+      SetConfig:
+        description: Replace the current configuration from an a{sv} bag.
+        stability: experimental
+
+    signals:
+      ActivityEnded:
+        description: >
+          Fires when an Activity concludes
+        stability: stable
+
+      Error:
+        description: >
+          Reports an asynchronous daemon-side error condition
+        stability: experimental
+
+    # D-Bus error vocabulary.
+    # Experimental: documented ahead of any emit site.
+    errors:
+      - code: dev.ulduar.Constellar1.Error.Internal
+        stability: experimental
+        description: >
+          Async Error signal. Generic, unclassified daemon-side failure with no
+          outstanding method call (e.g. the combat-log reader died).
+      - code: dev.ulduar.Constellar1.Error.RecordingAborted
+        stability: experimental
+        description: >
+          Async Error signal. A recording failed mid-capture, after its start call had
+          already returned successfully (e.g. the encoder crashed or the disk filled).
+      - code: dev.ulduar.Constellar1.Error.InvalidConfig
+        stability: experimental
+        description: >
+          Method error reply from SetConfig when the supplied configuration bag is
+          invalid. Not delivered via the Error signal.
+      - code: dev.ulduar.Constellar1.Error.RecordingFailed
+        stability: experimental
+        description: >
+          Method error reply from a recording operation (StartManualRecording /
+          StopManualRecording / DeleteRecording) that fails synchronously. Not
+          delivered via the Error signal.

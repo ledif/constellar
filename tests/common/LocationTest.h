@@ -8,11 +8,10 @@ class LocationTest : public QObject
 
   private Q_SLOTS:
     void emptyLocationIsEmpty();
-    void uiMapOnlyRoundTrips();
-    void uiMapWithBoundsRoundTrips();
-    void uiMapWithInvalidBoundsOmitsBoundsKey();
-    void zoneOnlyRoundTrips();
-    void bothHalvesRoundTrip();
+    void uiMapEmitsWireKeys();
+    void zoneEmitsCategory();
+    void zoneCategoryMappings();
+    void locationRoundTripsThroughWire();
     void displayNamePrefersZoneOverUiMap();
     void displayNameFallsBackToUiMapWhenZoneNameEmpty();
     void displayNameEmptyWhenNeitherSet();

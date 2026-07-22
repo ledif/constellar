@@ -34,20 +34,22 @@ int runStatus(bool json)
     }
 
     QVariantMap const activityMap = manager.property("Activity").toMap();
-    Location const location = Location::fromVariantMap(manager.property("Location").toMap());
+    QVariantMap const locationMap = manager.property("Location").toMap();
 
     QTextStream out(stdout);
     if (json)
     {
+        // The daemon already produced the canonical wire bag; report it verbatim
+        // rather than re-deriving (which would lose the resolved zoneCategory).
         QJsonObject root;
         root["activity"] = QJsonObject::fromVariantMap(activityMap);
-        root["location"] = location.toJsonObject();
+        root["location"] = QJsonObject::fromVariantMap(locationMap);
         out << QJsonDocument(root).toJson(QJsonDocument::Compact) << "\n";
     }
     else
     {
         out << "Activity: " << Activity::fromVariantMap(activityMap).toString() << "\n";
-        out << "Location: " << location.toString() << "\n";
+        out << "Location: " << Location::fromVariantMap(locationMap).toString() << "\n";
     }
 
     return 0;

@@ -39,6 +39,23 @@ test:
 qmllint:
     {{podman_run}} cmake --build {{build_dir}} --target all_qmllint
 
+# Regenerate ActivityKeys.h from data/dev.ulduar.Constellar1.spec.yaml
+spec-gen:
+    {{podman_run}} cmake --build {{build_dir}} --target spec-gen
+
+# Fail if ActivityKeys.h drifts from the spec sidecar
+check-spec:
+    {{podman_run}} cmake --build {{build_dir}} --target check-spec
+
+# Render the MPRIS-style reference (landing + per-interface pages) to doc/spec/
+spec-doc:
+    {{podman_run}} cmake --build {{build_dir}} --target spec-doc
+
+# Generate the reference page and serve it locally (host uv, no podman)
+spec-serve port="8000":
+    uv run --project tools/specdoc specdoc --emit html --license LICENSE
+    python3 -m http.server {{port}} --directory doc/spec
+
 # Run the daemon against the host session bus and a WoW Logs dir
 run-daemon path discord_app_id="1527462779290652672":
     exec podman run --rm -it \

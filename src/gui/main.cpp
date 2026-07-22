@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
     QApplication::setWindowIcon(QIcon::fromTheme(u"applications-games"_s));
 
     QQmlApplicationEngine engine;
-    engine.loadFromModule("io.github.ledif.constellar", "Main");
+    engine.loadFromModule("dev.ulduar.Constellar", "Main");
     if (engine.rootObjects().isEmpty())
         return -1;
 

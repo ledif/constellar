@@ -86,7 +86,8 @@ void ObserverController::onActivityEnded(QVariantMap const& activityMap)
 {
     Activity const activity = Activity::fromVariantMap(activityMap);
     qint64 const startTime = activityMap.value(QString::fromLatin1(keys::kStartTime)).toLongLong();
-    bool const success = activityMap.value(QString::fromLatin1(keys::kSuccess)).toBool();
+    QString const outcome = activityMap.value(QString::fromLatin1(keys::kOutcome)).toString();
+    bool const success = outcome == QString::fromLatin1(keys::kOutcomeSuccess);
     qint64 const stopTime = activityMap.value(QString::fromLatin1(keys::kStopTime)).toLongLong();
     qint64 const durationMs =
         activityMap.value(QString::fromLatin1(keys::kDurationMs)).toLongLong();
