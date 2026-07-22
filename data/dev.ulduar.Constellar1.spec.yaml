@@ -50,10 +50,7 @@ interfaces:
             required: true
             stability: stable
             description: >
-              Human-facing difficulty label derived daemon-side from difficultyId, so
-              clients need no knowledge of WoW's raw difficulty numbering (encounter
-              only). This is the stable client vocabulary; difficultyId is the raw
-              escape hatch. Unrecognized values map to "Unknown".
+              Human-readable difficulty of the zone
             enum: [LFR, Normal, Heroic, Mythic, Unknown]
 
           - const: kDifficultyId
@@ -104,12 +101,8 @@ interfaces:
             required: true
             stability: stable
             description: >
-              Terminal result of the activity. Encounters report "success" (kill),
-              "failure" (wipe), or "abandoned" (pull dropped with no end event).
-              Dungeons report only "success" (completed) or "abandoned" (left with no
-              end event): the combat log's CHALLENGE_MODE_END does not distinguish a
-              timed run from a depleted one, so no dungeon "failure"/"depleted" value
-              is offered. Unrecognized values map to "unknown".
+              Terminal result of the activity. Encounters report "success",
+              "failure", or "abandoned". Dungeons report "success" or "abandoned".
             enum: [unknown, success, failure, abandoned]
 
           - const: kDurationMs
@@ -130,17 +123,14 @@ interfaces:
 
       Location:
         description: >
-          Where the player is in the world. Reconciled daemon-side from ZONE_CHANGE
-          and MAP_CHANGE combat-log events into a single coherent snapshot. Coarse by
-          design: the combat log buffers solo/open-world content, so Location can lag
-          real-time by minutes and only promises slowly-changing, broad position.
+          Where the player is in the world.
         keys:
           - const: kZoneName
             key: zoneName
             type: s
             required: true
             stability: stable
-            description: Resolved zone or instance name (e.g., Silvermoon City, Freehold).
+            description: Resolved zone or instance name (e.g., Silvermoon City).
 
           - const: kZoneCategory
             key: zoneCategory
@@ -148,8 +138,7 @@ interfaces:
             required: true
             stability: stable
             description: >
-              Coarse location kind, derived daemon-side from the ZONE_CHANGE
-              difficultyID so clients need no knowledge of WoW's internal numbering.
+              Coarse location kind
             enum: [open-world, dungeon, raid, delve, unknown]
 
           - const: kUiMapId
@@ -158,8 +147,7 @@ interfaces:
             required: true
             stability: stable
             description: >
-              WoW uiMapID for the player's current map. Locale- and patch-stable
-              handle for asset lookups (e.g. presence icons); 0 when unknown.
+              Stable ID for the player's current map
 
 
     methods:
@@ -207,16 +195,11 @@ interfaces:
 
       Error:
         description: >
-          Reports an asynchronous daemon-side error condition — one with no outstanding
-          method call to reply to (e.g. the combat-log reader dies, or a background
-          recording fails after its start call already returned). Failures of a method
-          call are D-Bus error replies from that method, not this signal. The `code`
-          argument is a namespaced D-Bus error name (see errors below).
+          Reports an asynchronous daemon-side error condition
         stability: experimental
 
-    # D-Bus error vocabulary. Experimental: documented ahead of any emit site.
-    # Async conditions are carried by the Error signal's `code`; method failures are
-    # D-Bus error replies from the offending method, not the signal.
+    # D-Bus error vocabulary.
+    # Experimental: documented ahead of any emit site.
     errors:
       - code: dev.ulduar.Constellar1.Error.Internal
         stability: experimental

@@ -4,14 +4,16 @@
 #include <QVariantMap>
 #include <optional>
 
-// Cartographic map from MAP_CHANGE events.
+// This is the name of the map you see when you press m
+//   (e.g., Silvermoon City)
 struct UiMap
 {
     quint32 id = 0;  // uiMapID
     QString name;
 };
 
-// Named area / instance from ZONE_CHANGE events.
+// This is the name of the zone within the map you're in
+//   (e.g., The Bazaar)
 struct Zone
 {
     QString name;

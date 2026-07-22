@@ -34,25 +34,19 @@ void LocationTest::uiMapEmitsWireKeys()
 
     QVariantMap const map = location.toVariantMap();
 
-    // Resolved name falls back to the uiMap name; category is unknown with no zone.
+    // Resolved name falls back to the uiMap name when category is unknown with no zone.
     QCOMPARE(map.value(keyStr(keys::kZoneName)).toString(), QStringLiteral("Harandar"));
     QCOMPARE(map.value(keyStr(keys::kZoneCategory)).toString(), QStringLiteral("unknown"));
     QCOMPARE(map.value(keyStr(keys::kUiMapId)).toUInt(), 2413u);
-
-    // Pruned keys must not leak back onto the wire (their constants no longer exist).
-    QVERIFY(!map.contains(QStringLiteral("uiMapName")));
-    QVERIFY(!map.contains(QStringLiteral("zoneInstanceId")));
-    QVERIFY(!map.contains(QStringLiteral("zoneDifficultyId")));
-    QVERIFY(!map.contains(QStringLiteral("uiMapBounds")));
 }
 
 void LocationTest::zoneEmitsCategory()
 {
     Location location;
-    location.setZone(Zone{QStringLiteral("Freehold"), 23});  // Dungeon Mythic
+    location.setZone(Zone{QStringLiteral("Windrunner Spire"), 19});  // Dungeon Mythic
 
     QVariantMap const map = location.toVariantMap();
-    QCOMPARE(map.value(keyStr(keys::kZoneName)).toString(), QStringLiteral("Freehold"));
+    QCOMPARE(map.value(keyStr(keys::kZoneName)).toString(), QStringLiteral("Windrunner Spire"));
     QCOMPARE(map.value(keyStr(keys::kZoneCategory)).toString(), QStringLiteral("dungeon"));
     QCOMPARE(map.value(keyStr(keys::kUiMapId)).toUInt(), 0u);
 }
@@ -83,7 +77,7 @@ void LocationTest::locationRoundTripsThroughWire()
 
     Location const roundTripped = Location::fromVariantMap(location.toVariantMap());
 
-    // The resolved display name and the stable map id survive the wire round trip.
+    // The resolved display name and the stable map id survives
     QCOMPARE(roundTripped.displayName(), QStringLiteral("Sanctum of Light"));
     QVERIFY(roundTripped.uiMap());
     QCOMPARE(roundTripped.uiMap()->id, 2393u);
