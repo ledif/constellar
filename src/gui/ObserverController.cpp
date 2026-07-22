@@ -82,8 +82,11 @@ void ObserverController::refresh()
     Q_EMIT stateChanged();
 }
 
-void ObserverController::onActivityEnded(QVariantMap const& activityMap)
+void ObserverController::onActivityEnded(
+    QDBusObjectPath const& path, QVariantMap const& activityMap
+)
 {
+    Q_UNUSED(path)
     Activity const activity = Activity::fromVariantMap(activityMap);
     qint64 const startTime = activityMap.value(QString::fromLatin1(keys::kStartTime)).toLongLong();
     QString const outcome = activityMap.value(QString::fromLatin1(keys::kOutcome)).toString();

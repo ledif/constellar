@@ -222,3 +222,212 @@ interfaces:
           Method error reply from a recording operation (StartManualRecording /
           StopManualRecording / DeleteRecording) that fails synchronously. Not
           delivered via the Error signal.
+
+  dev.ulduar.Constellar1.Activity:
+    description: >
+      Base facts common to every activity object (/activity/current,
+      /activities/<id>): the same facts as the Observer Activity property bag,
+      exposed as a typed object interface instead of an a{sv} bag. An
+      encounter or dungeon object additionally composes Activity.Encounter or
+      Activity.Dungeon (RFC-006).
+
+    properties:
+      Type:
+        type: s
+        stability: stable
+        description: >
+          Activity kind. Mirrors the Activity bag's `type` key (kType); a
+          value outside this list must be treated as "unknown".
+        enum: [encounter, dungeon, unknown]
+
+      StartTime:
+        type: x
+        stability: stable
+        description: Unix epoch milliseconds. Mirrors the Activity bag's `startTime` (kStartTime).
+
+      StopTime:
+        type: x
+        stability: experimental
+        description: >
+          Unix epoch milliseconds, set once the activity ends. Mirrors the
+          Activity bag's `stopTime` (kStopTime, ActivityEnded-only, already
+          stable as a bag key) -- experimental here because the *interface*
+          is unbuilt until TASK-009/TASK-010 populate it.
+
+      Outcome:
+        type: s
+        stability: experimental
+        description: >
+          Terminal result, set once the activity ends. Mirrors the Activity
+          bag's `outcome` (kOutcome, ActivityEnded-only, already stable as a
+          bag key) -- experimental here because the *interface* is unbuilt
+          until TASK-009/TASK-010 populate it.
+        enum: [unknown, success, failure, abandoned]
+
+      Recording:
+        type: o
+        stability: experimental
+        description: >
+          The recording (/recordings/<id>) that captured this activity, or
+          `/` (the D-Bus no-object sentinel; there is no null `o`) if none
+          exists or none has finalized yet. 0..1 -- one activity has at most
+          one recording. Blocked until TASK-010's Recording collection
+          exists.
+
+  dev.ulduar.Constellar1.Activity.Encounter:
+    description: >
+      Present only on activity objects of kind "encounter". Mirrors the
+      Activity bag's applies-to:[encounter] keys.
+
+    properties:
+      EncounterId:
+        type: u
+        stability: stable
+        description: Encounter ID. Mirrors the Activity bag's `encounterId` (kEncounterId).
+
+      EncounterName:
+        type: s
+        stability: stable
+        description: Encounter name. Mirrors the Activity bag's `encounterName` (kEncounterName).
+
+      Difficulty:
+        type: s
+        stability: stable
+        description: >
+          Human-readable difficulty of the zone. Mirrors the Activity bag's
+          `difficulty` (kDifficulty).
+        enum: [LFR, Normal, Heroic, Mythic, Unknown]
+
+      DifficultyId:
+        type: u
+        stability: stable
+        description: Raw WoW difficultyID. Mirrors the Activity bag's `difficultyId` (kDifficultyId).
+
+  dev.ulduar.Constellar1.Activity.Dungeon:
+    description: >
+      Present only on activity objects of kind "dungeon". Mirrors the
+      Activity bag's applies-to:[dungeon] keys.
+
+    properties:
+      ZoneId:
+        type: u
+        stability: stable
+        description: Dungeon instance zone ID. Mirrors the Activity bag's `zoneId` (kZoneId).
+
+      KeystoneLevel:
+        type: u
+        stability: stable
+        description: Mythic+ keystone level. Mirrors the Activity bag's `keystoneLevel` (kKeystoneLevel).
+
+      ChallengeMapId:
+        type: u
+        stability: stable
+        description: >
+          Mythic+ challenge-mode map ID. Mirrors the Activity bag's
+          `challengeMapId` (kChallengeMapId).
+
+      DurationMs:
+        type: x
+        stability: experimental
+        description: >
+          Run duration in milliseconds, set once the activity ends. Mirrors
+          the Activity bag's `durationMs` (kDurationMs, ActivityEnded-only,
+          already stable as a bag key) -- experimental here because the
+          *interface* is unbuilt until TASK-009/TASK-010 populate it.
+
+  dev.ulduar.Constellar1.Recording:
+    description: >
+      A captured video segment ("a library element") at /recordings/<id>.
+      Its own object type, independent of Activity -- a recording may span
+      several activities or none (manual capture), and finalizes after the
+      activity(ies) it captured have already ended (ADR-005). Blocked on
+      Phase 2 libobs capture + MetadataStore (TASK-010).
+
+    properties:
+      Path:
+        type: s
+        stability: experimental
+        description: Filesystem path of the captured segment.
+
+      State:
+        type: s
+        stability: experimental
+        description: >
+          Capture/finalization state. A value outside this list must be
+          treated as "unknown".
+        enum: [recording, complete, failed, unknown]
+
+      DurationMs:
+        type: x
+        stability: experimental
+        description: Segment duration in milliseconds.
+
+      Activities:
+        type: ao
+        stability: experimental
+        description: >
+          The activities this segment captured, possibly empty (`[]` for a
+          manual recording with no detected activity). 0..N -- the inverse of
+          Activity.Recording.
+
+    methods:
+      Delete:
+        description: >
+          Delete this recording. The daemon repairs any activity whose
+          Recording property pointed at this object, flipping it back to `/`.
+        stability: experimental
+
+# The object-path tree (RFC-006). Only /Observer is registered today; the rest
+# is contract-only until TASK-009 (/activity/current, the ObjectManager root)
+# and TASK-010 (/activities/<id>, /recordings/<id>).
+objects:
+  root: /dev/ulduar/Constellar1
+  description: >
+    The root object implements the standard org.freedesktop.DBus.ObjectManager
+    (GetManagedObjects / InterfacesAdded / InterfacesRemoved). It is a
+    freedesktop-standard interface, so it is documented here rather than
+    redefined key-by-key as bespoke sidecar vocabulary. GetManagedObjects
+    enumerates every descendant object below in one call; InterfacesAdded /
+    InterfacesRemoved fire when the current activity starts/ends, an activity
+    is archived, or a recording appears/is deleted.
+  stability: experimental
+  tree:
+    - path: /dev/ulduar/Constellar1/Observer
+      interfaces: [dev.ulduar.Constellar1.Observer]
+      stability: stable
+      description: >
+        Unchanged by this task: the live level-triggered Activity/Location
+        properties, ActivityEnded, Error (ADR-012).
+
+    - path: /dev/ulduar/Constellar1/activity/current
+      interfaces:
+        - dev.ulduar.Constellar1.Activity
+        - dev.ulduar.Constellar1.Activity.Encounter
+        - dev.ulduar.Constellar1.Activity.Dungeon
+      stability: experimental
+      description: >
+        The in-progress activity, present only while one exists. Composes the
+        base Activity interface plus exactly one of Activity.Encounter /
+        Activity.Dungeon depending on kind. Buildable now (TASK-009) from the
+        same data source as the Observer Activity property; its Recording
+        property is always `/` until TASK-010 lands.
+
+    - path: /dev/ulduar/Constellar1/activities/<id>
+      interfaces:
+        - dev.ulduar.Constellar1.Activity
+        - dev.ulduar.Constellar1.Activity.Encounter
+        - dev.ulduar.Constellar1.Activity.Dungeon
+      stability: experimental
+      description: >
+        History: one object per detected activity, recorded or not. Same
+        interface composition as /activity/current. Blocked on MetadataStore
+        (TASK-010).
+
+    - path: /dev/ulduar/Constellar1/recordings/<id>
+      interfaces: [dev.ulduar.Constellar1.Recording]
+      stability: experimental
+      description: >
+        "The Library": one object per captured segment, with or without an
+        activity. There is no .Library interface -- enumeration is
+        ObjectManager, per-item delete is Recording.Delete(). Blocked on
+        Phase 2 libobs capture + MetadataStore (TASK-010).

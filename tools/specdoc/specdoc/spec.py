@@ -9,6 +9,11 @@ import yaml
 
 from .dbus import parse_interfaces
 
+# Standard freedesktop interfaces are documented in the sidecar's `objects:`
+# section (prose only), never redefined member-by-member -- they're not ours
+# to specify. Exempt them from the interface-presence and per-member checks.
+_STANDARD_INTERFACES = {"org.freedesktop.DBus.ObjectManager"}
+
 
 @dataclass
 class Spec:
@@ -49,10 +54,10 @@ def cross_check(spec: Spec, xml_path: Path) -> list[str]:
     xml_names = set(xml_interfaces.keys())
     for name in sidecar_names - xml_names:
         errors.append(f"sidecar documents interface '{name}' but the XML has no such interface")
-    for name in xml_names - sidecar_names:
+    for name in xml_names - sidecar_names - _STANDARD_INTERFACES:
         errors.append(f"XML declares interface '{name}' but the sidecar has no matching block")
 
-    for name in sorted(sidecar_names & xml_names):
+    for name in sorted((sidecar_names & xml_names) - _STANDARD_INTERFACES):
         errors.extend(_cross_check_interface(name, spec.interface(name), xml_interfaces[name]))
 
     return errors
@@ -70,6 +75,17 @@ def _cross_check_interface(name: str, sidecar: dict, interface) -> list[str]:
     for prop in xml_props - sidecar_bags:
         errors.append(
             f"[{name}] XML declares a{{sv}} property '{prop}' but the sidecar has no matching bag"
+        )
+
+    xml_scalar_props = {p.name for p in interface.properties if p.type != "a{sv}"}
+    sidecar_props = set(sidecar.get("properties", {}).keys())
+    for prop in sidecar_props - xml_scalar_props:
+        errors.append(
+            f"[{name}] sidecar documents property '{prop}' but the XML has no matching property"
+        )
+    for prop in xml_scalar_props - sidecar_props:
+        errors.append(
+            f"[{name}] XML declares property '{prop}' but the sidecar has no matching entry"
         )
 
     xml_methods = {m.name for m in interface.methods}

@@ -70,18 +70,23 @@ def _interface_context(spec: Spec, interface: Interface) -> dict:
     ]
 
     bag_description = {name: bag["description"] for name, bag in bags_spec.items()}
+    prop_spec = sidecar.get("properties", {})
     properties = [
         {
             "name": p.name,
             "type": p.type,
             "access": p.access,
-            "description": bag_description.get(p.name, ""),
+            "description": bag_description.get(p.name) or _description(prop_spec, p.name),
+            "stability": _stability(prop_spec, p.name) if p.name in prop_spec else "stable",
         }
         for p in interface.properties
     ]
 
     bags = []
     enums = []
+    for prop_name, prop in prop_spec.items():
+        if prop.get("enum"):
+            enums.append({"const": prop_name, "slug": prop_name.lower(), "members": prop["enum"]})
     for name, bag in bags_spec.items():
         keys = bag.get("keys", [])
         ended = bag.get("ended-additions", [])
