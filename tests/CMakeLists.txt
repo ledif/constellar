@@ -1,10 +1,17 @@
+# DBUS_SESSION: the test talks to a real QDBusConnection::sessionBus(), so run it
+# under dbus-run-session (its own private bus, same pattern as integration_status)
+# instead of whatever session bus (if any) the calling shell happens to have.
 function(constellar_add_test name)
-    cmake_parse_arguments(ARG "" "" "SOURCES;LIBS" ${ARGN})
+    cmake_parse_arguments(ARG "DBUS_SESSION" "" "SOURCES;LIBS" ${ARGN})
 
     add_executable(${name} ${ARG_SOURCES})
     target_link_libraries(${name} PRIVATE Qt6::Core Qt6::Test ${ARG_LIBS})
 
-    add_test(NAME ${name} COMMAND ${name})
+    if(ARG_DBUS_SESSION)
+        add_test(NAME ${name} COMMAND dbus-run-session -- $<TARGET_FILE:${name}>)
+    else()
+        add_test(NAME ${name} COMMAND ${name})
+    endif()
 endfunction()
 
 add_library(constellar_test_helpers INTERFACE)

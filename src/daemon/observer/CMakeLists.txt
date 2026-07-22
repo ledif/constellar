@@ -7,9 +7,25 @@ target_sources(constellar-observer
     FILES
       ObserverService.h
       ObserverDBusAdaptor.h
+      ActivityProjection.h
+      ManagedTypes.h
+      CurrentActivityObject.h
+      ActivityDBusAdaptor.h
+      ActivityEncounterDBusAdaptor.h
+      ActivityDungeonDBusAdaptor.h
+      ObjectManagerAdaptor.h
+      ObjectManagerHost.h
   PRIVATE
     ObserverService.cpp
     ObserverDBusAdaptor.cpp
+    ActivityProjection.cpp
+    ManagedTypes.cpp
+    CurrentActivityObject.cpp
+    ActivityDBusAdaptor.cpp
+    ActivityEncounterDBusAdaptor.cpp
+    ActivityDungeonDBusAdaptor.cpp
+    ObjectManagerAdaptor.cpp
+    ObjectManagerHost.cpp
 )
 
 target_link_libraries(constellar-observer

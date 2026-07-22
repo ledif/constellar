@@ -27,7 +27,16 @@ ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service, QDBusConnecti
         [this](QVariantMap const& location) { emitPropertiesChanged(u"Location"_s, location); }
     );
 
-    connect(&gameState, &GameState::activityEnded, this, &ObserverDBusAdaptor::ActivityEnded);
+    connect(
+        &gameState, &GameState::activityEnded, this,
+        [this](QVariantMap const& activity)
+        {
+            Q_EMIT ActivityEnded(
+                QDBusObjectPath(QString::fromLatin1(constellar::dbus::kActivityObjectPath)),
+                activity
+            );
+        }
+    );
 }
 
 QVariantMap ObserverDBusAdaptor::activity() const

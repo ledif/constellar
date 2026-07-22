@@ -13,6 +13,7 @@
 #include "DBusConstants.h"
 #include "DiscordIpcClient.h"
 #include "GameState.h"
+#include "ObjectManagerHost.h"
 #include "ObserverDBusAdaptor.h"
 #include "ObserverService.h"
 #include "PresencePublisher.h"
@@ -64,6 +65,10 @@ int main(int argc, char* argv[])
     QDBusConnection bus = QDBusConnection::sessionBus();
 
     auto _ = std::make_unique<ObserverDBusAdaptor>(service.get(), bus);
+
+    // Constructed after ObserverDBusAdaptor so GameState::activityEnded's connections
+    // fire ActivityEnded (still-valid path) before this emits InterfacesRemoved.
+    auto objectManagerHost = std::make_unique<ObjectManagerHost>(service.get(), bus, &app);
 
     QString discordAppId =
         QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);
