@@ -6,6 +6,7 @@ target_link_libraries(constellarctl
     Qt6::DBus
     constellar::client
     constellar::common
+    constellar::contract
 )
 
 install(TARGETS constellarctl)

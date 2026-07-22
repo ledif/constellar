@@ -26,5 +26,7 @@ target_compile_definitions(constellar_test_fixtures
 
 add_subdirectory(common)
 add_subdirectory(daemon)
-add_subdirectory(gui)
+if(CONSTELLAR_BUILD_GUI)
+    add_subdirectory(gui)
+endif()
 add_subdirectory(integration)

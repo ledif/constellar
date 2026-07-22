@@ -18,4 +18,6 @@ target_link_libraries(constellar-presence
     Qt6::Network
     constellar::common
     constellar::gamestate
+  PRIVATE
+    constellar::contract
 )

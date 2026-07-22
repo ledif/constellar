@@ -32,6 +32,7 @@ target_link_libraries(constellar-observer
   PUBLIC
     Qt6::Core
     Qt6::DBus
+    constellar::contract
     constellar::common
     constellar::combatlog
     constellar::tracker

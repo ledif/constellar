@@ -18,14 +18,20 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         CACHE STRING "Build type" FORCE)
 endif()
 
+option(CONSTELLAR_BUILD_GUI "Build the Qt GUI client" ON)
+
 find_package(ECM 6.0.0 REQUIRED NO_MODULE)
 list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 include(KDEInstallDirs)
 
-find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test Widgets Quick QuickControls2)
-include(ECMFindQmlModule)
-include(ECMQmlModule)
-find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons QQC2DesktopStyle IconThemes)
+find_package(Qt6 REQUIRED COMPONENTS Core DBus Network Test)
+
+if(CONSTELLAR_BUILD_GUI)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Quick QuickControls2)
+    include(ECMFindQmlModule)
+    include(ECMQmlModule)
+    find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons QQC2DesktopStyle IconThemes)
+endif()
 
 add_compile_definitions(QT_NO_KEYWORDS)
 
@@ -33,9 +39,13 @@ enable_testing()
 
 include(SpecDoc)
 
+add_subdirectory(src/contract)
 add_subdirectory(src/common)
 add_subdirectory(src/client)
 add_subdirectory(src/daemon)
 add_subdirectory(src/cli)
-add_subdirectory(src/gui)
 add_subdirectory(tests)
+
+if(CONSTELLAR_BUILD_GUI)
+    add_subdirectory(src/gui)
+endif()

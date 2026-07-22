@@ -26,6 +26,8 @@ target_link_libraries(constellar-qml
     KF6::CoreAddons
     constellar::client
     constellar::common
+  PRIVATE
+    constellar::contract
 )
 
 add_executable(constellar main.cpp)

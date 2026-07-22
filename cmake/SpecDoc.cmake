@@ -4,7 +4,7 @@ find_package(Uv REQUIRED)
 
 set(SPEC_SIDECAR ${CMAKE_SOURCE_DIR}/data/dev.ulduar.Constellar1.spec.yaml)
 set(SPEC_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
-set(ACTIVITY_KEYS_HEADER ${CMAKE_SOURCE_DIR}/src/common/ActivityKeys.h)
+set(ACTIVITY_KEYS_HEADER ${CMAKE_SOURCE_DIR}/src/contract/ActivityKeys.h)
 set(SPECDOC_RUN ${UV_EXECUTABLE} run --project
                 ${CMAKE_SOURCE_DIR}/tools/specdoc specdoc)
 
