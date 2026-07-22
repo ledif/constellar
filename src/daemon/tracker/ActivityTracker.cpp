@@ -40,8 +40,6 @@ void ActivityTracker::onLineReceived(LogLine const& line)
     else if (type == u"MAP_CHANGE"_s)
     {
         // MAP_CHANGE args: uiMapID, uiMapName, x0, x1, y0, y1
-        // World bounds (x0..y1) are intentionally dropped: no downstream consumer,
-        // and positional data is stale by the time the buffered log flushes.
         if (line.argCount() >= 3)
         {
             UiMap uiMap;
@@ -181,9 +179,6 @@ void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
     if (!m_dungeonActive || line.argCount() < 5)
         return;
 
-    // CHALLENGE_MODE_END success(0/1): completion vs not. The log reports 1 even for a
-    // depleted (over-time) run, so we never surface a dungeon "failure"; a 0 here is an
-    // incomplete/left key, i.e. abandoned.
     m_pendingDungeonOutcome =
         line.argString(2) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Abandoned;
     m_pendingDungeonDurationMs = line.argString(4).toInt();
