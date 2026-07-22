@@ -23,8 +23,9 @@ interfaces:
             applies-to: [encounter, dungeon]
             required: true
             stability: stable
-            description: '"encounter" | "dungeon".'
-            enum: [encounter, dungeon]
+            description: >
+              Activity kind. A value outside this list must be treated as "unknown".
+            enum: [encounter, dungeon, unknown]
 
           - const: kEncounterId
             key: encounterId
@@ -48,7 +49,12 @@ interfaces:
             applies-to: [encounter]
             required: true
             stability: stable
-            description: 'LFR|Normal|Heroic|Mythic|Unknown (encounter only).'
+            description: >
+              Human-facing difficulty label derived daemon-side from difficultyId, so
+              clients need no knowledge of WoW's raw difficulty numbering (encounter
+              only). This is the stable client vocabulary; difficultyId is the raw
+              escape hatch. Unrecognized values map to "Unknown".
+            enum: [LFR, Normal, Heroic, Mythic, Unknown]
 
           - const: kDifficultyId
             key: difficultyId
@@ -91,13 +97,20 @@ interfaces:
             description: Mythic+ challenge-mode map ID (dungeon only).
 
         ended-additions:
-          - const: kSuccess
-            key: success
-            type: b
+          - const: kOutcome
+            key: outcome
+            type: s
             applies-to: [encounter, dungeon]
             required: true
             stability: stable
-            description: Whether the activity ended in success.
+            description: >
+              Terminal result of the activity. Encounters report "success" (kill),
+              "failure" (wipe), or "abandoned" (pull dropped with no end event).
+              Dungeons report only "success" (completed) or "abandoned" (left with no
+              end event): the combat log's CHALLENGE_MODE_END does not distinguish a
+              timed run from a depleted one, so no dungeon "failure"/"depleted" value
+              is offered. Unrecognized values map to "unknown".
+            enum: [unknown, success, failure, abandoned]
 
           - const: kDurationMs
             key: durationMs
@@ -194,17 +207,35 @@ interfaces:
 
       Error:
         description: >
-          Reports a daemon-side error condition.
+          Reports an asynchronous daemon-side error condition — one with no outstanding
+          method call to reply to (e.g. the combat-log reader dies, or a background
+          recording fails after its start call already returned). Failures of a method
+          call are D-Bus error replies from that method, not this signal. The `code`
+          argument is a namespaced D-Bus error name (see errors below).
         stability: experimental
 
-    # Error signal `code` vocabulary. Experimental: documented ahead of any emit site.
+    # D-Bus error vocabulary. Experimental: documented ahead of any emit site.
+    # Async conditions are carried by the Error signal's `code`; method failures are
+    # D-Bus error replies from the offending method, not the signal.
     errors:
-      - code: daemon-error
+      - code: dev.ulduar.Constellar1.Error.Internal
         stability: experimental
-        description: Generic, unclassified daemon-side failure.
-      - code: config-invalid
+        description: >
+          Async Error signal. Generic, unclassified daemon-side failure with no
+          outstanding method call (e.g. the combat-log reader died).
+      - code: dev.ulduar.Constellar1.Error.RecordingAborted
         stability: experimental
-        description: SetConfig was called with an invalid configuration bag.
-      - code: recording-failed
+        description: >
+          Async Error signal. A recording failed mid-capture, after its start call had
+          already returned successfully (e.g. the encoder crashed or the disk filled).
+      - code: dev.ulduar.Constellar1.Error.InvalidConfig
         stability: experimental
-        description: A recording operation (start/stop/delete) failed.
+        description: >
+          Method error reply from SetConfig when the supplied configuration bag is
+          invalid. Not delivered via the Error signal.
+      - code: dev.ulduar.Constellar1.Error.RecordingFailed
+        stability: experimental
+        description: >
+          Method error reply from a recording operation (StartManualRecording /
+          StopManualRecording / DeleteRecording) that fails synchronously. Not
+          delivered via the Error signal.

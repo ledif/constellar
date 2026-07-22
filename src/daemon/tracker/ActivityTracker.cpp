@@ -80,7 +80,7 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
         else
         {
             // fresh START with no END for previous (player messing with /combatlog?)
-            m_pendingSuccess = false;
+            m_pendingOutcome = ActivityOutcome::Abandoned;
             m_pendingStopTime = line.dateTime();
             finishPendingStop();
         }
@@ -120,7 +120,8 @@ void ActivityTracker::handleEncounterEnd(LogLine const& line)
         return;
     }
 
-    m_pendingSuccess = line.argString(5) == u"1"_s;
+    m_pendingOutcome =
+        line.argString(5) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Failure;
     m_pendingStopTime = line.dateTime().addSecs(m_config.raidOverrunSeconds);
     m_overrunTimer.start(m_config.raidOverrunSeconds * 1000);
 }
@@ -133,7 +134,7 @@ void ActivityTracker::onOverrunElapsed()
 
 void ActivityTracker::finishPendingStop()
 {
-    Q_EMIT encounterStopped(m_current, m_pendingSuccess, m_pendingStopTime);
+    Q_EMIT encounterStopped(m_current, m_pendingOutcome, m_pendingStopTime);
 }
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)
@@ -180,7 +181,11 @@ void ActivityTracker::handleChallengeModeEnd(LogLine const& line)
     if (!m_dungeonActive || line.argCount() < 5)
         return;
 
-    m_pendingDungeonSuccess = line.argString(2) == u"1"_s;
+    // CHALLENGE_MODE_END success(0/1): completion vs not. The log reports 1 even for a
+    // depleted (over-time) run, so we never surface a dungeon "failure"; a 0 here is an
+    // incomplete/left key, i.e. abandoned.
+    m_pendingDungeonOutcome =
+        line.argString(2) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Abandoned;
     m_pendingDungeonDurationMs = line.argString(4).toInt();
     m_pendingDungeonStopTime = line.dateTime().addSecs(m_config.dungeonOverrunSeconds);
     m_dungeonOverrunTimer.start(m_config.dungeonOverrunSeconds * 1000);
@@ -195,7 +200,7 @@ void ActivityTracker::onDungeonOverrunElapsed()
 void ActivityTracker::finishPendingDungeonStop()
 {
     Q_EMIT dungeonStopped(
-        m_currentDungeon, m_pendingDungeonSuccess, m_pendingDungeonDurationMs,
+        m_currentDungeon, m_pendingDungeonOutcome, m_pendingDungeonDurationMs,
         m_pendingDungeonStopTime
     );
 }

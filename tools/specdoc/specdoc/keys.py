@@ -52,6 +52,13 @@ def render_keys_header(spec: Spec) -> str:
         lines.append(f'inline constexpr auto {const_name} = "{value}";')
     lines.append("")
 
+    outcome_key = next(k for k in activity["ended-additions"] if k["const"] == "kOutcome")
+    lines.append(f'// kOutcome ("{outcome_key["key"]}") values')
+    for value in outcome_key["enum"]:
+        const_name = f"kOutcome{value[0].upper()}{value[1:]}"
+        lines.append(f'inline constexpr auto {const_name} = "{value}";')
+    lines.append("")
+
     lines.append("}  // namespace constellar::keys")
     lines.append("")
 

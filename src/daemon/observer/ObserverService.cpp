@@ -32,10 +32,13 @@ ObserverService::ObserverService(
 
     connect(
         &m_tracker, &ActivityTracker::dungeonStopped, this,
-        [this](DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime)
+        [this](
+            DungeonRun const& dungeon, ActivityOutcome outcome, int durationMs,
+            QDateTime const& stopTime
+        )
         {
             m_gameState.endActivity(
-                ActivityMetadata::fromDungeonEnded(dungeon, success, durationMs, stopTime)
+                ActivityMetadata::fromDungeonEnded(dungeon, outcome, durationMs, stopTime)
             );
         }
     );
@@ -50,10 +53,10 @@ ObserverService::ObserverService(
 
     connect(
         &m_tracker, &ActivityTracker::encounterStopped, this,
-        [this](RaidEncounter const& encounter, bool success, QDateTime const& stopTime)
+        [this](RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime)
         {
             m_gameState.endActivity(
-                ActivityMetadata::fromEncounterEnded(encounter, success, stopTime)
+                ActivityMetadata::fromEncounterEnded(encounter, outcome, stopTime)
             );
         }
     );

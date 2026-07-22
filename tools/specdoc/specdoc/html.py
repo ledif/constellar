@@ -95,7 +95,7 @@ def _interface_context(spec: Spec, interface: Interface) -> dict:
                 "has_applies_to": any(k.get("applies-to") for k in keys + ended),
             }
         )
-        for key in keys:
+        for key in keys + ended:
             if key.get("enum"):
                 enums.append({"const": key["const"], "slug": key["const"].lower(), "members": key["enum"]})
 

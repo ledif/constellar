@@ -18,7 +18,7 @@ inline constexpr auto kStartTime = "startTime";
 inline constexpr auto kChallengeMapId = "challengeMapId";
 
 // ActivityEnded-only additions
-inline constexpr auto kSuccess = "success";
+inline constexpr auto kOutcome = "outcome";
 inline constexpr auto kDurationMs = "durationMs";
 inline constexpr auto kStopTime = "stopTime";
 
@@ -30,5 +30,12 @@ inline constexpr auto kUiMapId = "uiMapId";
 // kType ("type") values
 inline constexpr auto kTypeEncounter = "encounter";
 inline constexpr auto kTypeDungeon = "dungeon";
+inline constexpr auto kTypeUnknown = "unknown";
+
+// kOutcome ("outcome") values
+inline constexpr auto kOutcomeUnknown = "unknown";
+inline constexpr auto kOutcomeSuccess = "success";
+inline constexpr auto kOutcomeFailure = "failure";
+inline constexpr auto kOutcomeAbandoned = "abandoned";
 
 }  // namespace constellar::keys

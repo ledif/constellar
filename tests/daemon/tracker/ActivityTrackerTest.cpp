@@ -93,7 +93,7 @@ struct Started
 struct Stopped
 {
     RaidEncounter encounter;
-    bool success;
+    ActivityOutcome outcome;
     QDateTime stopTime;
 };
 
@@ -106,7 +106,7 @@ struct DungeonStarted
 struct DungeonStopped
 {
     DungeonRun dungeon;
-    bool success;
+    ActivityOutcome outcome;
     int durationMs;
     QDateTime stopTime;
 };
@@ -122,8 +122,9 @@ struct Collector
         );
         QObject::connect(
             &tracker, &ActivityTracker::encounterStopped,
-            [this](RaidEncounter const& encounter, bool success, QDateTime const& stopTime)
-            { stopped.append({encounter, success, stopTime}); }
+            [this](
+                RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
+            ) { stopped.append({encounter, outcome, stopTime}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::dungeonStarted,
@@ -133,8 +134,9 @@ struct Collector
         QObject::connect(
             &tracker, &ActivityTracker::dungeonStopped,
             [this](
-                DungeonRun const& dungeon, bool success, int durationMs, QDateTime const& stopTime
-            ) { dungeonStopped.append({dungeon, success, durationMs, stopTime}); }
+                DungeonRun const& dungeon, ActivityOutcome outcome, int durationMs,
+                QDateTime const& stopTime
+            ) { dungeonStopped.append({dungeon, outcome, durationMs, stopTime}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::uiMapChanged,
@@ -223,7 +225,7 @@ void ActivityTrackerTest::stopsAfterOverrunDelay()
 
     QCOMPARE(collector.stopped.size(), 0);  // overrun hasn't elapsed yet
     QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
-    QCOMPARE(collector.stopped.at(0).success, true);
+    QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Success);
     QCOMPARE(
         collector.stopped.at(0).stopTime,
         collector.started.at(0).encounter.startTime.addSecs(12 * 60 + 26 + 1)
@@ -252,7 +254,7 @@ void ActivityTrackerTest::repullDuringOverrunEndsPreviousImmediately()
 
     // The wipe's stop is emitted immediately (pre-empted), not after 5s.
     QCOMPARE(collector.stopped.size(), 1);
-    QCOMPARE(collector.stopped.at(0).success, false);
+    QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Failure);
     QCOMPARE(collector.started.size(), 2);
 }
 
@@ -270,7 +272,8 @@ void ActivityTrackerTest::encounterOverlapWithoutEndWipesPrevious()
     )));
 
     QCOMPARE(collector.stopped.size(), 1);
-    QCOMPARE(collector.stopped.at(0).success, false);
+    // A fresh START with no ENCOUNTER_END is an abandon, not a wipe.
+    QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Abandoned);
     QCOMPARE(collector.stopped.at(0).stopTime, collector.started.at(1).encounter.startTime);
     QCOMPARE(collector.started.size(), 2);
 }
@@ -291,7 +294,7 @@ void ActivityTrackerTest::encounterEndSuccessFalseIsRecorded()
     )));
 
     QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
-    QCOMPARE(collector.stopped.at(0).success, false);
+    QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Failure);
 }
 
 void ActivityTrackerTest::ignoresUnhandledLines()
@@ -387,7 +390,7 @@ void ActivityTrackerTest::dungeonStopsAfterOverrunDelay()
 
     QCOMPARE(collector.dungeonStopped.size(), 0);  // overrun hasn't elapsed yet
     QTRY_COMPARE_WITH_TIMEOUT(collector.dungeonStopped.size(), 1, 2500);
-    QCOMPARE(collector.dungeonStopped.at(0).success, true);
+    QCOMPARE(collector.dungeonStopped.at(0).outcome, ActivityOutcome::Success);
     QCOMPARE(collector.dungeonStopped.at(0).durationMs, 1800000);
     QCOMPARE(
         collector.dungeonStopped.at(0).stopTime,
@@ -414,9 +417,9 @@ void ActivityTrackerTest::dungeonRepullDuringOverrunEndsPreviousImmediately()
         QStringLiteral("21:41:05.0000"), QStringLiteral("Magisters' Terrace"), 2811, 558, 12
     )));
 
-    // The depleted key's stop is emitted immediately (pre-empted), not after 5s.
+    // The incomplete key's stop is emitted immediately (pre-empted), not after 5s.
     QCOMPARE(collector.dungeonStopped.size(), 1);
-    QCOMPARE(collector.dungeonStopped.at(0).success, false);
+    QCOMPARE(collector.dungeonStopped.at(0).outcome, ActivityOutcome::Abandoned);
     QCOMPARE(collector.dungeonStarted.size(), 2);
     QCOMPARE(collector.dungeonStarted.at(1).dungeon.keystoneLevel, 12);
 }
