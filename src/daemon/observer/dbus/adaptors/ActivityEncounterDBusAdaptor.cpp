@@ -1,11 +1,11 @@
 #include "ActivityEncounterDBusAdaptor.h"
 
 #include "ActivityProjection.h"
-#include "CurrentActivityObject.h"
+#include "dbus/ActivityObject.h"
 
 using namespace Qt::StringLiterals;
 
-ActivityEncounterDBusAdaptor::ActivityEncounterDBusAdaptor(CurrentActivityObject* activity)
+ActivityEncounterDBusAdaptor::ActivityEncounterDBusAdaptor(ActivityObject* activity)
     : QDBusAbstractAdaptor(activity), m_activity(activity)
 {
 }

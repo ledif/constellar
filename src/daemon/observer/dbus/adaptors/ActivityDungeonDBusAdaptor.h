@@ -4,14 +4,13 @@
 
 #include "DBusConstants.h"
 
-class CurrentActivityObject;
+class ActivityObject;
 
-// dev.ulduar.Constellar1.Activity.Dungeon -- present only when the current
-// activity is a dungeon (TASK-008).
+// dev.ulduar.Constellar1.Activity.Dungeon
 class ActivityDungeonDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", CONSTELLAR_ACTIVITY_DUNGEON_INTERFACE_NAME)
+    Q_CLASSINFO("D-Bus Interface", CONSTELLAR_DBUS_ACTIVITY_DUNGEON_INTERFACE_NAME)
 
     Q_PROPERTY(uint ZoneId READ zoneId)
     Q_PROPERTY(uint KeystoneLevel READ keystoneLevel)
@@ -19,7 +18,7 @@ class ActivityDungeonDBusAdaptor : public QDBusAbstractAdaptor
     Q_PROPERTY(qint64 DurationMs READ durationMs)
 
   public:
-    explicit ActivityDungeonDBusAdaptor(CurrentActivityObject* activity);
+    explicit ActivityDungeonDBusAdaptor(ActivityObject* activity);
 
     uint zoneId() const;
     uint keystoneLevel() const;
@@ -27,5 +26,5 @@ class ActivityDungeonDBusAdaptor : public QDBusAbstractAdaptor
     qint64 durationMs() const;
 
   private:
-    CurrentActivityObject* m_activity;
+    ActivityObject* m_activity;
 };

@@ -6,14 +6,13 @@
 
 #include "DBusConstants.h"
 
-class CurrentActivityObject;
+class ActivityObject;
 
-// dev.ulduar.Constellar1.Activity -- base facts present on every activity object
-// (TASK-008). Read-only projection of the CurrentActivityObject's bag.
+// dev.ulduar.Constellar1.Activity
 class ActivityDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", CONSTELLAR_ACTIVITY_INTERFACE_NAME)
+    Q_CLASSINFO("D-Bus Interface", CONSTELLAR_DBUS_ACTIVITY_INTERFACE_NAME)
 
     Q_PROPERTY(QString Type READ type)
     Q_PROPERTY(qint64 StartTime READ startTime)
@@ -22,7 +21,7 @@ class ActivityDBusAdaptor : public QDBusAbstractAdaptor
     Q_PROPERTY(QDBusObjectPath Recording READ recording)
 
   public:
-    explicit ActivityDBusAdaptor(CurrentActivityObject* activity);
+    explicit ActivityDBusAdaptor(ActivityObject* activity);
 
     QString type() const;
     qint64 startTime() const;
@@ -31,5 +30,5 @@ class ActivityDBusAdaptor : public QDBusAbstractAdaptor
     QDBusObjectPath recording() const;
 
   private:
-    CurrentActivityObject* m_activity;
+    ActivityObject* m_activity;
 };

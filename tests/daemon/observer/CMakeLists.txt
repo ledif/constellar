@@ -8,7 +8,7 @@ constellar_add_test(activityprojection_test
     LIBS constellar::observer constellar::activitymetadata
 )
 
-constellar_add_test(objectmanagerhost_test DBUS_SESSION
-    SOURCES ObjectManagerHostTest.h ObjectManagerHostTest.cpp
+constellar_add_test(objecttreepublisher_test DBUS_SESSION
+    SOURCES ObjectTreePublisherTest.h ObjectTreePublisherTest.cpp
     LIBS constellar::observer Qt6::DBus
 )

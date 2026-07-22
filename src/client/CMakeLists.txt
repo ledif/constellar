@@ -12,9 +12,6 @@ set(OBSERVER_PROXY_CPP ${CMAKE_CURRENT_BINARY_DIR}/observerproxy.cpp)
 
 add_custom_command(
     OUTPUT ${OBSERVER_PROXY_H} ${OBSERVER_PROXY_CPP}
-    # -c only works for a single interface, and the XML now holds several
-    # (RFC-006's object-path family + the standard ObjectManager); pin the
-    # trailing interface filter to Observer so this proxy is unaffected.
     COMMAND ${QDBUSXML2CPP} -p ${OBSERVER_PROXY_H}:${OBSERVER_PROXY_CPP} -c ObserverProxy
             ${OBSERVER_XML} dev.ulduar.Constellar1.Observer
     DEPENDS ${OBSERVER_XML}

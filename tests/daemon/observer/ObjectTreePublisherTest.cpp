@@ -1,4 +1,4 @@
-#include "ObjectManagerHostTest.h"
+#include "ObjectTreePublisherTest.h"
 
 #include <QDBusInterface>
 #include <QDBusMessage>
@@ -9,11 +9,11 @@
 #include <QTest>
 
 #include "DBusConstants.h"
-#include "ManagedTypes.h"
-#include "ObjectManagerAdaptor.h"
-#include "ObjectManagerHost.h"
-#include "ObserverDBusAdaptor.h"
 #include "ObserverService.h"
+#include "dbus/ManagedTypes.h"
+#include "dbus/ObjectTreePublisher.h"
+#include "dbus/adaptors/ObjectManagerAdaptor.h"
+#include "dbus/adaptors/ObserverDBusAdaptor.h"
 
 namespace dbus = constellar::dbus;
 
@@ -34,19 +34,19 @@ void appendLine(QString const& path, QString const& line)
 
 QString rootPath()
 {
-    return QString::fromLatin1(dbus::kRootObjectPath);
+    return dbus::kRootObjectPath;
 }
 
 QString activityPath()
 {
-    return QString::fromLatin1(dbus::kActivityObjectPath);
+    return dbus::kActivityObjectPath;
 }
 
 }  // namespace
 
-ObjectManagerHostTest::~ObjectManagerHostTest() = default;
+ObjectTreePublisherTest::~ObjectTreePublisherTest() = default;
 
-void ObjectManagerHostTest::init()
+void ObjectTreePublisherTest::init()
 {
     m_bus = QDBusConnection::sessionBus();
 
@@ -63,31 +63,30 @@ void ObjectManagerHostTest::init()
     m_observerAdaptor = std::make_unique<ObserverDBusAdaptor>(m_service.get(), m_bus);
 
     // Constructed after ObserverDBusAdaptor so its GameState::activityEnded
-    // connection (and thus ActivityEnded) fires before ObjectManagerHost's
+    // connection (and thus ActivityEnded) fires before ObjectTreePublisher's
     // InterfacesRemoved -- the same ordering main.cpp relies on.
-    m_objectManagerHost = std::make_unique<ObjectManagerHost>(m_service.get(), m_bus);
+    m_objectTreePublisher = std::make_unique<ObjectTreePublisher>(m_service.get(), m_bus);
 
-    QVERIFY(m_bus.registerObject(QString::fromLatin1(dbus::kObjectPath), m_service.get()));
-    QVERIFY(m_bus.registerService(QString::fromLatin1(dbus::kServiceName)));
+    QVERIFY(m_bus.registerObject(dbus::kObjectPath, m_service.get()));
+    QVERIFY(m_bus.registerService(dbus::kServiceName));
     QVERIFY(m_service->start());
 }
 
-void ObjectManagerHostTest::cleanup()
+void ObjectTreePublisherTest::cleanup()
 {
-    m_bus.unregisterService(QString::fromLatin1(dbus::kServiceName));
-    m_bus.unregisterObject(QString::fromLatin1(dbus::kObjectPath));
+    m_bus.unregisterService(dbus::kServiceName);
+    m_bus.unregisterObject(dbus::kObjectPath);
 
-    m_objectManagerHost.reset();
+    m_objectTreePublisher.reset();
     m_observerAdaptor.reset();
     m_service.reset();
     m_dir.reset();
 }
 
-void ObjectManagerHostTest::idleGetManagedObjectsHasOnlyObserver()
+void ObjectTreePublisherTest::idleGetManagedObjectsHasOnlyObserver()
 {
     QDBusInterface objectManager(
-        QString::fromLatin1(dbus::kServiceName), rootPath(),
-        QString::fromLatin1(dbus::kObjectManagerInterfaceName), m_bus
+        dbus::kServiceName, rootPath(), dbus::kObjectManagerInterfaceName, m_bus
     );
     QVERIFY(objectManager.isValid());
 
@@ -96,11 +95,11 @@ void ObjectManagerHostTest::idleGetManagedObjectsHasOnlyObserver()
     QVERIFY2(reply.isValid(), qPrintable(reply.error().message()));
 
     DBusManagerStruct const objects = reply.value();
-    QVERIFY(objects.contains(QDBusObjectPath(QString::fromLatin1(dbus::kObjectPath))));
+    QVERIFY(objects.contains(QDBusObjectPath(dbus::kObjectPath)));
     QVERIFY(!objects.contains(QDBusObjectPath(activityPath())));
 }
 
-void ObjectManagerHostTest::encounterAppearsWithEncounterInterfaceOnly()
+void ObjectTreePublisherTest::encounterAppearsWithEncounterInterfaceOnly()
 {
     appendLine(
         m_dir->filePath(QStringLiteral("WoWCombatLog.txt")),
@@ -110,20 +109,19 @@ void ObjectManagerHostTest::encounterAppearsWithEncounterInterfaceOnly()
     QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
 
     QDBusInterface objectManager(
-        QString::fromLatin1(dbus::kServiceName), rootPath(),
-        QString::fromLatin1(dbus::kObjectManagerInterfaceName), m_bus
+        dbus::kServiceName, rootPath(), dbus::kObjectManagerInterfaceName, m_bus
     );
     QDBusReply<DBusManagerStruct> const reply =
         objectManager.call(QStringLiteral("GetManagedObjects"));
     QVERIFY2(reply.isValid(), qPrintable(reply.error().message()));
 
     QVariantMapMap const interfaces = reply.value().value(QDBusObjectPath(activityPath()));
-    QVERIFY(interfaces.contains(QString::fromLatin1(dbus::kActivityInterfaceName)));
-    QVERIFY(interfaces.contains(QString::fromLatin1(dbus::kActivityEncounterInterfaceName)));
-    QVERIFY(!interfaces.contains(QString::fromLatin1(dbus::kActivityDungeonInterfaceName)));
+    QVERIFY(interfaces.contains(dbus::kActivityInterfaceName));
+    QVERIFY(interfaces.contains(dbus::kActivityEncounterInterfaceName));
+    QVERIFY(!interfaces.contains(dbus::kActivityDungeonInterfaceName));
 }
 
-void ObjectManagerHostTest::dungeonAppearsWithDungeonInterfaceOnly()
+void ObjectTreePublisherTest::dungeonAppearsWithDungeonInterfaceOnly()
 {
     appendLine(
         m_dir->filePath(QStringLiteral("WoWCombatLog.txt")),
@@ -133,20 +131,19 @@ void ObjectManagerHostTest::dungeonAppearsWithDungeonInterfaceOnly()
     QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
 
     QDBusInterface objectManager(
-        QString::fromLatin1(dbus::kServiceName), rootPath(),
-        QString::fromLatin1(dbus::kObjectManagerInterfaceName), m_bus
+        dbus::kServiceName, rootPath(), dbus::kObjectManagerInterfaceName, m_bus
     );
     QDBusReply<DBusManagerStruct> const reply =
         objectManager.call(QStringLiteral("GetManagedObjects"));
     QVERIFY2(reply.isValid(), qPrintable(reply.error().message()));
 
     QVariantMapMap const interfaces = reply.value().value(QDBusObjectPath(activityPath()));
-    QVERIFY(interfaces.contains(QString::fromLatin1(dbus::kActivityInterfaceName)));
-    QVERIFY(interfaces.contains(QString::fromLatin1(dbus::kActivityDungeonInterfaceName)));
-    QVERIFY(!interfaces.contains(QString::fromLatin1(dbus::kActivityEncounterInterfaceName)));
+    QVERIFY(interfaces.contains(dbus::kActivityInterfaceName));
+    QVERIFY(interfaces.contains(dbus::kActivityDungeonInterfaceName));
+    QVERIFY(!interfaces.contains(dbus::kActivityEncounterInterfaceName));
 }
 
-void ObjectManagerHostTest::activityEndedFiresBeforeInterfacesRemoved()
+void ObjectTreePublisherTest::activityEndedFiresBeforeInterfacesRemoved()
 {
     QString const logPath = m_dir->filePath(QStringLiteral("WoWCombatLog.txt"));
     appendLine(
@@ -156,7 +153,7 @@ void ObjectManagerHostTest::activityEndedFiresBeforeInterfacesRemoved()
     );
     QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
 
-    auto* objectManager = m_objectManagerHost->findChild<ObjectManagerAdaptor*>();
+    auto* objectManager = m_objectTreePublisher->findChild<ObjectManagerAdaptor*>();
     QVERIFY(objectManager);
 
     QSignalSpy endedSpy(m_observerAdaptor.get(), &ObserverDBusAdaptor::ActivityEnded);
@@ -185,7 +182,7 @@ void ObjectManagerHostTest::activityEndedFiresBeforeInterfacesRemoved()
     QCOMPARE(endedArgs.at(0).value<QDBusObjectPath>(), QDBusObjectPath(activityPath()));
 }
 
-void ObjectManagerHostTest::getManagedObjectsRoundTripsThroughWireWithLiveEncounter()
+void ObjectTreePublisherTest::getManagedObjectsRoundTripsThroughWireWithLiveEncounter()
 {
     appendLine(
         m_dir->filePath(QStringLiteral("WoWCombatLog.txt")),
@@ -195,16 +192,15 @@ void ObjectManagerHostTest::getManagedObjectsRoundTripsThroughWireWithLiveEncoun
     QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
 
     QDBusInterface objectManager(
-        QString::fromLatin1(dbus::kServiceName), rootPath(),
-        QString::fromLatin1(dbus::kObjectManagerInterfaceName), m_bus
+        dbus::kServiceName, rootPath(), dbus::kObjectManagerInterfaceName, m_bus
     );
     QDBusReply<DBusManagerStruct> const reply =
         objectManager.call(QStringLiteral("GetManagedObjects"));
     QVERIFY2(reply.isValid(), qPrintable(reply.error().message()));
 
     DBusManagerStruct const objects = reply.value();
-    QVariantMap const activityProps = objects.value(QDBusObjectPath(activityPath()))
-                                          .value(QString::fromLatin1(dbus::kActivityInterfaceName));
+    QVariantMap const activityProps =
+        objects.value(QDBusObjectPath(activityPath())).value(dbus::kActivityInterfaceName);
     QCOMPARE(activityProps.value(QStringLiteral("Type")).toString(), QStringLiteral("encounter"));
     QCOMPARE(
         activityProps.value(QStringLiteral("Recording")).value<QDBusObjectPath>(),
@@ -212,8 +208,7 @@ void ObjectManagerHostTest::getManagedObjectsRoundTripsThroughWireWithLiveEncoun
     );
 
     QVariantMap const encounterProps =
-        objects.value(QDBusObjectPath(activityPath()))
-            .value(QString::fromLatin1(dbus::kActivityEncounterInterfaceName));
+        objects.value(QDBusObjectPath(activityPath())).value(dbus::kActivityEncounterInterfaceName);
     QCOMPARE(encounterProps.value(QStringLiteral("EncounterId")).toUInt(), 3306u);
     QCOMPARE(
         encounterProps.value(QStringLiteral("EncounterName")).toString(),
@@ -221,4 +216,4 @@ void ObjectManagerHostTest::getManagedObjectsRoundTripsThroughWireWithLiveEncoun
     );
 }
 
-QTEST_MAIN(ObjectManagerHostTest)
+QTEST_MAIN(ObjectTreePublisherTest)
