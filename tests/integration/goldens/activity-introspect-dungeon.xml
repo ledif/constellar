@@ -1,0 +1,49 @@
+<node>
+  <interface name="dev.ulduar.Constellar1.Activity">
+    <property access="read" name="Type" type="s"></property>
+    <property access="read" name="StartTime" type="x"></property>
+    <property access="read" name="StopTime" type="x"></property>
+    <property access="read" name="Outcome" type="s"></property>
+    <property access="read" name="Recording" type="o"></property>
+  </interface>
+  <interface name="dev.ulduar.Constellar1.Activity.Dungeon">
+    <property access="read" name="ZoneId" type="u"></property>
+    <property access="read" name="KeystoneLevel" type="u"></property>
+    <property access="read" name="ChallengeMapId" type="u"></property>
+    <property access="read" name="DurationMs" type="x"></property>
+  </interface>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg direction="in" name="interface_name" type="s"></arg>
+      <arg direction="in" name="property_name" type="s"></arg>
+      <arg direction="out" name="value" type="v"></arg>
+    </method>
+    <method name="Set">
+      <arg direction="in" name="interface_name" type="s"></arg>
+      <arg direction="in" name="property_name" type="s"></arg>
+      <arg direction="in" name="value" type="v"></arg>
+    </method>
+    <method name="GetAll">
+      <arg direction="in" name="interface_name" type="s"></arg>
+      <arg direction="out" name="values" type="a{sv}"></arg>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"></annotation>
+    </method>
+    <signal name="PropertiesChanged">
+      <arg direction="out" name="interface_name" type="s"></arg>
+      <arg direction="out" name="changed_properties" type="a{sv}"></arg>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"></annotation>
+      <arg direction="out" name="invalidated_properties" type="as"></arg>
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg direction="out" name="xml_data" type="s"></arg>
+    </method>
+  </interface>
+  <interface name="org.freedesktop.DBus.Peer">
+    <method name="Ping"></method>
+    <method name="GetMachineId">
+      <arg direction="out" name="machine_uuid" type="s"></arg>
+    </method>
+  </interface>
+</node>

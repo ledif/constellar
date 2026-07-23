@@ -1,0 +1,1 @@
+({'Difficulty': <'Normal'>, 'DifficultyId': <uint32 14>, 'EncounterId': <uint32 3182>, 'EncounterName': <"Belo'ren, Child of Al'ar">},)
