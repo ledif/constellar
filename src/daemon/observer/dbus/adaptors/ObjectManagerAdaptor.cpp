@@ -1,15 +1,17 @@
 #include "ObjectManagerAdaptor.h"
 
-#include "ActivityProjection.h"
 #include "GameState.h"
 #include "ObserverService.h"
+#include "dbus/ObjectTreePublisher.h"
 
 using namespace Qt::StringLiterals;
 
 namespace dbus = constellar::dbus;
 
-ObjectManagerAdaptor::ObjectManagerAdaptor(ObserverService* service, QObject* parent)
-    : QDBusAbstractAdaptor(parent), m_service(service)
+ObjectManagerAdaptor::ObjectManagerAdaptor(
+    ObserverService* service, ObjectTreePublisher* publisher, QObject* parent
+)
+    : QDBusAbstractAdaptor(parent), m_service(service), m_publisher(publisher)
 {
     setAutoRelaySignals(true);
 }
@@ -25,24 +27,11 @@ DBusManagerStruct ObjectManagerAdaptor::GetManagedObjects()
     };
     objects[QDBusObjectPath(dbus::kObjectPath)] = observerInterfaces;
 
-    if (!m_activityInterfaces.isEmpty())
+    if (auto const snapshot = m_publisher->resolve(dbus::kActivityObjectPath); snapshot)
     {
-        QVariantMap const bag = m_service->gameState().activity();
-
         QVariantMapMap activityInterfaces;
-        activityInterfaces[dbus::kActivityInterfaceName] =
-            constellar::observer::activityInterfaceProperties(bag);
-
-        if (constellar::observer::isEncounter(bag))
-        {
-            activityInterfaces[dbus::kActivityEncounterInterfaceName] =
-                constellar::observer::encounterInterfaceProperties(bag);
-        }
-        else if (constellar::observer::isDungeon(bag))
-        {
-            activityInterfaces[dbus::kActivityDungeonInterfaceName] =
-                constellar::observer::dungeonInterfaceProperties(bag);
-        }
+        for (auto const& [interfaceName, props] : *snapshot)
+            activityInterfaces[interfaceName] = props;
 
         objects[QDBusObjectPath(dbus::kActivityObjectPath)] = activityInterfaces;
     }

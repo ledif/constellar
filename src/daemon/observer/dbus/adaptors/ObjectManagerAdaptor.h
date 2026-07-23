@@ -8,6 +8,7 @@
 #include "dbus/ManagedTypes.h"
 
 class ObserverService;
+class ObjectTreePublisher;
 
 // The standard org.freedesktop.DBus.ObjectManagerAdaptor
 // on the root object /dev/ulduar/Constellar1
@@ -17,7 +18,9 @@ class ObjectManagerAdaptor : public QDBusAbstractAdaptor
     Q_CLASSINFO("D-Bus Interface", CONSTELLAR_DBUS_OBJECT_MANAGER_INTERFACE_NAME)
 
   public:
-    explicit ObjectManagerAdaptor(ObserverService* service, QObject* parent);
+    explicit ObjectManagerAdaptor(
+        ObserverService* service, ObjectTreePublisher* publisher, QObject* parent
+    );
 
     // Registers /activity/current and emits InterfacesAdded
     void activityAppeared(QVariantMapMap const& interfaces);
@@ -34,5 +37,6 @@ class ObjectManagerAdaptor : public QDBusAbstractAdaptor
 
   private:
     ObserverService* m_service;
+    ObjectTreePublisher* m_publisher;
     QStringList m_activityInterfaces;  // empty when idle
 };

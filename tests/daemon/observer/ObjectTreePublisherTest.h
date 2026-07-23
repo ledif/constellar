@@ -33,6 +33,10 @@ class ObjectTreePublisherTest : public QObject
     void activityEndedFiresBeforeInterfacesRemoved();
     void getManagedObjectsRoundTripsThroughWireWithLiveEncounter();
 
+    void resolveReturnsNulloptWithNoActivity();
+    void resolveReturnsActivityAndEncounterForEncounter();
+    void resolveReturnsActivityAndDungeonForDungeon();
+
   private:
     std::unique_ptr<QTemporaryDir> m_dir;
     std::unique_ptr<ObserverService> m_service;

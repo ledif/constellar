@@ -23,7 +23,7 @@ All builds run in a podman container. Assume host has no build tools besides uv.
 ## DBus Conventions
 - DBus interface XML in `data/` is the source of truth for the wire shape:
   - `dev.ulduar.Constellar1.xml`, one `<node>` holding every interface: `Observer`, the object-path `Activity`/`Recording` family, and the standard `ObjectManager`).
-- Client proxy is generated with `qdbusxml2cpp` and the server adaptor is hand-written. Keep them in sync manually when the XML changes.
+- Client proxy is generated with `qdbusxml2cpp`. The `Observer` interface and the `ObjectManager` root are hand-written adaptors -- keep them in sync manually when the XML changes. The pure-property `Activity` family is served by a generic `QDBusVirtualObject` (`PropertyTreeObject`) that reads the XML at startup, so its shape can't drift.
 - The `a{sv}` key vocabulary's source of truth is `data/dev.ulduar.Constellar1.spec.yaml` and `src/common/ActivityKeys.h` is generated from it (`just spec-gen`, checked by `just check-spec`).
 
 ### Qt Conventions

@@ -216,4 +216,41 @@ void ObjectTreePublisherTest::getManagedObjectsRoundTripsThroughWireWithLiveEnco
     );
 }
 
+void ObjectTreePublisherTest::resolveReturnsNulloptWithNoActivity()
+{
+    QVERIFY(!m_objectTreePublisher->resolve(dbus::kActivityObjectPath));
+}
+
+void ObjectTreePublisherTest::resolveReturnsActivityAndEncounterForEncounter()
+{
+    appendLine(
+        m_dir->filePath(QStringLiteral("WoWCombatLog.txt")),
+        timestampPrefix() +
+            QStringLiteral("ENCOUNTER_START,3306,\"Chimaerus the Undreamt God\",15,20,2549")
+    );
+    QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
+
+    auto const snapshot = m_objectTreePublisher->resolve(dbus::kActivityObjectPath);
+    QVERIFY(snapshot);
+    QCOMPARE(snapshot->size(), 2);
+    QCOMPARE(snapshot->at(0).first, dbus::kActivityInterfaceName);
+    QCOMPARE(snapshot->at(1).first, dbus::kActivityEncounterInterfaceName);
+}
+
+void ObjectTreePublisherTest::resolveReturnsActivityAndDungeonForDungeon()
+{
+    appendLine(
+        m_dir->filePath(QStringLiteral("WoWCombatLog.txt")),
+        timestampPrefix() +
+            QStringLiteral("CHALLENGE_MODE_START,\"Magisters' Terrace\",2811,558,10,[9]")
+    );
+    QTRY_VERIFY(!m_service->gameState().activity().isEmpty());
+
+    auto const snapshot = m_objectTreePublisher->resolve(dbus::kActivityObjectPath);
+    QVERIFY(snapshot);
+    QCOMPARE(snapshot->size(), 2);
+    QCOMPARE(snapshot->at(0).first, dbus::kActivityInterfaceName);
+    QCOMPARE(snapshot->at(1).first, dbus::kActivityDungeonInterfaceName);
+}
+
 QTEST_MAIN(ObjectTreePublisherTest)

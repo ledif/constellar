@@ -19,7 +19,8 @@ inline QString const kServiceName = u"dev.ulduar.Constellar1"_s;
 inline QString const kObjectPath = u"/dev/ulduar/Constellar1/Observer"_s;
 
 inline QString const kRootObjectPath = u"/dev/ulduar/Constellar1"_s;
-inline QString const kActivityObjectPath = u"/dev/ulduar/Constellar1/activity/current"_s;
+inline QString const kActivitySubtreePath = u"/dev/ulduar/Constellar1/activity"_s;
+inline QString const kActivityObjectPath = kActivitySubtreePath + u"/current"_s;
 
 inline QString const kInterfaceName = u"" CONSTELLAR_DBUS_INTERFACE_NAME ""_s;
 

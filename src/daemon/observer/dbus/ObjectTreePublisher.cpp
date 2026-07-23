@@ -3,15 +3,13 @@
 #include <QDBusError>
 #include <QDebug>
 
-#include "ActivityObject.h"
 #include "ActivityProjection.h"
 #include "DBusConstants.h"
 #include "GameState.h"
+#include "InterfaceRegistry.h"
 #include "ManagedTypes.h"
 #include "ObserverService.h"
-#include "adaptors/ActivityDBusAdaptor.h"
-#include "adaptors/ActivityDungeonDBusAdaptor.h"
-#include "adaptors/ActivityEncounterDBusAdaptor.h"
+#include "PropertyTreeObject.h"
 #include "adaptors/ObjectManagerAdaptor.h"
 
 namespace dbus = constellar::dbus;
@@ -23,12 +21,24 @@ ObjectTreePublisher::ObjectTreePublisher(
 {
     registerManagedTypes();
 
-    m_objectManager = std::make_unique<ObjectManagerAdaptor>(service, this);
+    m_registry = std::make_unique<InterfaceRegistry>();
+
+    m_objectManager = std::make_unique<ObjectManagerAdaptor>(service, this, this);
 
     if (!m_connection.registerObject(dbus::kRootObjectPath, this))
     {
         qWarning() << "Failed to register the ObjectManager root at" << dbus::kRootObjectPath << ":"
                    << m_connection.lastError().message();
+    }
+
+    m_propertyTree = std::make_unique<PropertyTreeObject>(*m_registry, *this, m_connection, this);
+
+    if (!m_connection.registerVirtualObject(
+            dbus::kActivitySubtreePath, m_propertyTree.get(), QDBusConnection::SubPath
+        ))
+    {
+        qWarning() << "Failed to register the activity subtree at" << dbus::kActivitySubtreePath
+                   << ":" << m_connection.lastError().message();
     }
 
     GameState const& gameState = m_service->gameState();
@@ -41,51 +51,65 @@ ObjectTreePublisher::ObjectTreePublisher(
 
 ObjectTreePublisher::~ObjectTreePublisher()
 {
-    if (m_currentActivity)
-        m_connection.unregisterObject(dbus::kActivityObjectPath);
-
+    m_connection.unregisterObject(dbus::kActivitySubtreePath);
     m_connection.unregisterObject(dbus::kRootObjectPath);
+}
+
+std::optional<ObjectTreePublisher::ObjectSnapshot> ObjectTreePublisher::resolve(
+    QStringView path
+) const
+{
+    if (path != QStringView(dbus::kActivityObjectPath))
+        return std::nullopt;
+
+    QVariantMap const bag = m_service->gameState().activity();
+    if (bag.isEmpty())
+        return std::nullopt;
+
+    ObjectSnapshot snapshot;
+    snapshot.append(
+        {dbus::kActivityInterfaceName, constellar::observer::activityInterfaceProperties(bag)}
+    );
+
+    if (constellar::observer::isEncounter(bag))
+    {
+        snapshot.append(
+            {dbus::kActivityEncounterInterfaceName,
+             constellar::observer::encounterInterfaceProperties(bag)}
+        );
+    }
+    else if (constellar::observer::isDungeon(bag))
+    {
+        snapshot.append(
+            {dbus::kActivityDungeonInterfaceName,
+             constellar::observer::dungeonInterfaceProperties(bag)}
+        );
+    }
+
+    return snapshot;
 }
 
 void ObjectTreePublisher::onActivityChanged(QVariantMap const& activity)
 {
     // Already live (nothing to do), or this is GameState::endActivity's trailing
     // setActivity({}) clear -- handled by onActivityEnded instead.
-    if (m_currentActivity || activity.isEmpty())
+    if (m_activityLive || activity.isEmpty())
         return;
 
-    m_currentActivity = std::make_unique<ActivityObject>(activity);
-    new ActivityDBusAdaptor(m_currentActivity.get());
+    m_activityLive = true;
+
+    auto const snapshot = resolve(dbus::kActivityObjectPath);
+    Q_ASSERT(snapshot);  // just went live -- gameState().activity() can't be empty here.
 
     QVariantMapMap interfaces;
-    interfaces[dbus::kActivityInterfaceName] =
-        constellar::observer::activityInterfaceProperties(activity);
-
-    if (constellar::observer::isEncounter(activity))
-    {
-        new ActivityEncounterDBusAdaptor(m_currentActivity.get());
-        interfaces[dbus::kActivityEncounterInterfaceName] =
-            constellar::observer::encounterInterfaceProperties(activity);
-    }
-    else if (constellar::observer::isDungeon(activity))
-    {
-        new ActivityDungeonDBusAdaptor(m_currentActivity.get());
-        interfaces[dbus::kActivityDungeonInterfaceName] =
-            constellar::observer::dungeonInterfaceProperties(activity);
-    }
-
-    if (!m_connection.registerObject(dbus::kActivityObjectPath, m_currentActivity.get()))
-    {
-        qWarning() << "Failed to register" << dbus::kActivityObjectPath << ":"
-                   << m_connection.lastError().message();
-    }
+    for (auto const& [interfaceName, props] : *snapshot) interfaces[interfaceName] = props;
 
     m_objectManager->activityAppeared(interfaces);
 }
 
 void ObjectTreePublisher::onActivityEnded()
 {
-    if (!m_currentActivity)
+    if (!m_activityLive)
         return;
 
     // ActivityEnded (still-valid path) fires from ObserverDBusAdaptor's own
@@ -93,6 +117,5 @@ void ObjectTreePublisher::onActivityEnded()
     // has already gone out by the time this handler runs. InterfacesRemoved next,
     // then the object goes away.
     m_objectManager->activityDisappeared();
-    m_connection.unregisterObject(dbus::kActivityObjectPath);
-    m_currentActivity.reset();
+    m_activityLive = false;
 }
