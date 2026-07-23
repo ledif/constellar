@@ -41,6 +41,7 @@ ObjectTreePublisher::ObjectTreePublisher(
                    << ":" << m_connection.lastError().message();
     }
 
+    // Let the game tell us when an activity changes/ends
     GameState const& gameState = m_service->gameState();
     connect(&gameState, &GameState::activityChanged, this, &ObjectTreePublisher::onActivityChanged);
     connect(
@@ -91,15 +92,14 @@ std::optional<ObjectTreePublisher::ObjectSnapshot> ObjectTreePublisher::resolve(
 
 void ObjectTreePublisher::onActivityChanged(QVariantMap const& activity)
 {
-    // Already live (nothing to do), or this is GameState::endActivity's trailing
-    // setActivity({}) clear -- handled by onActivityEnded instead.
+    // Already live, or this is a setActivity({}), which we handle in onActivityEnded
     if (m_activityLive || activity.isEmpty())
         return;
 
     m_activityLive = true;
 
     auto const snapshot = resolve(dbus::kActivityObjectPath);
-    Q_ASSERT(snapshot);  // just went live -- gameState().activity() can't be empty here.
+    Q_ASSERT(snapshot);
 
     QVariantMapMap interfaces;
     for (auto const& [interfaceName, props] : *snapshot) interfaces[interfaceName] = props;
@@ -112,10 +112,6 @@ void ObjectTreePublisher::onActivityEnded()
     if (!m_activityLive)
         return;
 
-    // ActivityEnded (still-valid path) fires from ObserverDBusAdaptor's own
-    // GameState::activityEnded connection, made before this one in main.cpp, so it
-    // has already gone out by the time this handler runs. InterfacesRemoved next,
-    // then the object goes away.
     m_objectManager->activityDisappeared();
     m_activityLive = false;
 }

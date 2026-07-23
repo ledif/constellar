@@ -1,10 +1,11 @@
 add_library(constellar-observer STATIC)
 add_library(constellar::observer ALIAS constellar-observer)
 
-qt_add_resources(constellar-observer "observer_dbus_xml"
+qt_add_resources(constellar-observer "constellar_observer_dbus_xml"
   PREFIX "/dbus"
   BASE ${CMAKE_SOURCE_DIR}/data
   FILES ${CMAKE_SOURCE_DIR}/data/dev.ulduar.Constellar1.xml
+        ${CMAKE_SOURCE_DIR}/data/dbus-standard-interfaces.xml
 )
 
 target_sources(constellar-observer

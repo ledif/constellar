@@ -4,7 +4,9 @@
 #include <QString>
 #include <QVector>
 
-// One property of a D-Bus interface, as declared in the canonical XML.
+class QXmlStreamReader;
+
+// One property of a D-Bus interface as declared in the canonical XML.
 struct PropertyDescriptor
 {
     QString name;
@@ -12,8 +14,7 @@ struct PropertyDescriptor
     bool readOnly = true;
 };
 
-// One interface's shape: its ordered properties, plus the exact <interface>...
-// </interface> subtree from the canonical XML, retained verbatim for introspection.
+// One <interface> from the XML
 struct InterfaceDescriptor
 {
     QString name;
@@ -23,9 +24,7 @@ struct InterfaceDescriptor
     PropertyDescriptor const* property(QString const& propertyName) const;
 };
 
-// Parses data/dev.ulduar.Constellar1.xml (embedded as a Qt resource) once at
-// startup. A malformed XML is a fatal startup error -- the file is the wire
-// contract and a daemon that can't read it can't serve anything correctly.
+// Parses and holds our embeded XML files
 class InterfaceRegistry
 {
   public:
@@ -33,8 +32,15 @@ class InterfaceRegistry
 
     InterfaceDescriptor const* find(QString const& interfaceName) const;
 
+    QString const& standardInterfacesXml() const
+    {
+        return m_standardInterfacesXml;
+    }
+
   private:
-    void parse(QString const& xml);
+    void parse(QString const& xml, bool standard);
+    InterfaceDescriptor readInterface(QXmlStreamReader& reader);
 
     QHash<QString, InterfaceDescriptor> m_interfaces;
+    QString m_standardInterfacesXml;
 };

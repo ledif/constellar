@@ -27,46 +27,6 @@ QString const kUnknownInterfaceError = u"org.freedesktop.DBus.Error.UnknownInter
 QString const kUnknownPropertyError = u"org.freedesktop.DBus.Error.UnknownProperty"_s;
 QString const kPropertyReadOnlyError = u"org.freedesktop.DBus.Error.PropertyReadOnly"_s;
 
-// Standard interfaces Qt's generated adaptor machinery contributes to every
-// object's introspection; hand-rolled here since a QDBusVirtualObject gets none
-// of that for free.
-QString const kStandardInterfacesXml =
-    uR"(  <interface name="org.freedesktop.DBus.Properties">
-    <method name="Get">
-      <arg name="interface_name" type="s" direction="in"/>
-      <arg name="property_name" type="s" direction="in"/>
-      <arg name="value" type="v" direction="out"/>
-    </method>
-    <method name="Set">
-      <arg name="interface_name" type="s" direction="in"/>
-      <arg name="property_name" type="s" direction="in"/>
-      <arg name="value" type="v" direction="in"/>
-    </method>
-    <method name="GetAll">
-      <arg name="interface_name" type="s" direction="in"/>
-      <arg name="values" type="a{sv}" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-    </method>
-    <signal name="PropertiesChanged">
-      <arg name="interface_name" type="s" direction="out"/>
-      <arg name="changed_properties" type="a{sv}" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
-      <arg name="invalidated_properties" type="as" direction="out"/>
-    </signal>
-  </interface>
-  <interface name="org.freedesktop.DBus.Introspectable">
-    <method name="Introspect">
-      <arg name="xml_data" type="s" direction="out"/>
-    </method>
-  </interface>
-  <interface name="org.freedesktop.DBus.Peer">
-    <method name="Ping"/>
-    <method name="GetMachineId">
-      <arg name="machine_uuid" type="s" direction="out"/>
-    </method>
-  </interface>
-)"_s;
-
 QVariant coerceValue(QString const& signature, QVariant value)
 {
     if (signature == u"x"_s && value.metaType() != QMetaType::fromType<qint64>())
@@ -151,9 +111,12 @@ QString PropertyTreeObject::introspectionXmlFor(QString const& subPath) const
     {
         Q_UNUSED(props);
         if (auto const* descriptor = m_registry.find(interfaceName))
-            xml += u"  "_s + descriptor->xml + u'\n';
+            xml += descriptor->xml;
     }
-    xml += kStandardInterfacesXml;
+    // Standard interfaces Qt's generated adaptor machinery contributes to
+    // every classic object's introspection; a QDBusVirtualObject gets none of
+    // that for free, so we serve them from data/dbus-standard-interfaces.xml.
+    xml += m_registry.standardInterfacesXml();
     xml += u"</node>\n"_s;
     return xml;
 }

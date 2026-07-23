@@ -16,17 +16,14 @@ class ObjectManagerAdaptor;
 class InterfaceRegistry;
 class PropertyTreeObject;
 
-// Owns the root object (/dev/ulduar/Constellar1) and the /activity subtree's
-// virtual object.
+// Owns several D-Bus objects:
+// - the root object /dev/ulduar/Constellar1
+// - the /activity subtree's virtual object.
 class ObjectTreePublisher : public QObject
 {
     Q_OBJECT
 
   public:
-    // path -> ordered (interface, property-bag) pairs, or nullopt for "no such
-    // object". The single source both PropertyTreeObject's Properties/Introspect
-    // handling and ObjectManagerAdaptor's GetManagedObjects/InterfacesAdded
-    // payloads read from.
     using ObjectSnapshot = QList<std::pair<QString, QVariantMap>>;
 
     explicit ObjectTreePublisher(
