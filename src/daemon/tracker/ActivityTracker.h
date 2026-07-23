@@ -33,7 +33,8 @@ class ActivityTracker : public QObject
   Q_SIGNALS:
     void encounterStarted(RaidEncounter const& encounter, QDateTime const& preRollFrom);
     void encounterStopped(
-        RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
+        RaidEncounter const& encounter, ActivityOutcome outcome, int durationMs,
+        QDateTime const& stopTime
     );
 
     void dungeonStarted(DungeonRun const& dungeon, QDateTime const& preRollFrom);
@@ -61,6 +62,7 @@ class ActivityTracker : public QObject
     bool m_active = false;
     RaidEncounter m_current;
     ActivityOutcome m_pendingOutcome = ActivityOutcome::Unknown;
+    int m_pendingDurationMs = 0;
     QDateTime m_pendingStopTime;
     QTimer m_overrunTimer;
 

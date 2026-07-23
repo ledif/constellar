@@ -1,5 +1,7 @@
 #include "ActivityTracker.h"
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
 
 ActivityTracker::ActivityTracker(Config config, QObject* parent)
@@ -80,6 +82,9 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
             // fresh START with no END for previous (player messing with /combatlog?)
             m_pendingOutcome = ActivityOutcome::Abandoned;
             m_pendingStopTime = line.dateTime();
+            m_pendingDurationMs = static_cast<int>(
+                std::max(qint64(0), m_current.startTime.msecsTo(m_pendingStopTime))
+            );
             finishPendingStop();
         }
         m_active = false;
@@ -106,7 +111,7 @@ void ActivityTracker::handleEncounterStart(LogLine const& line)
 void ActivityTracker::handleEncounterEnd(LogLine const& line)
 {
     // ENCOUNTER_END args: encounterID, encounterName, difficultyID,
-    // groupSize, success(0/1)
+    // groupSize, success(0/1), fightTimeMs
     if (!m_active || line.argCount() < 5)
         return;
 
@@ -120,7 +125,15 @@ void ActivityTracker::handleEncounterEnd(LogLine const& line)
 
     m_pendingOutcome =
         line.argString(5) == u"1"_s ? ActivityOutcome::Success : ActivityOutcome::Failure;
-    m_pendingStopTime = line.dateTime().addSecs(m_config.raidOverrunSeconds);
+
+    QDateTime const endTime = line.dateTime();
+    if (line.argCount() >= 7)
+        m_pendingDurationMs = line.argString(6).toInt();
+    else
+        m_pendingDurationMs =
+            static_cast<int>(std::max(qint64(0), m_current.startTime.msecsTo(endTime)));
+
+    m_pendingStopTime = endTime.addSecs(m_config.raidOverrunSeconds);
     m_overrunTimer.start(m_config.raidOverrunSeconds * 1000);
 }
 
@@ -132,7 +145,7 @@ void ActivityTracker::onOverrunElapsed()
 
 void ActivityTracker::finishPendingStop()
 {
-    Q_EMIT encounterStopped(m_current, m_pendingOutcome, m_pendingStopTime);
+    Q_EMIT encounterStopped(m_current, m_pendingOutcome, m_pendingDurationMs, m_pendingStopTime);
 }
 
 void ActivityTracker::handleChallengeModeStart(LogLine const& line)

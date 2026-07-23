@@ -61,11 +61,13 @@ ActivityMetadata ActivityMetadata::fromEncounter(RaidEncounter const& encounter)
 }
 
 ActivityMetadata ActivityMetadata::fromEncounterEnded(
-    RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
+    RaidEncounter const& encounter, ActivityOutcome outcome, int durationMs,
+    QDateTime const& stopTime
 )
 {
     ActivityMetadata metadata = fromEncounter(encounter);
     metadata[keys::kOutcome] = outcomeName(outcome);
+    metadata[keys::kDurationMs] = static_cast<qint64>(durationMs);
     metadata[keys::kStopTime] = static_cast<qint64>(stopTime.toMSecsSinceEpoch());
     return metadata;
 }

@@ -108,10 +108,10 @@ interfaces:
           - const: kDurationMs
             key: durationMs
             type: x
-            applies-to: [dungeon]
+            applies-to: [encounter, dungeon]
             required: true
             stability: stable
-            description: Run duration in milliseconds (dungeon only).
+            description: Run duration in milliseconds.
 
           - const: kStopTime
             key: stopTime

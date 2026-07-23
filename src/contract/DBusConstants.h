@@ -2,9 +2,7 @@
 
 #include <QString>
 
-// The interface-name macros exist for Q_CLASSINFO("D-Bus Interface", ...), which moc
-// reads before C++ exists — it needs preprocessor string literals. Runtime code uses
-// the QString constants below, built from the same macros so the two can't drift.
+// These macros exist because of Q_CLASSINFO("D-Bus Interface", ...)
 #define CONSTELLAR_DBUS_INTERFACE_NAME "dev.ulduar.Constellar1.Observer"
 #define CONSTELLAR_DBUS_ACTIVITY_INTERFACE_NAME "dev.ulduar.Constellar1.Activity"
 #define CONSTELLAR_DBUS_ACTIVITY_ENCOUNTER_INTERFACE_NAME \

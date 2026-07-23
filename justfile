@@ -66,6 +66,7 @@ run-daemon path discord_app_id="1527462779290652672":
         -e DBUS_SESSION_BUS_ADDRESS \
         -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         -e CONSTELLAR_DISCORD_APP_ID={{discord_app_id}} \
+        -e TZ=$(timedatectl show -p Timezone --value) \
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/daemon/constellard --log-dir /wow-logs
 
@@ -96,6 +97,7 @@ run-cli *args:
         -v {{justfile_directory()}}:/src:Z -w /src \
         -v /run/user/$(id -u):/run/user/$(id -u) \
         -e DBUS_SESSION_BUS_ADDRESS \
+        -e TZ=$(timedatectl show -p Timezone --value) \
         --userns=keep-id \
         {{image}} ./{{build_dir}}/src/cli/constellarctl {{args}}
 
@@ -115,6 +117,7 @@ run-gui:
         -e WAYLAND_DISPLAY \
         -e XDG_RUNTIME_DIR=/run/user/$(id -u) \
         -e QT_QUICK_CONTROLS_STYLE=org.kde.desktop \
+        -e TZ=$(timedatectl show -p Timezone --value) \
         --userns=keep-id \
         --net=host \
         {{image}} ./{{build_dir}}/src/gui/constellar

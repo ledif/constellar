@@ -54,10 +54,12 @@ void ActivityMetadataTest::encounterEndedMetadataAddsSuccessAndStopTime()
         .difficultyId = 14,  // Normal
     };
 
-    ActivityMetadata const metadata =
-        ActivityMetadata::fromEncounterEnded(encounter, ActivityOutcome::Success, stopTime);
+    ActivityMetadata const metadata = ActivityMetadata::fromEncounterEnded(
+        encounter, ActivityOutcome::Success, 381'329, stopTime
+    );
 
     QCOMPARE(metadata.value(keys::kOutcome).toString(), QString::fromLatin1(keys::kOutcomeSuccess));
+    QCOMPARE(metadata.value(keys::kDurationMs).toLongLong(), 381'329);
     QCOMPARE(metadata.value(keys::kStopTime).toLongLong(), stopTime.toMSecsSinceEpoch());
     // Still carries the base encounter fields.
     QCOMPARE(metadata.value(keys::kDifficulty).toString(), QStringLiteral("Normal"));

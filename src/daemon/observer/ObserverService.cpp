@@ -53,10 +53,13 @@ ObserverService::ObserverService(
 
     connect(
         &m_tracker, &ActivityTracker::encounterStopped, this,
-        [this](RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime)
+        [this](
+            RaidEncounter const& encounter, ActivityOutcome outcome, int durationMs,
+            QDateTime const& stopTime
+        )
         {
             m_gameState.endActivity(
-                ActivityMetadata::fromEncounterEnded(encounter, outcome, stopTime)
+                ActivityMetadata::fromEncounterEnded(encounter, outcome, durationMs, stopTime)
             );
         }
     );
