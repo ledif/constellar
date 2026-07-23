@@ -84,8 +84,7 @@ if ! echo "$status_json" | grep -q '"zoneCategory":"unknown"'; then
   exit 1
 fi
 
-# RFC-006/TASK-009: the same encounter must also be reachable as a typed object at
-# /activity/current, enumerated by the standard ObjectManager on the root.
+# the same encounter must also be reachable as a typed object at /activity/current
 managed_objects=$(gdbus call --session -d dev.ulduar.Constellar1 -o /dev/ulduar/Constellar1 \
   -m org.freedesktop.DBus.ObjectManager.GetManagedObjects)
 

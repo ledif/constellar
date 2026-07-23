@@ -9,9 +9,6 @@ import yaml
 
 from .dbus import parse_interfaces
 
-# Standard freedesktop interfaces are documented in the sidecar's `objects:`
-# section (prose only), never redefined member-by-member -- they're not ours
-# to specify. Exempt them from the interface-presence and per-member checks.
 _STANDARD_INTERFACES = {"org.freedesktop.DBus.ObjectManager"}
 
 

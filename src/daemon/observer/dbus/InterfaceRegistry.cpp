@@ -79,9 +79,6 @@ void InterfaceRegistry::parse(QString const& xml, bool standard)
     }
 }
 
-// Collects the property descriptors and re-serializes the <interface> subtree
-// in one pass over the same tokens, so the introspection fragment and the
-// descriptors can never disagree.
 InterfaceDescriptor InterfaceRegistry::readInterface(QXmlStreamReader& reader)
 {
     // reader is positioned on the <interface> start element
@@ -96,8 +93,6 @@ InterfaceDescriptor InterfaceRegistry::readInterface(QXmlStreamReader& reader)
     int depth = 0;
     while (!reader.atEnd())
     {
-        // Drop the source file's inter-element whitespace; the writer's
-        // auto-formatting owns the fragment's layout.
         if (reader.isCharacters() && reader.isWhitespace())
         {
             reader.readNext();

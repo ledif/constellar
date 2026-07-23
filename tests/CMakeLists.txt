@@ -1,6 +1,4 @@
-# DBUS_SESSION: the test talks to a real QDBusConnection::sessionBus(), so run it
-# under dbus-run-session (its own private bus, same pattern as integration_status)
-# instead of whatever session bus (if any) the calling shell happens to have.
+# DBUS_SESSION: for tests that talk to a real session bus
 function(constellar_add_test name)
     cmake_parse_arguments(ARG "DBUS_SESSION" "" "SOURCES;LIBS" ${ARGN})
 

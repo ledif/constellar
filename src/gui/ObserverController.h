@@ -55,8 +55,6 @@ class ObserverController : public QObject
     void nowChanged();
 
   private:
-    // `path` identifies the ended activity object (RFC-006); no such object is
-    // registered yet, so this handler still works from the a{sv} bag alone.
     void onActivityEnded(QDBusObjectPath const& path, QVariantMap const& activityMap);
 
     ObserverProxy m_manager;
