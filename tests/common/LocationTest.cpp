@@ -43,7 +43,7 @@ void LocationTest::uiMapEmitsWireKeys()
 void LocationTest::zoneEmitsCategory()
 {
     Location location;
-    location.setZone(Zone{QStringLiteral("Windrunner Spire"), 19});  // Dungeon Mythic
+    location.setZone(Zone{QStringLiteral("Windrunner Spire"), 23});  // Dungeon Mythic
 
     QVariantMap const map = location.toVariantMap();
     QCOMPARE(map.value(keyStr(keys::kZoneName)).toString(), QStringLiteral("Windrunner Spire"));

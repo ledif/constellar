@@ -41,6 +41,76 @@ def _make_env(templates_dir: Path) -> Environment:
     )
 
 
+def _split_path(path: str) -> tuple[str, str | None]:
+    """Split an object path into its literal prefix and a trailing
+    `<placeholder>` segment, if any, so templates can wrap the latter in
+    `<var>` instead of rendering it as though it were a literal path."""
+    prefix, _, last = path.rpartition("/")
+    if last.startswith("<") and last.endswith(">"):
+        return f"{prefix}/", last
+    return path, None
+
+
+def _escape_for_coverage(text: str) -> str:
+    """Mirror Jinja's autoescaping of `<`/`>` so coverage checks can look for
+    a placeholder's rendered form as a literal substring."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _exposed_at_row(entry: dict) -> dict:
+    """Shape one object-tree (or root) entry for an interface page's
+    *Exposed at* list: just the path, split for `<var>` wrapping."""
+    prefix, placeholder = _split_path(entry["path"])
+    return {"path": entry["path"], "prefix": prefix, "placeholder": placeholder}
+
+
+def _exposed_at(spec: Spec, interface_name: str, object_tree: list[dict]) -> list[dict]:
+    """Object-tree (and root) entries whose `interfaces` include this one,
+    shaped for the interface page's *Exposed at* list."""
+    entries = [entry for entry in object_tree if interface_name in entry["interfaces"]]
+    if interface_name in spec.root_entry["interfaces"]:
+        entries = entries + [spec.root_entry]
+    return [_exposed_at_row(entry) for entry in entries]
+
+
+def _tree_split(path: str, root: str) -> tuple[str, str, str | None]:
+    """Split a path into `(gray, leaf, placeholder)`: `gray` is the shared
+    `objects.root` segment (de-emphasized in the template), `leaf` is the
+    distinguishing tail, and `placeholder` is a trailing `<id>`-style segment
+    to wrap in `<var>`."""
+    root_prefix = root if root.endswith("/") else f"{root}/"
+    if root and path.startswith(root_prefix):
+        gray, rest = root_prefix, path[len(root_prefix) :]
+    else:
+        gray, rest = "", path
+    body, _, last = rest.rpartition("/")
+    if last.startswith("<") and last.endswith(">"):
+        return gray, f"{body}/" if body else "", last
+    return gray, rest, None
+
+
+def _index_object_row(entry: dict, root: str) -> dict:
+    """Shape one object-tree (or root) entry for the landing page's Objects
+    list: tree-split path, and interfaces resolved to a primary type plus any
+    additional ones it also implements."""
+    gray, leaf, placeholder = _tree_split(entry["path"], root)
+    ifaces = [
+        {"name": name, "short_name": short_name(name), "href": interface_filename(name)}
+        for name in entry["interfaces"]
+    ]
+    return {
+        "path": entry["path"],
+        "gray": gray,
+        "leaf": leaf,
+        "placeholder": placeholder,
+        "primary": ifaces[0] if ifaces else None,
+        "also": ifaces[1:],
+        "stability": entry["stability"],
+        "status": entry["status"],
+        "description": entry["description"],
+    }
+
+
 def _interface_context(spec: Spec, interface: Interface) -> dict:
     """Build the render context for one interface's page, drawing shapes from
     the parsed XML `interface` and prose/keys from its sidecar block."""
@@ -70,18 +140,23 @@ def _interface_context(spec: Spec, interface: Interface) -> dict:
     ]
 
     bag_description = {name: bag["description"] for name, bag in bags_spec.items()}
+    prop_spec = sidecar.get("properties", {})
     properties = [
         {
             "name": p.name,
             "type": p.type,
             "access": p.access,
-            "description": bag_description.get(p.name, ""),
+            "description": bag_description.get(p.name) or _description(prop_spec, p.name),
+            "stability": _stability(prop_spec, p.name) if p.name in prop_spec else "stable",
         }
         for p in interface.properties
     ]
 
     bags = []
     enums = []
+    for prop_name, prop in prop_spec.items():
+        if prop.get("enum"):
+            enums.append({"const": prop_name, "slug": prop_name.lower(), "members": prop["enum"]})
     for name, bag in bags_spec.items():
         keys = bag.get("keys", [])
         ended = bag.get("ended-additions", [])
@@ -99,10 +174,14 @@ def _interface_context(spec: Spec, interface: Interface) -> dict:
             if key.get("enum"):
                 enums.append({"const": key["const"], "slug": key["const"].lower(), "members": key["enum"]})
 
+    description = sidecar.get("description", "")
+    if not description and interface.name in spec.root_entry["interfaces"]:
+        description = spec.root_entry["description"]
+
     return {
         "name": interface.name,
         "short_name": short_name(interface.name),
-        "description": sidecar.get("description", ""),
+        "description": description,
         "methods": methods,
         "signals": signals,
         "properties": properties,
@@ -131,36 +210,60 @@ def render_index(
         }
         for iface in interfaces.values()
     ]
+    root = spec.objects.get("root", "")
+    root_row = dict(spec.root_entry)
+    root_row["description"] = ""  # the implementation prose lives on the ObjectManager page
+
     template = _make_env(templates_dir).get_template("index.html")
     return template.render(
         spec_version=spec.raw.get("spec-version"),
         license=license_text,
         about=spec.raw.get("about", ""),
         interfaces=listing,
+        object_tree=[_index_object_row(entry, root) for entry in spec.object_tree]
+        + [_index_object_row(root_row, root)],
     )
 
 
-def render_interface(spec: Spec, interface: Interface, templates_dir: Path) -> str:
+def render_interface(
+    spec: Spec, interface: Interface, templates_dir: Path, object_tree: list[dict]
+) -> str:
     """Render one interface's reference page."""
     template = _make_env(templates_dir).get_template("interface.html")
+    context = _interface_context(spec, interface)
+    context["exposed_at"] = _exposed_at(spec, interface.name, object_tree)
     return template.render(
         spec_version=spec.raw.get("spec-version"),
-        interface=_interface_context(spec, interface),
+        interface=context,
     )
 
 
-def check_index_coverage(html: str, interfaces: dict[str, Interface]) -> list[str]:
-    """Every interface must appear (and link out) on the landing page."""
+def check_index_coverage(html: str, interfaces: dict[str, Interface], spec: Spec) -> list[str]:
+    """Every interface must appear (and link out) on the landing page, and
+    every object-tree path must be rendered in the Object Tree section."""
     errors = []
     for iface in interfaces.values():
         if iface.name not in html:
             errors.append(f"interface '{iface.name}' is missing from the landing page")
         if interface_filename(iface.name) not in html:
             errors.append(f"landing page has no link to '{interface_filename(iface.name)}'")
+
+    root = spec.objects.get("root", "")
+    for entry in list(spec.object_tree) + [spec.root_entry]:
+        gray, leaf, placeholder = _tree_split(entry["path"], root)
+        if (
+            (gray and gray not in html)
+            or (leaf and leaf not in html)
+            or (placeholder and _escape_for_coverage(placeholder) not in html)
+        ):
+            errors.append(f"object path '{entry['path']}' is missing from the landing page")
+
     return errors
 
 
-def check_interface_coverage(html: str, spec: Spec, interface: Interface) -> list[str]:
+def check_interface_coverage(
+    html: str, spec: Spec, interface: Interface, object_tree: list[dict]
+) -> list[str]:
     """Literal substring check: every documented key/member of this interface
     must appear in its own rendered page. Catches a template that silently drops
     a section, independent of how the render context was built."""
@@ -187,5 +290,13 @@ def check_interface_coverage(html: str, spec: Spec, interface: Interface) -> lis
     for err in sidecar.get("errors", []):
         if err["code"] not in html:
             errors.append(f"[{interface.name}] error code '{err['code']}' has no rendered section")
+
+    for entry in _exposed_at(spec, interface.name, object_tree):
+        if entry["prefix"] not in html or (
+            entry["placeholder"] and _escape_for_coverage(entry["placeholder"]) not in html
+        ):
+            errors.append(
+                f"[{interface.name}] object path '{entry['path']}' is missing from Exposed at"
+            )
 
     return errors

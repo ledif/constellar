@@ -27,7 +27,10 @@ ObserverDBusAdaptor::ObserverDBusAdaptor(ObserverService* service, QDBusConnecti
         [this](QVariantMap const& location) { emitPropertiesChanged(u"Location"_s, location); }
     );
 
-    connect(&gameState, &GameState::activityEnded, this, &ObserverDBusAdaptor::ActivityEnded);
+    connect(
+        &gameState, &GameState::activityEnded, this, [this](QVariantMap const& activity)
+        { Q_EMIT ActivityEnded(QDBusObjectPath(constellar::dbus::kActivityObjectPath), activity); }
+    );
 }
 
 QVariantMap ObserverDBusAdaptor::activity() const
@@ -46,8 +49,7 @@ void ObserverDBusAdaptor::emitPropertiesChanged(QString const& name, QVariant co
         constellar::dbus::kObjectPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s
     );
 
-    signal << QString::fromUtf8(constellar::dbus::kInterfaceName) << QVariantMap{{name, value}}
-           << QStringList{};
+    signal << constellar::dbus::kInterfaceName << QVariantMap{{name, value}} << QStringList{};
 
     m_connection.send(signal);
 }

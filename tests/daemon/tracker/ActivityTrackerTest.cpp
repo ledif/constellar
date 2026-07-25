@@ -1,5 +1,7 @@
 #include "ActivityTrackerTest.h"
 
+#include <optional>
+
 #include <QTest>
 #include <QVector>
 
@@ -28,14 +30,18 @@ QString encounterStartLine(
 }
 
 QString encounterEndLine(
-    QString const& hms, int encounterId, QString const& name, int difficultyId, bool success
+    QString const& hms, int encounterId, QString const& name, int difficultyId, bool success,
+    std::optional<int> fightTimeMs = std::nullopt
 )
 {
-    return timestamp(hms) + QStringLiteral("  ENCOUNTER_END,%1,\"%2\",%3,20,%4")
-                                .arg(encounterId)
-                                .arg(name)
-                                .arg(difficultyId)
-                                .arg(success ? 1 : 0);
+    QString line = timestamp(hms) + QStringLiteral("  ENCOUNTER_END,%1,\"%2\",%3,20,%4")
+                                        .arg(encounterId)
+                                        .arg(name)
+                                        .arg(difficultyId)
+                                        .arg(success ? 1 : 0);
+    if (fightTimeMs)
+        line += QStringLiteral(",%1").arg(*fightTimeMs);
+    return line;
 }
 
 QString challengeModeStartLine(
@@ -94,6 +100,7 @@ struct Stopped
 {
     RaidEncounter encounter;
     ActivityOutcome outcome;
+    int durationMs;
     QDateTime stopTime;
 };
 
@@ -123,8 +130,9 @@ struct Collector
         QObject::connect(
             &tracker, &ActivityTracker::encounterStopped,
             [this](
-                RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
-            ) { stopped.append({encounter, outcome, stopTime}); }
+                RaidEncounter const& encounter, ActivityOutcome outcome, int durationMs,
+                QDateTime const& stopTime
+            ) { stopped.append({encounter, outcome, durationMs, stopTime}); }
         );
         QObject::connect(
             &tracker, &ActivityTracker::dungeonStarted,
@@ -297,6 +305,47 @@ void ActivityTrackerTest::encounterEndSuccessFalseIsRecorded()
     QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Failure);
 }
 
+void ActivityTrackerTest::encounterEndWithFightTimeUsesReportedDuration()
+{
+    ActivityTracker::Config config;
+    config.raidOverrunSeconds = 1;
+    ActivityTracker tracker(config);
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+    tracker.onLineReceived(LogLine(encounterEndLine(
+        QStringLiteral("21:46:26.3290"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
+        true, 381329
+    )));
+
+    QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
+
+    // Reported fightTimeMs wins
+    QCOMPARE(collector.stopped.at(0).durationMs, 381329);
+}
+
+
+void ActivityTrackerTest::abandonedEncounterFallsBackToStopMinusStart()
+{
+    ActivityTracker tracker({});
+    Collector collector(tracker);
+
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:40:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+
+    // A fresh START with no ENCOUNTER_END in between
+    tracker.onLineReceived(LogLine(encounterStartLine(
+        QStringLiteral("21:41:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
+    )));
+
+    QCOMPARE(collector.stopped.size(), 1);
+    QCOMPARE(collector.stopped.at(0).outcome, ActivityOutcome::Abandoned);
+    QCOMPARE(collector.stopped.at(0).durationMs, 65 * 1000);
+}
+
 void ActivityTrackerTest::ignoresUnhandledLines()
 {
     ActivityTracker tracker({});
@@ -333,7 +382,8 @@ void ActivityTrackerTest::ignoresMismatchedEncounterEnd()
     tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
-    // A END for a different encounterID shouldn't stop the one we're tracking.
+
+    // An END for a different encounterID shouldn't stop the one we're tracking
     tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:41:00.0000"), 9999, QStringLiteral("Someone Else"), 15, true
     )));

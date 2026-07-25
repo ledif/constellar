@@ -35,13 +35,66 @@
     </method>
 
     <signal name="ActivityEnded">
+      <arg name="path" type="o"/>
       <arg name="activity" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
     </signal>
 
     <signal name="Error">
       <arg name="code" type="s"/>
       <arg name="message" type="s"/>
+    </signal>
+  </interface>
+
+  <!-- Object-path contract -->
+
+  <interface name="dev.ulduar.Constellar1.Activity">
+    <property name="Type" type="s" access="read"/>
+    <property name="StartTime" type="x" access="read"/>
+    <property name="StopTime" type="x" access="read"/>
+    <property name="Outcome" type="s" access="read"/>
+    <property name="Recording" type="o" access="read"/>
+  </interface>
+
+  <interface name="dev.ulduar.Constellar1.Activity.Encounter">
+    <property name="EncounterId" type="u" access="read"/>
+    <property name="EncounterName" type="s" access="read"/>
+    <property name="Difficulty" type="s" access="read"/>
+    <property name="DifficultyId" type="u" access="read"/>
+  </interface>
+
+  <interface name="dev.ulduar.Constellar1.Activity.Dungeon">
+    <property name="ZoneId" type="u" access="read"/>
+    <property name="KeystoneLevel" type="u" access="read"/>
+    <property name="ChallengeMapId" type="u" access="read"/>
+    <property name="DurationMs" type="x" access="read"/>
+  </interface>
+
+  <interface name="dev.ulduar.Constellar1.Recording">
+    <property name="Path" type="s" access="read"/>
+    <property name="State" type="s" access="read"/>
+    <property name="DurationMs" type="x" access="read"/>
+    <property name="Activities" type="ao" access="read"/>
+
+    <method name="Delete"/>
+  </interface>
+
+  <!-- Standard freedesktop interface on the root object -->
+  <interface name="org.freedesktop.DBus.ObjectManager">
+    <method name="GetManagedObjects">
+      <arg name="objects" type="a{oa{sa{sv}}}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="DBusManagerStruct"/>
+    </method>
+
+    <signal name="InterfacesAdded">
+      <arg name="object" type="o"/>
+      <arg name="interfaces" type="a{sa{sv}}"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMapMap"/>
+    </signal>
+
+    <signal name="InterfacesRemoved">
+      <arg name="object" type="o"/>
+      <arg name="interfaces" type="as"/>
     </signal>
   </interface>
 </node>

@@ -50,61 +50,62 @@ Kirigami.Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            ListView {
-                id: eventView
-
+            Controls.ScrollView {
                 anchors.fill: parent
-                clip: true
-                spacing: 0
 
-                Controls.ScrollBar.vertical: Controls.ScrollBar {}
+                ListView {
+                    id: eventView
 
-                model: root.observer.eventLog
+                    clip: true
+                    spacing: 0
 
-                delegate: Delegates.RoundedItemDelegate {
-                    id: row
+                    model: root.observer.eventLog
 
-                    width: ListView.view.width
+                    delegate: Delegates.RoundedItemDelegate {
+                        id: row
 
-                    required property string title
-                    required property int activityState
-                    required property double startTime
-                    required property double stopTime
-                    required property double durationMs
+                        width: ListView.view.width
 
-                    readonly property bool inProgress: activityState === ActivityModel.InProgress
+                        required property string title
+                        required property int activityState
+                        required property double startTime
+                        required property double stopTime
+                        required property double durationMs
 
-                    text: row.title
+                        readonly property bool inProgress: activityState === ActivityModel.InProgress
 
-                    icon.width: Kirigami.Units.iconSizes.smallMedium
-                    icon.height: Kirigami.Units.iconSizes.smallMedium
-                    icon.name: row.inProgress ? "media-playback-start-symbolic"
-                             : row.activityState === ActivityModel.Success ? "checkmark-symbolic"
-                             : "dialog-error-symbolic"
-                    icon.color: row.inProgress ? Kirigami.Theme.highlightColor
-                              : row.activityState === ActivityModel.Success ? Kirigami.Theme.positiveTextColor
-                              : Kirigami.Theme.negativeTextColor
+                        text: row.title
 
-                    contentItem: RowLayout {
-                        spacing: Kirigami.Units.largeSpacing
+                        icon.width: Kirigami.Units.iconSizes.smallMedium
+                        icon.height: Kirigami.Units.iconSizes.smallMedium
+                        icon.name: row.inProgress ? "media-playback-start-symbolic"
+                                 : row.activityState === ActivityModel.Success ? "checkmark-symbolic"
+                                 : "dialog-error-symbolic"
+                        icon.color: row.inProgress ? Kirigami.Theme.highlightColor
+                                  : row.activityState === ActivityModel.Success ? Kirigami.Theme.positiveTextColor
+                                  : Kirigami.Theme.negativeTextColor
 
-                        Delegates.SubtitleContentItem {
-                            itemDelegate: row
-                            subtitle: row.inProgress ? ""
-                                    : (row.activityState === ActivityModel.Success
-                                            ? qsTr("cleared in %1") : qsTr("wiped after %1"))
-                                          .arg(root.observer.durationText(row.durationMs))
-                            Layout.fillWidth: true
-                        }
+                        contentItem: RowLayout {
+                            spacing: Kirigami.Units.largeSpacing
 
-                        Controls.Label {
-                            text: {
-                                root.observer.now;
-                                return row.inProgress ? root.observer.elapsed(row.startTime)
-                                                       : root.observer.relativeTime(row.stopTime)
+                            Delegates.SubtitleContentItem {
+                                itemDelegate: row
+                                subtitle: row.inProgress ? ""
+                                        : (row.activityState === ActivityModel.Success
+                                                ? qsTr("cleared in %1") : qsTr("wiped after %1"))
+                                              .arg(root.observer.durationText(row.durationMs))
+                                Layout.fillWidth: true
                             }
-                            opacity: 0.7
-                            color: row.inProgress ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+
+                            Controls.Label {
+                                text: {
+                                    root.observer.now;
+                                    return row.inProgress ? root.observer.elapsed(row.startTime)
+                                                           : root.observer.relativeTime(row.stopTime)
+                                }
+                                opacity: 0.7
+                                color: row.inProgress ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            }
                         }
                     }
                 }

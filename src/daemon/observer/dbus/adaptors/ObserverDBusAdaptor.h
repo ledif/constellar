@@ -2,6 +2,7 @@
 
 #include <QDBusAbstractAdaptor>
 #include <QDBusConnection>
+#include <QDBusObjectPath>
 #include <QDBusVariant>
 #include <QList>
 #include <QMap>
@@ -42,7 +43,7 @@ class ObserverDBusAdaptor : public QDBusAbstractAdaptor
     void SetConfig(QVariantMap const& config);
 
   Q_SIGNALS:
-    void ActivityEnded(QVariantMap const& activity);
+    void ActivityEnded(QDBusObjectPath const& path, QVariantMap const& activity);
     void Error(QString const& code, QString const& message);
 
   private:

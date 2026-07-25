@@ -1,10 +1,15 @@
+# DBUS_SESSION: for tests that talk to a real session bus
 function(constellar_add_test name)
-    cmake_parse_arguments(ARG "" "" "SOURCES;LIBS" ${ARGN})
+    cmake_parse_arguments(ARG "DBUS_SESSION" "" "SOURCES;LIBS" ${ARGN})
 
     add_executable(${name} ${ARG_SOURCES})
     target_link_libraries(${name} PRIVATE Qt6::Core Qt6::Test ${ARG_LIBS})
 
-    add_test(NAME ${name} COMMAND ${name})
+    if(ARG_DBUS_SESSION)
+        add_test(NAME ${name} COMMAND dbus-run-session -- $<TARGET_FILE:${name}>)
+    else()
+        add_test(NAME ${name} COMMAND ${name})
+    endif()
 endfunction()
 
 add_library(constellar_test_helpers INTERFACE)
@@ -19,5 +24,7 @@ target_compile_definitions(constellar_test_fixtures
 
 add_subdirectory(common)
 add_subdirectory(daemon)
-add_subdirectory(gui)
+if(CONSTELLAR_BUILD_GUI)
+    add_subdirectory(gui)
+endif()
 add_subdirectory(integration)

@@ -1,6 +1,7 @@
 #include "ObserverServiceTest.h"
 
 #include <QFile>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -125,6 +126,35 @@ void ObserverServiceTest::encounterEndClearsActivity()
     );
 
     QTRY_VERIFY_WITH_TIMEOUT(service.gameState().activity().isEmpty(), 3000);
+}
+
+void ObserverServiceTest::encounterEndPublishesDuration()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    ActivityTracker::Config config;
+    config.raidOverrunSeconds = 1;
+    ObserverService service(dir.path().toStdString(), config);
+    QVERIFY(service.start());
+
+    QSignalSpy endedSpy(&service.gameState(), &GameState::activityEnded);
+
+    QString const path = dir.filePath(QStringLiteral("WoWCombatLog.txt"));
+    appendLine(
+        path, timestampPrefix() +
+                  QStringLiteral("ENCOUNTER_START,3306,\"Chimaerus the Undreamt God\",15,20,2549")
+    );
+    QTRY_VERIFY(!service.gameState().activity().isEmpty());
+
+    appendLine(
+        path, timestampPrefix() +
+                  QStringLiteral("ENCOUNTER_END,3306,\"Chimaerus the Undreamt God\",15,20,1,381329")
+    );
+
+    QTRY_COMPARE_WITH_TIMEOUT(endedSpy.count(), 1, 3000);
+    QVariantMap const endedActivity = endedSpy.at(0).at(0).toMap();
+    QCOMPARE(endedActivity.value(QString::fromLatin1(keys::kDurationMs)).toLongLong(), 381329);
 }
 
 void ObserverServiceTest::dungeonStartPopulatesActivity()

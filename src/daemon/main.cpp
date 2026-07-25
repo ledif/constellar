@@ -13,9 +13,10 @@
 #include "DBusConstants.h"
 #include "DiscordIpcClient.h"
 #include "GameState.h"
-#include "ObserverDBusAdaptor.h"
 #include "ObserverService.h"
 #include "PresencePublisher.h"
+#include "dbus/ObjectTreePublisher.h"
+#include "dbus/adaptors/ObserverDBusAdaptor.h"
 
 using namespace Qt::StringLiterals;
 
@@ -64,6 +65,8 @@ int main(int argc, char* argv[])
     QDBusConnection bus = QDBusConnection::sessionBus();
 
     auto _ = std::make_unique<ObserverDBusAdaptor>(service.get(), bus);
+
+    auto objectTreePublisher = std::make_unique<ObjectTreePublisher>(service.get(), bus, &app);
 
     QString discordAppId =
         QProcessEnvironment::systemEnvironment().value(u"CONSTELLAR_DISCORD_APP_ID"_s);

@@ -1,0 +1,1 @@
+({'Outcome': <'unknown'>, 'Recording': <objectpath '/'>, 'StartTime': <int64 <DYNAMIC>>, 'StopTime': <int64 <DYNAMIC>>, 'Type': <'encounter'>},)

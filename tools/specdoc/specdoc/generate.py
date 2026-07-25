@@ -21,7 +21,7 @@ from .spec import cross_check, load_spec
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_SPEC = _REPO_ROOT / "data" / "dev.ulduar.Constellar1.spec.yaml"
 _DEFAULT_XML = _REPO_ROOT / "data" / "dev.ulduar.Constellar1.xml"
-_DEFAULT_KEYS_HEADER = _REPO_ROOT / "src" / "common" / "ActivityKeys.h"
+_DEFAULT_KEYS_HEADER = _REPO_ROOT / "src" / "contract" / "ActivityKeys.h"
 _DEFAULT_TEMPLATES = _REPO_ROOT / "tools" / "specdoc" / "templates"
 _DEFAULT_DOC_OUT = _REPO_ROOT / "doc" / "spec"
 _DEFAULT_LICENSE = _REPO_ROOT / "LICENSE"
@@ -102,11 +102,12 @@ def main(argv: list[str] | None = None) -> int:
     index_html = render_index(spec, interfaces, args.templates, license_text)
     pages = {"index.html": index_html}
 
-    coverage_errors = check_index_coverage(index_html, interfaces)
+    object_tree = spec.object_tree
+    coverage_errors = check_index_coverage(index_html, interfaces, spec)
     for iface in interfaces.values():
-        page = render_interface(spec, iface, args.templates)
+        page = render_interface(spec, iface, args.templates, object_tree)
         pages[interface_filename(iface.name)] = page
-        coverage_errors += check_interface_coverage(page, spec, iface)
+        coverage_errors += check_interface_coverage(page, spec, iface, object_tree)
 
     for err in coverage_errors:
         print(f"specdoc: coverage error: {err}", file=sys.stderr)

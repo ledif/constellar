@@ -15,4 +15,6 @@ target_link_libraries(constellar-activitymetadata
     Qt6::Core
     constellar::common
     constellar::tracker
+  PRIVATE
+    constellar::contract
 )

@@ -11,5 +11,6 @@ class ObserverServiceTest : public QObject
     void mapChangePopulatesLocation();
     void zoneChangePopulatesLocation();
     void encounterEndClearsActivity();
+    void encounterEndPublishesDuration();
     void dungeonStartPopulatesActivity();
 };

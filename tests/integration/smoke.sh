@@ -84,4 +84,25 @@ if ! echo "$status_json" | grep -q '"zoneCategory":"unknown"'; then
   exit 1
 fi
 
+# the same encounter must also be reachable as a typed object at /activity/current
+managed_objects=$(gdbus call --session -d dev.ulduar.Constellar1 -o /dev/ulduar/Constellar1 \
+  -m org.freedesktop.DBus.ObjectManager.GetManagedObjects)
+
+echo "GetManagedObjects: $managed_objects"
+
+if ! echo "$managed_objects" | grep -q "'/dev/ulduar/Constellar1/activity/current'"; then
+  echo "FAIL: expected /activity/current in GetManagedObjects, got: $managed_objects" >&2
+  exit 1
+fi
+
+if ! echo "$managed_objects" | grep -q "dev.ulduar.Constellar1.Activity.Encounter"; then
+  echo "FAIL: expected the Activity.Encounter interface, got: $managed_objects" >&2
+  exit 1
+fi
+
+if echo "$managed_objects" | grep -q "dev.ulduar.Constellar1.Activity.Dungeon"; then
+  echo "FAIL: an encounter object must not carry the Dungeon interface: $managed_objects" >&2
+  exit 1
+fi
+
 echo "OK"

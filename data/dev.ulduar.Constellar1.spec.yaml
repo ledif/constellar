@@ -108,10 +108,10 @@ interfaces:
           - const: kDurationMs
             key: durationMs
             type: x
-            applies-to: [dungeon]
+            applies-to: [encounter, dungeon]
             required: true
             stability: stable
-            description: Run duration in milliseconds (dungeon only).
+            description: Run duration in milliseconds.
 
           - const: kStopTime
             key: stopTime
@@ -204,21 +204,172 @@ interfaces:
       - code: dev.ulduar.Constellar1.Error.Internal
         stability: experimental
         description: >
-          Async Error signal. Generic, unclassified daemon-side failure with no
-          outstanding method call (e.g. the combat-log reader died).
+          Generic, unclassified asynchronous daemon-side failure.
       - code: dev.ulduar.Constellar1.Error.RecordingAborted
         stability: experimental
         description: >
-          Async Error signal. A recording failed mid-capture, after its start call had
-          already returned successfully (e.g. the encoder crashed or the disk filled).
-      - code: dev.ulduar.Constellar1.Error.InvalidConfig
-        stability: experimental
-        description: >
-          Method error reply from SetConfig when the supplied configuration bag is
-          invalid. Not delivered via the Error signal.
+          A recording failed mid-capture (e.g. the encoder crashed or the disk filled).
       - code: dev.ulduar.Constellar1.Error.RecordingFailed
         stability: experimental
         description: >
           Method error reply from a recording operation (StartManualRecording /
-          StopManualRecording / DeleteRecording) that fails synchronously. Not
-          delivered via the Error signal.
+          StopManualRecording / DeleteRecording) that fails synchronously.
+
+  dev.ulduar.Constellar1.Activity:
+    description: >
+      A keystone dungeon or raid encounter that the player is engaged in.
+
+    properties:
+      Type:
+        type: s
+        stability: stable
+        description: >
+          Activity kind.
+        enum: [encounter, dungeon, unknown]
+
+      StartTime:
+        type: x
+        stability: stable
+        description: Unix epoch milliseconds.
+
+      StopTime:
+        type: x
+        stability: experimental
+        description: >
+        description: Unix epoch milliseconds
+
+      Outcome:
+        type: s
+        stability: experimental
+        description: Terminal result after the activity ends
+        enum: [success, failure, abandoned, unknown]
+
+      Recording:
+        type: o
+        stability: experimental
+        description: Path of the recording object that captured this activity or
+          `/` if none currently exists.
+
+  dev.ulduar.Constellar1.Activity.Encounter:
+    description: >
+      Present only on activity objects of kind "encounter."
+
+    properties:
+      EncounterId:
+        type: u
+        stability: stable
+        description: Encounter ID.
+
+      EncounterName:
+        type: s
+        stability: stable
+        description: Encounter name.
+
+      Difficulty:
+        type: s
+        stability: stable
+        description: >
+          Human-readable difficulty of the zone.
+        enum: [LFR, Normal, Heroic, Mythic, Unknown]
+
+      DifficultyId:
+        type: u
+        stability: stable
+        description: Raw WoW difficultyID.
+
+  dev.ulduar.Constellar1.Activity.Dungeon:
+    description: >
+      Present only on activity objects of kind "dungeon."
+
+    properties:
+      ZoneId:
+        type: u
+        stability: stable
+        description: Dungeon instance zone ID.
+
+      KeystoneLevel:
+        type: u
+        stability: stable
+        description: Mythic keystone level.
+
+      ChallengeMapId:
+        type: u
+        stability: stable
+        description: >
+          Keystone challenge-mode map ID.
+
+      DurationMs:
+        type: x
+        stability: experimental
+        description: Run duration in milliseconds
+
+  dev.ulduar.Constellar1.Recording:
+    description: >
+      A captured video segment that may span zero or more activities
+
+    properties:
+      Path:
+        type: s
+        stability: experimental
+        description: Filesystem path of the captured segment.
+
+      State:
+        type: s
+        stability: experimental
+        description: Capture state.
+        enum: [recording, complete, failed, unknown]
+
+      DurationMs:
+        type: x
+        stability: experimental
+        description: Segment duration in milliseconds.
+
+      Activities:
+        type: ao
+        stability: experimental
+        description: >
+          The activities this segment captured. Could be empty.
+
+    methods:
+      Delete:
+        description: Delete this recording.
+        stability: experimental
+
+objects:
+  root: /dev/ulduar/Constellar1
+  description: >
+    The root object implements the standard org.freedesktop.DBus.ObjectManager
+    that provides GetManagedObjects, InterfacesAdded and InterfacesRemoved.
+  stability: experimental
+  tree:
+    - path: /dev/ulduar/Constellar1/Observer
+      interfaces: [dev.ulduar.Constellar1.Observer]
+      stability: stable
+      description: >
+        The singleton observer object
+
+    - path: /dev/ulduar/Constellar1/activity/current
+      interfaces:
+        - dev.ulduar.Constellar1.Activity
+        - dev.ulduar.Constellar1.Activity.Encounter
+        - dev.ulduar.Constellar1.Activity.Dungeon
+      stability: experimental
+      description: >
+        The in-progress activity, present only while one exists.
+
+    - path: /dev/ulduar/Constellar1/activities/<id>
+      interfaces:
+        - dev.ulduar.Constellar1.Activity
+        - dev.ulduar.Constellar1.Activity.Encounter
+        - dev.ulduar.Constellar1.Activity.Dungeon
+      stability: experimental
+      status: proposed
+      description: >
+        A specific historical activity
+
+    - path: /dev/ulduar/Constellar1/recordings/<id>
+      interfaces: [dev.ulduar.Constellar1.Recording]
+      stability: experimental
+      status: proposed
+      description: >
+        A specific captured recording

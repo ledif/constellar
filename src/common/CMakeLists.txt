@@ -18,4 +18,5 @@ target_link_libraries(constellar-common
   PUBLIC
     Qt6::Core
     Qt6::DBus
+    constellar::contract
 )

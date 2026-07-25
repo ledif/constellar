@@ -14,7 +14,8 @@ class ActivityMetadata : public QVariantMap
 
     static ActivityMetadata fromEncounter(RaidEncounter const& encounter);
     static ActivityMetadata fromEncounterEnded(
-        RaidEncounter const& encounter, ActivityOutcome outcome, QDateTime const& stopTime
+        RaidEncounter const& encounter, ActivityOutcome outcome, int durationMs,
+        QDateTime const& stopTime
     );
 
     static ActivityMetadata fromDungeon(DungeonRun const& dungeon);

@@ -27,6 +27,15 @@
   <div class="doc"><p>{{ interface.description }}</p></div>
   {% endif %}
 
+  {% if interface.exposed_at %}
+  <h2>Exposed at</h2>
+  <ul class="arg-list">
+   {% for entry in interface.exposed_at %}
+   <li><code>{{ entry.prefix }}{% if entry.placeholder %}<var>{{ entry.placeholder }}</var>{% endif %}</code></li>
+   {% endfor %}
+  </ul>
+  {% endif %}
+
   <section id="overview" class="overview">
    <h2>Methods</h2>
    <table class="overview-table">
@@ -53,7 +62,7 @@
    <h2>Properties</h2>
    <table class="overview-table">
     {% for property in interface.properties %}
-    <tr>
+    <tr{% if property.stability != "stable" %} class="unstable"{% endif %}>
      <td><a href="#property-{{ property.name }}">{{ property.name }}</a></td>
      <td><code>{{ property.type }}</code></td>
      <td>{{ property.access }}</td>
@@ -146,7 +155,9 @@
    {% for property in interface.properties %}
    <article id="property-{{ property.name }}" class="member member--property">
     <span class="anchor"><a href="#property-{{ property.name }}">#</a></span>
-    <h3>{{ property.name }} &mdash; <code>{{ property.type }}</code></h3>
+    <h3>{{ property.name }} &mdash; <code>{{ property.type }}</code>
+     {% if property.stability != "stable" %}<span class="badge">{{ property.stability }}</span>{% endif %}
+    </h3>
     <span class="access-tag">{{ property.access }}</span>
     <div class="doc"><p>{{ property.description }}</p></div>
    </article>
@@ -208,7 +219,7 @@
      {% for err in interface.errors %}
      <tr>
       <td><code>{{ err.code }}</code></td>
-      <td>{{ err.stability }}{% if err.stability == "experimental" %} <span class="badge">experimental</span>{% endif %}</td>
+      <td>{{ err.stability }}{% if err.stability != "stable" %} <span class="badge">{{ err.stability }}</span>{% endif %}</td>
       <td>{{ err.description }}</td>
      </tr>
      {% endfor %}
