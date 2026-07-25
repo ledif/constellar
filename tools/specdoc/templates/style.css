@@ -250,3 +250,46 @@ a {
   font-family: "DejaVu Sans Mono", monospace;
   font-weight: bold;
 }
+
+.object-list {
+  margin: 1ex 0;
+  padding: 0;
+  list-style: none;
+}
+
+.object-list li {
+  margin: 1.5ex 0;
+  padding-left: 1ex;
+  border-left: 3px solid #d3d7cf;
+}
+
+.object-list .object-path {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-weight: bold;
+  font-size: 14pt;
+}
+
+.object-list .path-root {
+  color: #888a85;
+  font-weight: normal;
+}
+
+.object-list .object-type {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-weight: bold;
+  font-size: 12pt;
+  margin: 0.25ex 0;
+}
+
+.object-list .object-also {
+  font-size: 10pt;
+  color: #555753;
+}
+
+.object-list .object-also a {
+  color: #555753;
+}
+
+.object-list p {
+  margin: 0.25ex 0 0;
+}

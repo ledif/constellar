@@ -55,6 +55,19 @@ class Spec:
             )
         return entries
 
+    @property
+    def root_entry(self) -> dict:
+        """The root path shaped like an object-tree entry, so interface pages
+        can backlink the standard ObjectManager the same way as any other
+        object-tree entry."""
+        return {
+            "path": self.objects.get("root", ""),
+            "interfaces": sorted(_STANDARD_INTERFACES),
+            "stability": self.objects.get("stability", "stable"),
+            "status": "implemented",
+            "description": self.objects.get("description", ""),
+        }
+
 
 def load_spec(path: Path) -> Spec:
     with path.open("r", encoding="utf-8") as f:

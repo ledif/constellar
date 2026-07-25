@@ -339,7 +339,7 @@ objects:
   root: /dev/ulduar/Constellar1
   description: >
     The root object implements the standard org.freedesktop.DBus.ObjectManager
-    that provies GetManagedObjects, InterfacesAdded and InterfacesRemoved.
+    that provides GetManagedObjects, InterfacesAdded and InterfacesRemoved.
   stability: experimental
   tree:
     - path: /dev/ulduar/Constellar1/Observer

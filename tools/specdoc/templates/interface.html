@@ -27,6 +27,15 @@
   <div class="doc"><p>{{ interface.description }}</p></div>
   {% endif %}
 
+  {% if interface.exposed_at %}
+  <h2>Exposed at</h2>
+  <ul class="arg-list">
+   {% for entry in interface.exposed_at %}
+   <li><code>{{ entry.prefix }}{% if entry.placeholder %}<var>{{ entry.placeholder }}</var>{% endif %}</code></li>
+   {% endfor %}
+  </ul>
+  {% endif %}
+
   <section id="overview" class="overview">
    <h2>Methods</h2>
    <table class="overview-table">
@@ -210,7 +219,7 @@
      {% for err in interface.errors %}
      <tr>
       <td><code>{{ err.code }}</code></td>
-      <td>{{ err.stability }}{% if err.stability == "experimental" %} <span class="badge">experimental</span>{% endif %}</td>
+      <td>{{ err.stability }}{% if err.stability != "stable" %} <span class="badge">{{ err.stability }}</span>{% endif %}</td>
       <td>{{ err.description }}</td>
      </tr>
      {% endfor %}
