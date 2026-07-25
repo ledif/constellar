@@ -9,11 +9,7 @@
 class InterfaceRegistry;
 class ObjectTreePublisher;
 
-// Serves the whole /activity subtree generically: property shape comes from
-// InterfaceRegistry (the canonical XML), property values come from
-// ObjectTreePublisher::resolve(). Registered once with QDBusConnection::SubPath
-// and never (un)registered per-activity -- the resolver returning nullopt is
-// what produces "no such object" for an idle activity slot.
+// Serves the /activity subtree
 class PropertyTreeObject : public QDBusVirtualObject
 {
     Q_OBJECT
@@ -27,14 +23,12 @@ class PropertyTreeObject : public QDBusVirtualObject
     QString introspect(QString const& path) const override;
     bool handleMessage(QDBusMessage const& message, QDBusConnection const& connection) override;
 
-    // Builds and sends org.freedesktop.DBus.Properties.PropertiesChanged manually
-    // on the registration connection. No call sites yet -- TASK-010's tool.
+    // org.freedesktop.DBus.Properties.PropertiesChanged
     void emitPropertiesChanged(
         QString const& path, QString const& interfaceName, QVariantMap const& changedProperties
     );
 
-    // The message-construction half of emitPropertiesChanged, split out so its
-    // shape (member/interface/args) is unit-testable without a live connection.
+    // TODO: public for unit tests, can we refactor?
     static QDBusMessage buildPropertiesChangedMessage(
         QString const& path, QString const& interfaceName, QVariantMap const& changedProperties
     );

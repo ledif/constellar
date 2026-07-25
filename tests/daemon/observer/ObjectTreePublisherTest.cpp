@@ -53,8 +53,7 @@ void ObjectTreePublisherTest::init()
     m_dir = std::make_unique<QTemporaryDir>();
     QVERIFY(m_dir->isValid());
 
-    // Fast overrun timers -- the ordering/lifecycle tests don't want to sit
-    // through the real 5s/20s daemon defaults.
+    // Fast overrun timers
     ActivityTracker::Config config;
     config.raidOverrunSeconds = 1;
     config.dungeonOverrunSeconds = 1;
@@ -62,9 +61,6 @@ void ObjectTreePublisherTest::init()
     m_service = std::make_unique<ObserverService>(m_dir->path().toStdString(), config);
     m_observerAdaptor = std::make_unique<ObserverDBusAdaptor>(m_service.get(), m_bus);
 
-    // Constructed after ObserverDBusAdaptor so its GameState::activityEnded
-    // connection (and thus ActivityEnded) fires before ObjectTreePublisher's
-    // InterfacesRemoved -- the same ordering main.cpp relies on.
     m_objectTreePublisher = std::make_unique<ObjectTreePublisher>(m_service.get(), m_bus);
 
     QVERIFY(m_bus.registerObject(dbus::kObjectPath, m_service.get()));
@@ -159,9 +155,7 @@ void ObjectTreePublisherTest::activityEndedFiresBeforeInterfacesRemoved()
     QSignalSpy endedSpy(m_observerAdaptor.get(), &ObserverDBusAdaptor::ActivityEnded);
     QVERIFY(endedSpy.isValid());
 
-    // Recorded the instant InterfacesRemoved fires -- proves ActivityEnded's
-    // connected slots (made first in init()) already ran to completion, since
-    // Qt invokes a signal's direct connections strictly in connection order.
+    // Updatee when InterfacesRemoved fires
     int endedCountWhenRemoved = -1;
     connect(
         objectManager, &ObjectManagerAdaptor::InterfacesRemoved, this,

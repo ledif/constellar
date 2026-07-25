@@ -63,8 +63,6 @@ void ActivityProjectionTest::dungeonProjectsActivityAndDungeonInterfaces()
 
 void ActivityProjectionTest::unknownTypeDefaultsAreUnknown()
 {
-    // No activity in progress -- the type/outcome enums must degrade to "unknown"
-    // (ADR-020's unrecognized-value contract), never an empty string.
     QVariantMap const activity = activityInterfaceProperties(QVariantMap{});
     QCOMPARE(activity.value(QStringLiteral("Type")).toString(), QStringLiteral("unknown"));
     QCOMPARE(activity.value(QStringLiteral("Outcome")).toString(), QStringLiteral("unknown"));

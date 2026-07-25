@@ -66,8 +66,6 @@ int main(int argc, char* argv[])
 
     auto _ = std::make_unique<ObserverDBusAdaptor>(service.get(), bus);
 
-    // Constructed after ObserverDBusAdaptor so GameState::activityEnded's connections
-    // fire ActivityEnded (still-valid path) before this emits InterfacesRemoved.
     auto objectTreePublisher = std::make_unique<ObjectTreePublisher>(service.get(), bus, &app);
 
     QString discordAppId =

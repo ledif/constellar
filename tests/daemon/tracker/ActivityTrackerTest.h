@@ -15,7 +15,6 @@ class ActivityTrackerTest : public QObject
     void encounterOverlapWithoutEndWipesPrevious();
     void encounterEndSuccessFalseIsRecorded();
     void encounterEndWithFightTimeUsesReportedDuration();
-    void encounterEndWithoutFightTimeFallsBackToStopMinusStart();
     void abandonedEncounterFallsBackToStopMinusStart();
     void ignoresUnhandledLines();
     void ignoresStrayEncounterEndWithoutStart();

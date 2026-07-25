@@ -10,12 +10,7 @@
 #include "dbus/ObjectTreePublisher.h"
 #include "dbus/adaptors/ObserverDBusAdaptor.h"
 
-// Exercises the RFC-006/TASK-009 object tree over a *real* D-Bus connection (this
-// binary is run under dbus-run-session -- see CMakeLists.txt's DBUS_SESSION), not
-// just the in-process projection functions activityprojection_test covers. Proves
-// the nested a{oa{sa{sv}}} GetManagedObjects marshalling actually round-trips, and
-// that ActivityEnded/InterfacesRemoved fire in the order TASK-009's binding table
-// requires.
+// Uses a real D-Bus connection with dbus-run-session
 class ObjectTreePublisherTest : public QObject
 {
     Q_OBJECT

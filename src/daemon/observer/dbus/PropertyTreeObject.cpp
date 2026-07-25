@@ -1,5 +1,6 @@
 #include "PropertyTreeObject.h"
 
+#include <algorithm>
 #include <utility>
 
 #include <QDBusMetaType>
@@ -89,10 +90,9 @@ QString PropertyTreeObject::introspectionXmlFor(QString const& subPath) const
 {
     QString const path = stripSubtreeRoot(subPath);
 
+    // The /activity parent node
     if (path.isEmpty())
     {
-        // The /activity parent node: lists "current" only while an activity is
-        // live. Nothing else is served under this subtree yet.
         bool const live = m_publisher.resolve(dbus::kActivityObjectPath).has_value();
         QString xml = u"<node>\n"_s;
         if (live)
@@ -107,16 +107,13 @@ QString PropertyTreeObject::introspectionXmlFor(QString const& subPath) const
         return u"<node>\n</node>\n"_s;
 
     QString xml = u"<node>\n"_s;
-    for (auto const& [interfaceName, props] : *snapshot)
-    {
-        Q_UNUSED(props);
+    for (auto const& [interfaceName, _] : *snapshot)
         if (auto const* descriptor = m_registry.find(interfaceName))
             xml += descriptor->xml;
-    }
-    // Standard interfaces Qt's generated adaptor machinery contributes to
-    // every classic object's introspection; a QDBusVirtualObject gets none of
-    // that for free, so we serve them from data/dbus-standard-interfaces.xml.
+
+    // Add standard interfaces
     xml += m_registry.standardInterfacesXml();
+
     xml += u"</node>\n"_s;
     return xml;
 }
@@ -159,17 +156,11 @@ bool PropertyTreeObject::handleProperties(
         return true;
     }
 
-    QVariantMap const* bag = nullptr;
-    for (auto const& [iface, props] : *snapshot)
-    {
-        if (iface == interfaceName)
-        {
-            bag = &props;
-            break;
-        }
-    }
+    auto const entry = std::ranges::find_if(
+        *snapshot, [&interfaceName](auto const& pair) { return pair.first == interfaceName; }
+    );
 
-    if (!bag)
+    if (entry == snapshot->cend())
     {
         connection.send(
             message.createErrorReply(kUnknownInterfaceError, u"No such interface " + interfaceName)
@@ -177,15 +168,16 @@ bool PropertyTreeObject::handleProperties(
         return true;
     }
 
+    QVariantMap const& bag = entry->second;
+
     InterfaceDescriptor const* descriptor = m_registry.find(interfaceName);
-    // interfaceName came out of the resolver's own snapshot, so the registry
-    // must know its shape.
+
     Q_ASSERT(descriptor);
 
     if (member == u"GetAll"_s)
     {
         connection.send(
-            message.createReply(QVariantList{QVariant::fromValue(coerceBag(*descriptor, *bag))})
+            message.createReply(QVariantList{QVariant::fromValue(coerceBag(*descriptor, bag))})
         );
         return true;
     }
@@ -208,7 +200,7 @@ bool PropertyTreeObject::handleProperties(
         return true;
     }
 
-    QVariant const value = coerceValue(property->signature, bag->value(propertyName));
+    QVariant const value = coerceValue(property->signature, bag.value(propertyName));
     connection.send(message.createReply(QVariantList{QVariant::fromValue(QDBusVariant(value))}));
     return true;
 }
@@ -241,6 +233,6 @@ QDBusMessage PropertyTreeObject::buildPropertiesChangedMessage(
         QDBusMessage::createSignal(path, kPropertiesInterface, u"PropertiesChanged"_s);
     signal << interfaceName;
     signal << QVariant::fromValue(changedProperties);
-    signal << QVariant::fromValue(QStringList{});  // invalidated_properties: always empty
+    signal << QVariant::fromValue(QStringList{});  // invalidated_properties
     return signal;
 }

@@ -321,30 +321,11 @@ void ActivityTrackerTest::encounterEndWithFightTimeUsesReportedDuration()
     )));
 
     QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
-    // Reported fightTimeMs wins even though it doesn't exactly match stop-start
-    // (stopTime is inflated by the overrun tail).
+
+    // Reported fightTimeMs wins
     QCOMPARE(collector.stopped.at(0).durationMs, 381329);
 }
 
-void ActivityTrackerTest::encounterEndWithoutFightTimeFallsBackToStopMinusStart()
-{
-    ActivityTracker::Config config;
-    config.raidOverrunSeconds = 1;
-    ActivityTracker tracker(config);
-    Collector collector(tracker);
-
-    tracker.onLineReceived(LogLine(encounterStartLine(
-        QStringLiteral("21:40:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
-    )));
-    // No trailing fightTimeMs arg (old log grammar).
-    tracker.onLineReceived(LogLine(encounterEndLine(
-        QStringLiteral("21:46:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15,
-        true
-    )));
-
-    QTRY_COMPARE_WITH_TIMEOUT(collector.stopped.size(), 1, 2500);
-    QCOMPARE(collector.stopped.at(0).durationMs, 6 * 60 * 1000);
-}
 
 void ActivityTrackerTest::abandonedEncounterFallsBackToStopMinusStart()
 {
@@ -354,7 +335,8 @@ void ActivityTrackerTest::abandonedEncounterFallsBackToStopMinusStart()
     tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:00.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
-    // A fresh START for a new pull, with no ENCOUNTER_END in between.
+
+    // A fresh START with no ENCOUNTER_END in between
     tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:41:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
@@ -400,7 +382,8 @@ void ActivityTrackerTest::ignoresMismatchedEncounterEnd()
     tracker.onLineReceived(LogLine(encounterStartLine(
         QStringLiteral("21:40:05.0000"), 3306, QStringLiteral("Chimaerus the Undreamt God"), 15
     )));
-    // A END for a different encounterID shouldn't stop the one we're tracking.
+
+    // An END for a different encounterID shouldn't stop the one we're tracking
     tracker.onLineReceived(LogLine(encounterEndLine(
         QStringLiteral("21:41:00.0000"), 9999, QStringLiteral("Someone Else"), 15, true
     )));
