@@ -346,8 +346,7 @@ objects:
       interfaces: [dev.ulduar.Constellar1.Observer]
       stability: stable
       description: >
-        Unchanged by this task: the live level-triggered Activity/Location
-        properties, ActivityEnded, Error (ADR-012).
+        The singleton observer object
 
     - path: /dev/ulduar/Constellar1/activity/current
       interfaces:
@@ -356,11 +355,7 @@ objects:
         - dev.ulduar.Constellar1.Activity.Dungeon
       stability: experimental
       description: >
-        The in-progress activity, present only while one exists. Composes the
-        base Activity interface plus exactly one of Activity.Encounter /
-        Activity.Dungeon depending on kind. Buildable now (TASK-009) from the
-        same data source as the Observer Activity property; its Recording
-        property is always `/` until TASK-010 lands.
+        The in-progress activity, present only while one exists.
 
     - path: /dev/ulduar/Constellar1/activities/<id>
       interfaces:
@@ -368,16 +363,13 @@ objects:
         - dev.ulduar.Constellar1.Activity.Encounter
         - dev.ulduar.Constellar1.Activity.Dungeon
       stability: experimental
+      status: proposed
       description: >
-        History: one object per detected activity, recorded or not. Same
-        interface composition as /activity/current. Blocked on MetadataStore
-        (TASK-010).
+        A specific historical activity
 
     - path: /dev/ulduar/Constellar1/recordings/<id>
       interfaces: [dev.ulduar.Constellar1.Recording]
       stability: experimental
+      status: proposed
       description: >
-        "The Library": one object per captured segment, with or without an
-        activity. There is no .Library interface -- enumeration is
-        ObjectManager, per-item delete is Recording.Delete(). Blocked on
-        Phase 2 libobs capture + MetadataStore (TASK-010).
+        A specific captured recording

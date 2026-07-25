@@ -43,8 +43,8 @@ class ObserverDBusAdaptor : public QDBusAbstractAdaptor
     void SetConfig(QVariantMap const& config);
 
   Q_SIGNALS:
-    // `path` identifies the ended activity (RFC-006); always /activity/current
-    // until TASK-010 re-homes ended activities to /activities/<id>.
+    // `path` identifies the ended activity; always /activity/current until
+    // ended activities are re-homed to /activities/<id>.
     void ActivityEnded(QDBusObjectPath const& path, QVariantMap const& activity);
     void Error(QString const& code, QString const& message);
 

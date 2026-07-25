@@ -46,9 +46,7 @@
     </signal>
   </interface>
 
-  <!-- Object-path contract (RFC-006): typed interfaces composed onto activity/
-       recording objects. Paper only in this revision, no adaptor registers
-       these objects yet (TASK-009/TASK-010). -->
+  <!-- Object-path contract -->
 
   <interface name="dev.ulduar.Constellar1.Activity">
     <property name="Type" type="s" access="read"/>
@@ -81,11 +79,7 @@
     <method name="Delete"/>
   </interface>
 
-  <!-- Standard freedesktop interface on the root object (/dev/ulduar/Constellar1).
-       Not redefined member-by-member in the sidecar, see the `objects:` section
-       of data/dev.ulduar.Constellar1.spec.yaml. QtTypeName choices follow the
-       bluez-qt precedent for a{sa{sv}}/a{oa{sa{sv}}}, which Qt has no native
-       mapping for; TASK-009 defines the matching Q_DECLARE_METATYPE aliases. -->
+  <!-- Standard freedesktop interface on the root object -->
   <interface name="org.freedesktop.DBus.ObjectManager">
     <method name="GetManagedObjects">
       <arg name="objects" type="a{oa{sa{sv}}}" direction="out"/>
